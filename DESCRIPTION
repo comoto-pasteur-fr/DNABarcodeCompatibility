@@ -1,0 +1,19 @@
+Package: MyTestPackage
+Type: Package
+Title: A tool for selecting optimal combinations of compatible DNA barcodes used in Next Generation Sequencing multiplexing experiments on 2-channel (dual color) sequencers
+Version: 0.1.0
+Author: Céline Trébeau
+Maintainer: Céline Trébeau <celine.trebeau@pasteur.fr>
+Authors@R: c(
+    person("Céline", "Trébeau", email = "celine.trebeau@pasteur.fr", role = "aut"),
+    person("Jacques", "Boutet de Monvel", email = "jacques.boutet-de-monvel@pasteur.fr", role = "ctb"),
+    person("Raphaël", "Etournay", email = "raphael.etournay@pasteur.fr", role = "ctb"))
+Description: The package allows one to obtain an optimal combination of compatible DNA barcodes to be used for dual-color sequencing.The user inputs a list of available DNA barcodes, the total number of libraries to be sequenced and the number of libraries by multiplex group. The resulting output consists of a set of least redundant and compatible DNA barcodes assigned to libraries and organized as multiplex groups (flow-cell lanes).
+License: GPL-2
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 6.0.1
+Imports: 
+    dplyr,
+    tidyr,
+    tibble
