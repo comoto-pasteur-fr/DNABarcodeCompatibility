@@ -1,4 +1,4 @@
-Package: MyTestPackage
+Package: DNABarcodeCompatibility
 Type: Package
 Title: A tool for selecting optimal combinations of compatible DNA barcodes used in Next Generation Sequencing multiplexing experiments on 2-channel (dual color) sequencers
 Version: 0.1.0
@@ -16,4 +16,8 @@ RoxygenNote: 6.0.1
 Imports: 
     dplyr,
     tidyr,
-    tibble
+    numbers,
+    purrr,
+    DNABarcodes,
+    stringr
+    
