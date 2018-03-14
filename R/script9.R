@@ -142,8 +142,8 @@ file_loading_and_checking = function(file){
 index_distance = function (index){
   index_couple = combn(index$sequence,2)  %>% t()%>%  as.data.frame(., stringsAsFactors = FALSE)
   index_couple = index_couple %>% mutate(n = 1 : nrow(index_couple))
-  index_couple = index_couple %>% group_by(n) %>% mutate (hamming = distance(V1, V2, metric = "hamming"),
-                                                          seqlev = distance (V1, V2, metric = "seqlev"))
+  index_couple = index_couple %>% group_by(n) %>% mutate (hamming = DNABarcodes::distance(V1, V2, metric = "hamming"),
+                                                          seqlev = DNABarcodes::distance (V1, V2, metric = "seqlev"))
   return(index_couple)
 }
 
@@ -372,20 +372,16 @@ entropy_result = function (index_combination){
   return (entropy)
 }
 
-# Celine's entropy for given parameters
-celine_entropy = function (index_number,sample_number){
-  k = index_number
-  n = sample_number
-  entropy =
-    - (k - (n %% k)) * (floor(n/k)/n) * log(floor(n/k)/n) -
-    (n %% k) * (ceiling(n/k)/n) * log(ceiling(n/k)/n)
-  return(entropy)
-}
 
-
+# Max entropy
 entropy_max = function (index_number,sample_number){
   if(sample_number > index_number){
-    return (celine_entropy(index_number, sample_number))
+    k = index_number
+    n = sample_number
+    entropy =
+      - (k - (n %% k)) * (floor(n/k)/n) * log(floor(n/k)/n) -
+      (n %% k) * (ceiling(n/k)/n) * log(ceiling(n/k)/n)
+    return (entropy)
   }
   else {
     return(log(sample_number))
