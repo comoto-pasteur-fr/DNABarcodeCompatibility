@@ -1,4 +1,4 @@
-#' DNABarcodeCompatibility: to find least-redundant sets of compatible barcodes for multiplex experiments performed on Illumina sequencing platforms
+#' DNABarcodeCompatibility: to find least-redundant sets of compatible barcodes for multiplex experiments performed on Illumina sequencing platforms.
 #'
 #' 
 #' The DNABarcodeCompatibility package provides six functions to load DNA barcodes, and to generate, filter and optimize sets of compatible barcode combinations for multiplex sequecing experiments.

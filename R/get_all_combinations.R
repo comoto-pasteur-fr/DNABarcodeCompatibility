@@ -25,7 +25,6 @@
 #' 
 #'
 #' @seealso 
-#' \code{\link{file_loading_and_formatting}}
 #' \code{\link{get_random_combinations}}
 #' 
 #' @export
