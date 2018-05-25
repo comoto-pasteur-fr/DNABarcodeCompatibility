@@ -3,7 +3,6 @@
 export(any_different)
 export(binary_word_into_numeric)
 export(character_and_length_check)
-export(character_check)
 export(comb_result)
 export(display_message)
 export(entropy_max)
