@@ -10,7 +10,7 @@
 #' @param file The input data file that contains 2 columns separted by a space or a tabulation, namely the sequence identifiers and corresponding DNA sequence.
 #'
 #' @details 
-#' This function loads the DNA barcodes from the input file and checks barcodes for unicity (identifier and sequence), DNA content, and equal size. It also calculates the GC content and detects the presence of homopolymers of length > 3.
+#' This function loads the DNA barcodes from the input file and checks barcodes for unicity (identifier and sequence), DNA content, and equal size. It also calculates the GC content and detects the presence of homopolymers of length >= 3.
 #'
 #' @return 
 #' Returns a dataframe containing sequence identifiers, nucleotide sequence, GC content, presence of homopolymers.
@@ -22,7 +22,7 @@
 #' @export
 #' 
 
-file_loading_and_formatting = function(file){
+file_loading_and_checking = function(file){
   index = read_index(file) 
   if (!is.null(index) && index_check(index)){#  if no issue
     index_number <<- nrow(index)
