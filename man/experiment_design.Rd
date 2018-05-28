@@ -2,30 +2,31 @@
 % Please edit documentation in R/experiment_design.R
 \name{experiment_design}
 \alias{experiment_design}
-\title{Get compatible combinations of DNA barcodes}
+\title{Find a set of barcode combinations with least redundant barcodes for single and dual indexing}
 \usage{
-experiment_design(file1, sample_number, multiplexing_level, file2 = NULL, export = NULL,  filter = NULL, metric = 3)
+experiment_design(file1, sample_number, multiplexing_level, chemistry = 4, file2 = NULL, export = NULL, metric = NULL, d = 3)
 }
 \arguments{
-\item{sample_number}{number of libraries to be sequenced}
+\item{sample_number}{Number of libraries to be sequenced.}
 
-\item{multiplexing_level}{the number of samples to be multiplexed for sequencing}
+\item{multiplexing_level}{The number at which the barcodes will be multiplexed.}
 
-\item{export}{TO BE DOCUMENTED}
+\item{export}{If not NULL, results are saved in a csv file at the specified path.}
 
-\item{filter}{TO BE DOCUMENTED}
+\item{metric}{The type of distance (hamming or seqlev).}
 
-\item{metric}{minimal distance allowed between barcodes TO BE RENAMED dist}
+\item{d}{The minimum value of the distance.}
 
-\item{file1}{path to the file containing the barcode names and the corresponding DNA sequences.}
+\item{file1}{Path to the file containing the barcode names and the corresponding DNA sequences.}
 
-\item{file2}{path to the file containing the barcode names and the corresponding DNA sequences; used for dual-indexing.}
+\item{file2}{Path to the file containing the barcode names and the corresponding DNA sequences; used for dual-indexing.}
 }
 \value{
 Returns a dataframe containing compatible DNA-barcode combinations organized by lanes of the flow cell.
 }
 \description{
-Performs either an exhaustive or a random search of compatible DNA-barcode combinations depending on the size of the DNA-barcode population and of the number of samples to be multiplexed.
+This function uses the Shannon Entropy to identify a set of compatible barcode combinations with least redundancy between DNA barcodes, in the contexts of single and dual indexing.
+It performs either an exhaustive or a random search of compatible DNA-barcode combinations depending on the size of the DNA-barcode population and of the number of samples to be multiplexed.
 }
 \details{
 Illumina 4-channel sequencers use a green laser to read G/T nucleotides and a red laser to
@@ -55,7 +56,7 @@ TO BE DOCUMENTED: 2-channel sequencers
 }
 \examples{
 write.table(DNABarcodeCompatibility::illumina, file <- tempfile(), row.names = FALSE, col.names = FALSE, quote=FALSE)
-results <- experiment_design(file, 6, 3)
+experiment_design(index1=file, sample_number=18, multiplexing_level=3, chemistry=2)
 
 
 }
