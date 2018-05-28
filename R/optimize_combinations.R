@@ -5,26 +5,24 @@
 #' This function uses the Shannon Entropy to identify a set of compatible barcode combinations with least redundancy between DNA barcodes.
 #'
 #' @usage 
-#' optimize_combinations(index_df, sample_number, multiplexing_level, chemistry, metric = NULL, d = 3)
+#' optimize_combinations(combination_m, nb_lane, index_number)
 #'
 #' @param 
-#' index_df A dataframe containg barcodes identifiers, corresponding DNA sequences along with GC content and presence of homopolymers.
-#' sample_number The number of libraries to be sequenced.
-#' multiplexing_level The number at which the barcodes will be multiplexed.
-#' chemistry An integer representing the number of channels (1, 2, 4) of the desired Illumina plateform.
-#' metric The type of distance (hamming or seqlev).
-#' d The minimum value of the distance.
+#' combination_m A matrix of compatible barcode combinations.
+#' nb_lane The number of lanes to be use for sequencing (i.e. the number of libraries divided by the multiplex level).
+#' index_number The total number of distinct DNA barcodes in the dataset.
 #'
 #' @details 
 #' 
 #'
 #' @return 
-#' Returns a matrix containing an optimized set of compatible combinations of barcodes.
+#' Returns a matrix containing an optimized set of combinations of compatible barcodes.
 #'
 #' @examples
 #' write.table(DNABarcodeCompatibility::illumina, file <- tempfile(), row.names = FALSE, col.names = FALSE, quote=FALSE)
 #' barcodes <- file_loading_and_checking(file)
-#' optimize_combinations(barcodes, 9, 3, 4, "hamming", 3)
+#' m <- get_random_combinations(barcodes, 3, 4)
+#' optimize_combinations(m, 12, 48)
 #' 
 #'
 #' @seealso 
@@ -34,15 +32,17 @@
 #' @export
 #' 
 
-optimize_combinations = function (index_df, sample_number, multiplexing_level, chemistry, metric = NULL, d = 3){
-  combinations_m = get_combinations(index_df, multiplexing_level, chemistry)
-  if(!is.null(metric)){
-    combinations_m = distance_constraints_filter (index_df, combinations_m, metric, d)
+optimize_combinations = function (combination_m, nb_lane, index_number){
+  max = entropy_max(index_number, length(combination_m) * nb_lane)
+  sample_combination = combination_m[sample(1:nrow(combination_m),100)]
+  if(nb_lane < nrow(combination_m)){
+    if(combination_m > 100){
+      possible_combination = 
+        for (i in 1:10){
+          sample_combination = combination_m[sample(1:nrow(combination_m),100)]
+          one_combination = recursive_entropy()
+        }
+    }
+    
   }
-  nb_lane = sample_number %>% as.numeric() / multiplexing_level %>% as.numeric()
-  cb = comb_result(combinations_m, sample_number, index_number, nb_lane) %>% as.data.frame()
-  result = data.frame(Id = as.vector(cb%>% t() %>% as.vector),
-                      Lane = (rep(1:nb_lane, length.out = sample_number, each = multiplexing_level)))
-  result$Id = as.character(result$Id)
-  return(result)
 }
