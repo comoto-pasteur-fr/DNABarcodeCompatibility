@@ -7,9 +7,11 @@
 optimize_combinations(combination_m, nb_lane, index_number)
 }
 \arguments{
-\item{combination_m}{A matrix of compatible barcode combinations.
-nb_lane The number of lanes to be use for sequencing (i.e. the number of libraries divided by the multiplex level).
-index_number The total number of distinct DNA barcodes in the dataset.}
+\item{combination_m}{A matrix of compatible barcode combinations.}
+
+\item{nb_lane}{The number of lanes to be use for sequencing (i.e. the number of libraries divided by the multiplex level).}
+
+\item{index_number}{The total number of distinct DNA barcodes in the dataset.}
 }
 \value{
 Returns a matrix containing an optimized set of combinations of compatible barcodes.
@@ -21,7 +23,8 @@ This function uses the Shannon Entropy to identify a set of compatible barcode c
 
 }
 \examples{
-write.table(DNABarcodeCompatibility::illumina, file <- tempfile(), row.names = FALSE, col.names = FALSE, quote=FALSE)
+write.table(DNABarcodeCompatibility::illumina,
+ file <- tempfile(), row.names = FALSE, col.names = FALSE, quote=FALSE)
 barcodes <- file_loading_and_checking(file)
 m <- get_random_combinations(barcodes, 3, 4)
 optimize_combinations(m, 12, 48)
@@ -29,6 +32,7 @@ optimize_combinations(m, 12, 48)
 
 }
 \seealso{
-\code{\link{get_all_combinations}}
-\code{\link{get_random_combinations}}
+\code{\link{get_all_combinations()}}, 
+\code{\link{get_random_combinations()}}, 
+\code{\link{experiment_design()}}
 }

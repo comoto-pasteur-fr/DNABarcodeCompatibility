@@ -4,22 +4,25 @@
 \alias{experiment_design}
 \title{Find a set of barcode combinations with least redundant barcodes for single and dual indexing}
 \usage{
-experiment_design(file1, sample_number, multiplexing_level, chemistry = 4, file2 = NULL, export = NULL, metric = NULL, d = 3)
+experiment_design(file1, sample_number, mplex_level, chemistry = 4,
+ file2 = NULL, export = NULL, metric = NULL, d = 3)
 }
 \arguments{
+\item{file1}{Path to the file containing the barcode names and the corresponding DNA sequences.}
+
 \item{sample_number}{Number of libraries to be sequenced.}
 
-\item{multiplexing_level}{The number at which the barcodes will be multiplexed.}
+\item{mplex_level}{The number at which the barcodes will be multiplexed.}
+
+\item{chemistry}{An integer representing the number of channels (1, 2, 4) of the desired Illumina plateform.}
+
+\item{file2}{Path to the file containing the barcode names and the corresponding DNA sequences; used for dual-indexing.}
 
 \item{export}{If not NULL, results are saved in a csv file at the specified path.}
 
 \item{metric}{The type of distance (hamming or seqlev).}
 
 \item{d}{The minimum value of the distance.}
-
-\item{file1}{Path to the file containing the barcode names and the corresponding DNA sequences.}
-
-\item{file2}{Path to the file containing the barcode names and the corresponding DNA sequences; used for dual-indexing.}
 }
 \value{
 Returns a dataframe containing compatible DNA-barcode combinations organized by lanes of the flow cell.
@@ -29,37 +32,44 @@ This function uses the Shannon Entropy to identify a set of compatible barcode c
 It performs either an exhaustive or a random search of compatible DNA-barcode combinations depending on the size of the DNA-barcode population and of the number of samples to be multiplexed.
 }
 \details{
-Illumina 4-channel sequencers use a green laser to read G/T nucleotides and a red laser to
-read A/C nucleotides. With each sequencing cycle at least one of the two
-nucleotides for each color channel must be read to ensure proper registration.
-Since the DNA-barcode sequence of pooled, multiplexed libraries will be read
-simultaneously, it is important to maintain color balance for each base of the
-DNA-barcode sequences in the pooled library. Otherwise, DNA-barcode sequencing will fail due
-to registration failure.
-
-By specifying the total number of libraries and the number of libraries to be multiplexed, 
+By specifying the total number of libraries and the number of libraries to be multiplexed,
 this function returns an optimal combination of DNA barcodes to be used for sequencing.
-This function first converts DNA barcodes into binary words: A and C will be converted in "0", G and T in "1", see \code{\link{sequence_binary_conversion}}. 
 
-Second, it selects a series of combinations of binarized barcodes that are compatible for 2-channel sequencing, see \code{\link{is_a_good_combination}}, \code{\link{get_combinations}}.
+The inputs of the algorithm are a list of n distinct barcodes, the number N of required libraries, and the multiplex level k; N = ak, where a is the number of lanes of the flow cells to be used for the experiment.
+\itemize{
+\item Step 1:
+}
 
-Third, it reduces redundancy between DNA barcodes so that consumables can be used as much homogeneously as possible in order to extend the life time of expensive library-preparation kits. To this end, the maximum entropy of the distribution of barcodes is calculated given the available number of barcodes and libraries, see \code{\link{entropia_result}}, \code{\link{entropia_max}}. The maximum-entropy value sets the upper limit to be reached or approached when calculating the entropy of concurrent sets of compatible DNA barcodes.  
+This step consists of identifying a set of compatible barcode combinations. Given the number of barcodes and the multiplex level,
+the total number of barcode combinations (compatible or not) reads:  \deqn{{n}\choose{k}}
+If this number is not too large, the algorithm will perform an exhaustive search and output all compatible combinations of k barcodes.
+Otherwise, it will proceed by picking up combinations at random, in order to identify a large enough set of compatible barcode combinations.
+\itemize{
+\item Step 2:
+}
 
-Case 1: number of lanes < number of compatible DNA-barcode combinations
-This function seeks for compatible DNA-barcode combinations of highest entropy. The search stops either if the maximum-entropy value is reached for a given set of DNA-barcode combinations or after 1000 iterations but returning the set of DNA-barcode combinations of the highest entropy.
-The criterium of 1000 iterations has been choosen based on simulations.
+We then select the N/k compatible combinations to be used in the experiment using a Shannon entropy maximization approach.
+It can be shown that the maximum value of the entropy that can be attained for a selection of N barcodes among n, with possible repetitions, reads:
+\deqn{S_{max}=-(n-r)\frac{\lfloor N/n\rfloor}{N}\log(\frac{\lfloor N/n\rfloor}{N})-r\frac{\lceil N/n\rceil}{N}\log(\frac{\lceil N/n\rceil}{N})}
 
-Case 2: number of lanes > number of compatible DNA-barcode combinations
-In such a case, there are not enough compatible DNA-barcode combinations and redundancy is inevitable. This may dramatically decrease the life time of the library-preparation kits leading to the necessity to buy new expensive kits just for providing enough of some DNA barcodes.
+where r denotes the rest of the division of N by n, and
+\deqn{\lfloor N/n\rfloor} and \deqn{\lceil N/n\rceil} denote
+the lower and upper integer parts of N/n, respectively.\preformatted{+ Case 1: number of lanes < number of compatible DNA-barcode combinations
+}
 
-TO BE DOCUMENTED: 2-channel sequencers
+This function seeks for compatible DNA-barcode combinations of highest entropy.
+In brief this function uses a greedy descent algorithm to find an optimized selection.
+Note that the resulting optimized selection isn't necessary a globally optimal solution.\preformatted{+ Case 2: number of lanes >= number of compatible DNA-barcode combinations
+}
+
+In such a case, there are not enough compatible DNA-barcode combinations and redundancy is inevitable.
 }
 \examples{
-write.table(DNABarcodeCompatibility::illumina, file <- tempfile(), row.names = FALSE, col.names = FALSE, quote=FALSE)
-experiment_design(index1=file, sample_number=18, multiplexing_level=3, chemistry=2)
+write.table(DNABarcodeCompatibility::illumina,
+ file <- tempfile(), row.names = FALSE, col.names = FALSE, quote=FALSE)
+experiment_design(file1=file, sample_number=18, mplex_level=3, chemistry=4)
 
 
-}
-\seealso{
-\code{\link{get_result}}
+
+
 }

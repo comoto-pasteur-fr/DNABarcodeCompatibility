@@ -19,7 +19,8 @@ Load the file containing DNA barcodes and analyze barcode content.
 This function loads the DNA barcodes from the input file and checks barcodes for unicity (identifier and sequence), DNA content, and equal size. It also calculates the GC content and detects the presence of homopolymers of length >= 3.
 }
 \examples{
-write.table(DNABarcodeCompatibility::illumina, file <- tempfile(), row.names = FALSE, col.names = FALSE, quote=FALSE)
+write.table(DNABarcodeCompatibility::illumina,
+ file <- tempfile(), row.names = FALSE, col.names = FALSE, quote=FALSE)
 file_loading_and_checking(file)
 
 }

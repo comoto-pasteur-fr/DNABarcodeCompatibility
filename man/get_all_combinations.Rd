@@ -4,12 +4,14 @@
 \alias{get_all_combinations}
 \title{Get all compatible combinations.}
 \usage{
-get_all_combinations(index_df, multiplexing_level, chemistry)
+get_all_combinations(index_df, mplex_level, chemistry)
 }
 \arguments{
-\item{index_df}{A dataframe containg barcodes identifiers, corresponding DNA sequences along with GC content and presence of homopolymers.
-multiplexing_level The number at which the barcodes will be multiplexed.
-chemistry An integer representing the number of channels (1, 2, 4) of the desired Illumina plateform.}
+\item{index_df}{A dataframe containg barcodes identifiers, corresponding DNA sequences along with GC content and presence of homopolymers.}
+
+\item{mplex_level}{The number at which the barcodes will be multiplexed.}
+
+\item{chemistry}{An integer representing the number of channels (1, 2, 4) of the desired Illumina plateform.}
 }
 \value{
 Returns a matrix containing the identifiers of compatible barcode combinations.
@@ -21,12 +23,13 @@ Find the exhaustive set of compatible barcode combinations.
 Be aware that the number of combinations may tend to infinity.
 }
 \examples{
-write.table(DNABarcodeCompatibility::illumina, file <- tempfile(), row.names = FALSE, col.names = FALSE, quote=FALSE)
+write.table(DNABarcodeCompatibility::illumina,
+ file <- tempfile(), row.names = FALSE, col.names = FALSE, quote=FALSE)
 barcodes <- file_loading_and_checking(file)
 get_all_combinations(barcodes, 3, 4)
 
 
 }
 \seealso{
-\code{\link{get_random_combinations}}
+\code{\link{get_random_combinations()}}
 }
