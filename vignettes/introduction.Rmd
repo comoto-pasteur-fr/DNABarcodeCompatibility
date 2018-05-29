@@ -34,38 +34,23 @@ The `html_vignette` template includes a basic CSS theme. To override this theme 
       rmarkdown::html_vignette:
         css: mystyles.css
 
-## Figures
-
-The figure sizes have been customised so that you can easily put two images side-by-side. 
-
-```{r, fig.show='hold'}
-plot(1:10)
-plot(10:1)
-```
-
-You can enable figure captions by `fig_caption: yes` in YAML:
-
-    output:
-      rmarkdown::html_vignette:
-        fig_caption: yes
-
-Then you can use the chunk option `fig.cap = "Your figure caption."` in **knitr**.
 
 ## More Examples
 
 You can write math expressions, e.g. $Y = X\beta + \epsilon$, footnotes^[A footnote here.], and tables, e.g. using `knitr::kable()`.
 
-```{r, echo=FALSE, results='asis'}
-knitr::kable(head(mtcars, 10))
-
+```{r, echo=TRUE}
+library("DNABarcodeCompatibility")
 write.table(DNABarcodeCompatibility::illumina, file <- tempfile(), row.names = FALSE, col.names = FALSE, quote=FALSE)
-results <- file_loading_and_checking(file)
+barcodes <- file_loading_and_checking(file)
+head(barcodes)
+head(get_all_combinations(barcodes, 3, 4))
 
-get_all_combinations()
-get_random_combinations()
+m <- get_random_combinations(barcodes, 3, 4)
+filtered_m <- distance_filter(barcodes, m, "hamming", 3)
+optimize_combinations(filtered_m, 12, 48)
 
-filter_combintations()
-comb_result()
+experiment_design(file1=file, sample_number=18, mplex_level=3, chemistry=4)
 
 ```
 
