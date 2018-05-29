@@ -1,10 +1,10 @@
 
-library("dplyr")
-library("tidyr")
-library("numbers")
-library("purrr")
-library ("stringr")
-library("DNABarcodes")
+# library("dplyr")
+# library("tidyr")
+# library("numbers")
+# library("purrr")
+# library ("stringr")
+# library("DNABarcodes")
 
 
 error_messsage = ""
@@ -183,20 +183,6 @@ sample_and_multiplexing_level_check = function(sample_number,multiplexing_level)
   }else {return(FALSE)}}
 
 
-file_loading_and_checking = function(file){
-  index = read_index(file) 
-  if (!is.null(index) && index_check(index)){#  if no issue
-    index_number <<- nrow(index)
-    index  = index %>% mutate (GC_content = get_index_GC_content(index), 
-                               homopolymer = get_index_homopolymer(index))
-    #index_distances <<- index_distance(index)
-    return (index)
-  }else{
-    return(NULL)
-  }
-}
-
-
 # Binary conversion -------------------------------------------------------
 
 # function used for the traduction of the nucleotide sequences into binary sequences according to the chemistry
@@ -248,9 +234,9 @@ sequence_binary_conversion_2_channel_2 = function(sequence){
 
 # index traduction for a 2_channel chemistry :
 index_binary_conversion_2_channel = function(index){
-    index = index %>% mutate (binary_2_image_1 = sequence_binary_conversion_2_channel_1(sequence), 
-                              binary_2_image_2 = sequence_binary_conversion_2_channel_2(sequence))
-    return (index)
+  index = index %>% mutate (binary_2_image_1 = sequence_binary_conversion_2_channel_1(sequence), 
+                            binary_2_image_2 = sequence_binary_conversion_2_channel_2(sequence))
+  return (index)
 }
 
 
@@ -459,31 +445,6 @@ get_all_combinations_1_channel = function(index_df, multiplexing_level){
   return(list_of_all_combinations)
 }
 
-get_all_combinations = function(index_df, multiplexing_level, chemistry){
-  if (chemistry == 4 ){
-    combinations_m = get_all_combinations_4_channel(index_df, multiplexing_level)
-  } else if (chemistry == 2){
-    combinations_m = get_all_combinations_2_channel(index_df, multiplexing_level)
-  } else if (chemistry == 1){
-    combinations_m = get_all_combinations_1_channel(index_df, multiplexing_level)
-  } else {
-    display_message("Please choose a correct chemistry for your experiment ")
-  }
-  return (combinations_m)
-}
-
-# get_all_combinations_2 = function(index, multiplexing_level){
-#   index = index %>% arrange(Id)
-#   matrix_id = combn(x = index$Id, m = multiplexing_level)
-#   green_matrix_binary_sequence = green_matrix_id_to_binary_sequence(matrix_id = matrix_id, index = index)#matches Ids to binary sequences
-#   green_logical_rigth_combination = as.logical(x = list_of_good_combinations_2(m = green_matrix_binary_sequence))
-#   red_matrix_binary_sequence = red_matrix_id_to_binary_sequence(matrix_id = matrix_id, index = index)#matches Ids to binary sequences
-#   red_logical_rigth_combination = as.logical(x = list_of_good_combinations_2(m = red_matrix_binary_sequence))
-#   logical_rigth_combination = as.logical(green_logical_rigth_combination*red_logical_rigth_combination)
-#   list_of_all_combinations = matrix_id[, (logical_rigth_combination)] %>% t()
-#   return(list_of_all_combinations)
-# }
-
 
 # For a random search
 get_random_combinations_4_channel = function (index_df, multiplexing_level){
@@ -537,27 +498,14 @@ get_random_combinations_1_channel = function (index_df, multiplexing_level){
   return (M)
 }
 
-get_random_combinations = function(index_df, multiplexing_level, chemistry){
-  if (chemistry == 4 ){
-    combinations_m = get_random_combinations_4_channel(index_df, multiplexing_level)
-  } else if (chemistry == 2){
-    combinations_m = get_random_combinations_2_channel(index_df, multiplexing_level)
-  } else if (chemistry == 1){
-    combinations_m = get_random_combinations_1_channel(index_df, multiplexing_level)
-  } else {
-    display_message("Please choose a correct chemistry for your experiment ")
-  }
-  return (combinations_m)
-}
-
 
 # gets the rights combinations according to the number of possible combinations
-get_combinations = function (index, multiplexing_level, chemistry){
-
-  if (choose(nrow(index),multiplexing_level) <= 2024){
-    return(get_all_combinations(index, multiplexing_level, chemistry))
+get_combinations = function (index_df, multiplexing_level, chemistry){
+  
+  if (choose(nrow(index_df),multiplexing_level) <= 2024){
+    return(get_all_combinations(index_df, multiplexing_level, chemistry))
   }else {
-    return(get_random_combinations(index, multiplexing_level, chemistry))
+    return(get_random_combinations(index_df, multiplexing_level, chemistry))
   }
 }
 
@@ -572,7 +520,7 @@ index_distance = function (index_df){
   index_distance_df = combn(index_df$sequence,2)  %>% t()%>%  as.data.frame(., stringsAsFactors = FALSE)
   index_distance_df = index_distance_df %>% mutate(n = 1 : nrow(index_distance_df))
   index_distance_df = index_distance_df %>% group_by(n) %>% mutate (hamming = distance(V1, V2, metric = "hamming"),
-                                                          seqlev = distance (V1, V2, metric = "seqlev"))
+                                                                    seqlev = distance (V1, V2, metric = "seqlev"))
   return(index_distance_df)
 }
 
@@ -609,19 +557,6 @@ filter_combinations = function(combinations_m, low_distance_tab){
   
 }
 
-distance_constraints_filter = function(index_df, combinations_m, metric, d){
-  index_distance_df =  index_distance(index_df)
-  if (metric == "hamming"){
-    hamming_rejection_table = low_hamming_distance(index_df, index_distance_df, d)
-    filtered_combinations_m = filter_combinations(combinations_m, hamming_rejection_table)
-  }else if (metric == "seqlev") {
-    seqlev_rejection_table = low_seqlev_distance(index_df, index_distance_df, d) 
-    filtered_combinations_m = filter_combinations(combinations_m, seqlev_rejection_table)
-  }
-  return (filtered_combinations_m)
-}
-
-
 
 
 
@@ -642,7 +577,7 @@ entropy_result = function (index_combination){
 }
 
 # Celine's entropy for given parameters
-celine_entropy = function (index_number,sample_number){
+entropy_n_k = function (index_number,sample_number){
   k = index_number
   n = sample_number
   entropy =
@@ -654,68 +589,45 @@ celine_entropy = function (index_number,sample_number){
 
 entropy_max = function (index_number,sample_number){
   if(sample_number > index_number){
-    return (celine_entropy(index_number, sample_number))
+    return (entropy_n_k(index_number, sample_number))
   }
   else {
     return(log(sample_number))
   }
 }
 
-comb_result = function (index_combination, sample_number, index_number, nb_lane){
-  # maximal entropy determination for the experiment
-  max = entropy_max(index_number,sample_number)
-  print(max)
-  if(nb_lane < nrow(index_combination)){
-    # best combination determination
-    one_combination = index_combination [sample(x = 1:nrow(index_combination),nb_lane),]
-    an_entropy = entropy_result(one_combination)
-    if (an_entropy == max){
-      return(one_combination)# we stop if we reach the maximal value of entropy
+recursive_entropy = function(combination_m, nb_lane){
+  while(nrow(combination_m)> nb_lane){
+    ind = combn(nrow(combination_m), nrow(combination_m)-1)
+    a = vector(length = nrow(combination_m))
+    for(i in 1:nrow(combination_m)){
+      a[i]=entropy_result(combination_m[ind[,i],])
     }
-    else{
-      for (i in 1 : 5000){# to debate
-        another_combination = index_combination [sample(x = 1:nrow(index_combination),nb_lane),]
-        another_entropy = entropy_result(another_combination)
-        if(another_entropy == max){
-          one_combination = another_combination
-          i = 5000 # we stop if we reach the maximal value of entropy
-        }
-        else if(another_entropy > an_entropy){
-          one_combination = another_combination # we keep the best one
-          an_entropy = another_entropy # we keep the higher one
-        }
-      }
-    }
+    x = which.max(a)
+    z = which(a == a[x])
+    combination_m = combination_m[ind[,z[sample(1:length(z),1)]],] 
   }
-  else if (nb_lane >=  nrow(index_combination)){#calcul entopie ????
-    {
-      one_combination = index_combination[sample(x = 1:nrow(index_combination), nrow(index_combination)),]
-      for(i in 2:(floor(nb_lane/nrow(index_combination)))){
-        one_combination = rbind(one_combination,
-                                index_combination[sample(x = 1:nrow(index_combination), nrow(index_combination)),])
-      }
-      one_combination = rbind(one_combination,
-                              index_combination[sample(x = 1:nrow(index_combination), nb_lane %% nrow(index_combination)),] )
-    }
-  }
-  print(entropy_result(one_combination))
-  return (one_combination)
+  return (combination_m)
 }
 
 
+
 # gets the result
-get_result = function (index_df, sample_number, multiplexing_level, chemistry, metric = NULL, d = 3){
-  combinations_m = get_combinations(index_df, multiplexing_level, chemistry)
+get_result = function (index_df,sample_number, multiplexing_level, chemistry, metric = NULL, d = 3){
+  #browser()
+  combination_m = get_combinations(index_df, multiplexing_level, chemistry)
   if(!is.null(metric)){
-    combinations_m = distance_constraints_filter (index_df, combinations_m, metric, d)
+    combination_m = distance_filter (index_df, combinations_m, metric, d)
   }
   nb_lane = sample_number %>% as.numeric() / multiplexing_level %>% as.numeric()
-  cb = comb_result(combinations_m, sample_number, index_number, nb_lane) %>% as.data.frame()
-  result = data.frame(Id = as.vector(cb%>% t() %>% as.vector),
+  index_number = nrow(index_df)
+  cb = optimize_combinations(combination_m, nb_lane, index_number) %>% as.data.frame()
+  result = data.frame(Id = as.vector(cb %>% t() %>% as.vector),
                       Lane = (rep(1:nb_lane, length.out = sample_number, each = multiplexing_level)))
   result$Id = as.character(result$Id)
   return(result)
 }
+
 
 
 # Experiment Design (single or dual) -----------------------------------------------------------
@@ -755,60 +667,6 @@ check_for_duplicate = function(result1, result2){
   }
 }
 
-#final function
-experiment_design = function (index1,
-                              sample_number,
-                              multiplexing_level,
-                              chemistry = 4,
-                              index2 = NULL,
-                              export = NULL, 
-                              metric = NULL, 
-                              d = 3){
-  if (is.null(index2)){
-    index1  = file_loading_and_checking(index1)
-    if (!is.null(index1)) {
-      if (sample_and_multiplexing_level_check(sample_number, multiplexing_level) == TRUE){
-        print("mlx and sample ok")
-        result1 = final_result(index1,sample_number, multiplexing_level,system, metric, d)
-        if(!is.null(export)) {write.csv2(result1, file = export)}
-        return(result1)
-      }else{
-        stop("the multiplexing level and / or the sample number are wrong")}
-    }else{
-      stop("An error occured on the first file")}
-  }else{
-    index1 = file_loading_and_checking(index1)
-    if (!is.null(index1)){
-      index2 = file_loading_and_checking(index2)
-      if (!is.null(index2)){
-        if(sample_and_multiplexing_level_check(sample_number, multiplexing_level)){
-          result1 = get_result(index1, sample_number, multiplexing_level,metric, d)
-          result2 = get_result(index2, sample_number, multiplexing_level,metric, d)
-          result2 = check_for_duplicate(result1, result2)
-          
-          result1 = left_join(result1, select(index1, Id, sequence)) 
-          print(result1)
-          result2 = left_join(result2, select(index2, Id, sequence)) 
-          print(result2)
-          result = data.frame(sample = 1: sample_number %>% as.character(),
-                              Lane = result1$Lane %>% as.character(),
-                              Id1 = result1$Id %>% as.character(),
-                              sequence1 = result1$sequence %>% as.character(),
-                              Id2 = result2$Id %>% as.character(),
-                              sequence2 = result2$sequence%>% as.character()) %>% arrange(Lane)
-          
-          if(!is.null(export)) {write.csv2(result1, file = export)}
-          return(result)
-        }else{
-          stop("the multiplexing level and / or the sample number are wrong")}
-      }else{
-        stop("An error occured on the second file")
-      }
-    }else{
-      stop("An error occured on the first file")
-    }
-  }
-}
 
 display_message = function (a_message){
   error_messsage <<- a_message
@@ -825,25 +683,26 @@ is_a_prime_number = function (sample_number){
   return(result)
 }
 
-final_result = function(index1, sample_number, multiplexing_level,system,filter,metric){
-  result1 = get_result(index1,sample_number, multiplexing_level,system, filter,metric)
+final_result = function(file1, sample_number, multiplexing_level,chemistry,filter,metric){
+  #browser()
+  result1 = get_result(file1,sample_number, multiplexing_level,chemistry, filter,metric)
   result1 = data.frame(sample = 1: sample_number %>% as.character(),
                        Lane = result1$Lane %>% as.character(),
                        Id = result1$Id %>% as.character(),
                        stringsAsFactors = FALSE)
-  result1 = left_join(result1, select(index1, Id, sequence),by="Id") 
+  result1 = left_join(result1, select(file1, Id, sequence),by="Id") 
   return (result1)
 }
 
 
-final_result_dual = function(index1,index2, sample_number, multiplexing_level, system,filter,metric){
-  result1 = get_result(index1, sample_number, multiplexing_level,system,filter,metric)
-  result2 = get_result(index2, sample_number, multiplexing_level,system,filter,metric)
+final_result_dual = function(file1,file2, sample_number, multiplexing_level, chemistry,filter,metric){
+  result1 = get_result(file1, sample_number, multiplexing_level,chemistry,filter,metric)
+  result2 = get_result(file2, sample_number, multiplexing_level,chemistry,filter,metric)
   result2 = check_for_duplicate(result1, result2)
   
-  result1 = left_join(result1, select(index1, Id, sequence)) 
+  result1 = left_join(result1, select(file1, Id, sequence)) 
   print(result1)
-  result2 = left_join(result2, select(index2, Id, sequence)) 
+  result2 = left_join(result2, select(file2, Id, sequence)) 
   print(result2)
   result = data.frame(sample = 1: sample_number %>% as.character(),
                       Lane = result1$Lane %>% as.character(),
@@ -852,101 +711,5 @@ final_result_dual = function(index1,index2, sample_number, multiplexing_level, s
                       Id2 = result2$Id %>% as.character(),
                       sequence2 = result2$sequence%>% as.character()) %>% arrange(Lane)
   return(result)
-
+  
 }
-
-recursive_entropy = function(combination_m, nb_lane){
- #browser()
-  #k = 0
-  while(nrow(combination_m)> nb_lane){
-    ind = combn(nrow(combination_m), nrow(combination_m)-1)
-    a = vector(length = nrow(combination_m))
-    #  a=entropy_result(index_combination[ind[,],])
-    for(i in 1:nrow(combination_m)){
-      a[i]=entropy_result(combination_m[ind[,i],])
-      #print(i)
-      #b = index_combination[ind[,i],]
-      #a = 2
-      #k = k + 1
-    }
-    x = which.max(a)
-    z = which(a == a[x])
-   # print(z)
-    #print(" ")
-    #sample(1:length(z),1)
-    combination_m = combination_m[ind[,z[sample(1:length(z),1)]],] 
-  }
-  print(entropy_result(combination_m))
- return (combination_m)
-}
-
-#g %>% filter(n == s[,1]) %>% select(-n) %>% unlist() %>% entropy_result()
-
-exchange_entropy = function (combination_m, nb_lane){
-  comb_m = sample
-}
-
-optimized_combination = function (combination_m, nb_lane, index_number){
-  max = entropy_max(index_number, length(combination_m) * nb_lane)
-  if(nb_lane < nrow(combination_m)){
-    if (nrow(combination_m >80)){
-      a_combination = combination_m[sample(1:nrow(combination_m),80)]
-      a_combination = recursive_entropy(a_combination,nb_lane)
-      
-      while (i < 10 || entropy_result(a_combination) < entropy_max)
-        temp_combination = recursive_entropy(combination_m[sample(1:nrow(combination_m),80)], nb_lane)
-      if (entropy_result(temp_combination) > entropy_result(a_combination) ){
-        a_combination = temp_combination
-      }
-      
-    }else { 
-      a_combination = recursive_entropy(combination_m,nb_lane)
-      while (i < 10 || entropy_result(combination_m) < entropy_max)
-        temp_combination = recursive_entropy(combination_m,nb_lane)
-      if (entropy_result(temp_combination) > entropy_result(a_combination) ){
-        a_combination = temp_combination
-      }
-    }
-    
-  }
-}
-
-    if(combination_m > 100){
-      possible_combination = 
-      for (i in 1:10){
-      sample_combination = combination_m[sample(1:nrow(combination_m),100)]
-      one_combination = recursive_entropy()
-      }
-    }
-    
-  }
-}
-one_combination = index_combination [sample(x = 1:nrow(index_combination),nb_lane),]
-an_entropy = entropy_result(one_combination)
-if (an_entropy == max){
-  return(one_combination)# we stop if we reach the maximal value of entropy
-}
-else{
-  for (i in 1 : 10000){# to debate
-    another_combination = index_combination [sample(x = 1:nrow(index_combination),nb_lane),]
-    another_entropy = entropy_result(another_combination)
-    if(another_entropy == max){
-      one_combination = another_combination
-      i = 10000 # we stop if we reach the maximal value of entropy
-    }
-    else if(another_entropy > an_entropy){
-      one_combination = another_combination # we keep the best one
-      an_entropy = another_entropy # we keep the higher one
-    }
-
-
-
-
-q = t[sample(1:nrow(t),100),]
-entropy_result(q)
-n = 10
-recursive_entropy(q,n)
-recursive_entropy(q,n)
-recursive_entropy(q,n)
-recursive_entropy(q,n)
-recursive_entropy(q,n)

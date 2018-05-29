@@ -1,79 +1,90 @@
-#final function
 #' @title 
-#' Get compatible combinations of DNA barcodes
+#' Find a set of barcode combinations with least redundant barcodes for single and dual indexing
 #'
 #' @description 
-#' Performs either an exhaustive or a random search of compatible DNA-barcode combinations depending on the size of the DNA-barcode population and of the number of samples to be multiplexed.
+#' This function uses the Shannon Entropy to identify a set of compatible barcode combinations with least redundancy between DNA barcodes, in the contexts of single and dual indexing.
+#' It performs either an exhaustive or a random search of compatible DNA-barcode combinations depending on the size of the DNA-barcode population and of the number of samples to be multiplexed.
 #'
 #' @usage 
-#' experiment_design(file1, sample_number, multiplexing_level, file2 = NULL, export = NULL,  filter = NULL, metric = 3)
+#' experiment_design(file1, sample_number, mplex_level, chemistry = 4,
+#'  file2 = NULL, export = NULL, metric = NULL, d = 3)
 #'
-#' @param file1 path to the file containing the barcode names and the corresponding DNA sequences.
-#' @param sample_number number of libraries to be sequenced
-#' @param multiplexing_level the number of samples to be multiplexed for sequencing
-#' @param file2 path to the file containing the barcode names and the corresponding DNA sequences; used for dual-indexing.
-#' @param export TO BE DOCUMENTED
-#' @param filter TO BE DOCUMENTED
-#' @param metric minimal distance allowed between barcodes TO BE RENAMED dist
-#' 
+#' @param file1 Path to the file containing the barcode names and the corresponding DNA sequences.
+#' @param sample_number Number of libraries to be sequenced.
+#' @param mplex_level The number at which the barcodes will be multiplexed.
+#' @param file2 Path to the file containing the barcode names and the corresponding DNA sequences; used for dual-indexing.
+#' @param chemistry An integer representing the number of channels (1, 2, 4) of the desired Illumina plateform.
+#' @param export If not NULL, results are saved in a csv file at the specified path.
+#' @param metric The type of distance (hamming or seqlev).
+#' @param d The minimum value of the distance.
 #' 
 #' @details 
-#' Illumina 4-channel sequencers use a green laser to read G/T nucleotides and a red laser to
-#' read A/C nucleotides. With each sequencing cycle at least one of the two
-#' nucleotides for each color channel must be read to ensure proper registration.
-#' Since the DNA-barcode sequence of pooled, multiplexed libraries will be read
-#' simultaneously, it is important to maintain color balance for each base of the
-#' DNA-barcode sequences in the pooled library. Otherwise, DNA-barcode sequencing will fail due
-#' to registration failure.
-#'
 #' By specifying the total number of libraries and the number of libraries to be multiplexed, 
 #' this function returns an optimal combination of DNA barcodes to be used for sequencing.
-#' This function first converts DNA barcodes into binary words: A and C will be converted in "0", G and T in "1", see \code{\link{sequence_binary_conversion}}. 
 #' 
-#' Second, it selects a series of combinations of binarized barcodes that are compatible for 2-channel sequencing, see \code{\link{is_a_good_combination}}, \code{\link{get_combinations}}.
 #' 
-#' Third, it reduces redundancy between DNA barcodes so that consumables can be used as much homogeneously as possible in order to extend the life time of expensive library-preparation kits. To this end, the maximum entropy of the distribution of barcodes is calculated given the available number of barcodes and libraries, see \code{\link{entropia_result}}, \code{\link{entropia_max}}. The maximum-entropy value sets the upper limit to be reached or approached when calculating the entropy of concurrent sets of compatible DNA barcodes.  
+#' The inputs of the algorithm are a list of n distinct barcodes, the number N of required libraries, and the multiplex level k; N = ak, where a is the number of lanes of the flow cells to be used for the experiment.
+#' 
+#' 
+#' * Step 1:
+#'  
+#'  This step consists of identifying a set of compatible barcode combinations. Given the number of barcodes and the multiplex level,
+#'  the total number of barcode combinations (compatible or not) reads:  \deqn{{n}\choose{k}}
+#'  If this number is not too large, the algorithm will perform an exhaustive search and output all compatible combinations of k barcodes. 
+#'  Otherwise, it will proceed by picking up combinations at random, in order to identify a large enough set of compatible barcode combinations. 
+#'  
+#' * Step 2:
+#'  
+#'  We then select the N/k compatible combinations to be used in the experiment using a Shannon entropy maximization approach.
+#'  It can be shown that the maximum value of the entropy that can be attained for a selection of N barcodes among n, with possible repetitions, reads: 
+#'  \deqn{S_{max}=-(n-r)\frac{\lfloor N/n\rfloor}{N}\log(\frac{\lfloor N/n\rfloor}{N})-r\frac{\lceil N/n\rceil}{N}\log(\frac{\lceil N/n\rceil}{N})}
+#'  
+#'  where r denotes the rest of the division of N by n, and
+#'  \deqn{\lfloor N/n\rfloor} and \deqn{\lceil N/n\rceil} denote
+#'  the lower and upper integer parts of N/n, respectively.
 #'
-#' Case 1: number of lanes < number of compatible DNA-barcode combinations
-#' This function seeks for compatible DNA-barcode combinations of highest entropy. The search stops either if the maximum-entropy value is reached for a given set of DNA-barcode combinations or after 1000 iterations but returning the set of DNA-barcode combinations of the highest entropy.
-#' The criterium of 1000 iterations has been choosen based on simulations.
+#'     + Case 1: number of lanes < number of compatible DNA-barcode combinations
+#'     
+#' This function seeks for compatible DNA-barcode combinations of highest entropy.
+#' In brief this function uses a greedy descent algorithm to find an optimized selection. 
+#' Note that the resulting optimized selection isn't necessary a globally optimal solution.
 #'
-#' Case 2: number of lanes > number of compatible DNA-barcode combinations
-#' In such a case, there are not enough compatible DNA-barcode combinations and redundancy is inevitable. This may dramatically decrease the life time of the library-preparation kits leading to the necessity to buy new expensive kits just for providing enough of some DNA barcodes.
+#'     + Case 2: number of lanes >= number of compatible DNA-barcode combinations
+#'     
+#' In such a case, there are not enough compatible DNA-barcode combinations and redundancy is inevitable.
 #'
-#' TO BE DOCUMENTED: 2-channel sequencers
+#' @md
 #'
 #' @return 
 #' Returns a dataframe containing compatible DNA-barcode combinations organized by lanes of the flow cell.
 #'
 #' @examples
-#' write.table(DNABarcodeCompatibility::illumina, file <- tempfile(), row.names = FALSE, col.names = FALSE, quote=FALSE)
-#' results <- experiment_design(file, 6, 3)
+#' write.table(DNABarcodeCompatibility::illumina,
+#'  file <- tempfile(), row.names = FALSE, col.names = FALSE, quote=FALSE)
+#' experiment_design(file1=file, sample_number=18, mplex_level=3, chemistry=4)
 #' 
 #'
-#' @seealso 
-#' \code{\link{get_result}}
+#' 
 #' 
 #' @export
 #' 
-experiment_design = function (index1,
+#' 
+
+experiment_design = function (file1,
                               sample_number,
-                              multiplexing_level,
-                              index2 = NULL,
+                              mplex_level,
+                              chemistry = 4,
+                              file2 = NULL,
                               export = NULL, 
-                              filter = NULL, 
-                              metric = 3){
-  if (is.null(index2)){
-    index1  = file_loading_and_checking(index1)
-    if (!is.null(index1)) {
-      if (sample_and_multiplexing_level_check(sample_number, multiplexing_level) == TRUE){
+                              metric = NULL, 
+                              d = 3){
+  
+  if (is.null(file2)){
+    file1  = file_loading_and_checking(file1)
+    if (!is.null(file1)) {
+      if (sample_and_multiplexing_level_check(sample_number, mplex_level) == TRUE){
         print("mlx and sample ok")
-        result1 = get_result(index1,sample_number, multiplexing_level, filter,metric)
-        result1 = data.frame(sample = 1: sample_number %>% as.character(),
-                             Lane = result1$Lane %>% as.character(),
-                             Id = result1$Id %>% as.character(),
-                             stringsAsFactors = FALSE)
-        result1 = left_join(result1, select(index1, Id, sequence),by="Id") 
+        result1 = final_result(file1,sample_number, mplex_level,chemistry, metric, d)
         if(!is.null(export)) {write.csv2(result1, file = export)}
         return(result1)
       }else{
@@ -81,18 +92,18 @@ experiment_design = function (index1,
     }else{
       stop("An error occured on the first file")}
   }else{
-    index1 = file_loading_and_checking(index1)
-    if (!is.null(index1)){
-      index2 = file_loading_and_checking(index2)
-      if (!is.null(index2)){
-        if(sample_and_multiplexing_level_check(sample_number, multiplexing_level)){
-          result1 = get_result(index1, sample_number, multiplexing_level,filter,metric)
-          result2 = get_result(index2, sample_number, multiplexing_level,filter,metric)
+    file1 = file_loading_and_checking(file1)
+    if (!is.null(file1)){
+      file2 = file_loading_and_checking(file2)
+      if (!is.null(file2)){
+        if(sample_and_multiplexing_level_check(sample_number, mplex_level)){
+          result1 = get_result(file1, sample_number, mplex_level,metric, d)
+          result2 = get_result(file2, sample_number, mplex_level,metric, d)
           result2 = check_for_duplicate(result1, result2)
           
-          result1 = left_join(result1, select(index1, Id, sequence)) 
+          result1 = left_join(result1, select(file1, Id, sequence)) 
           print(result1)
-          result2 = left_join(result2, select(index2, Id, sequence)) 
+          result2 = left_join(result2, select(file2, Id, sequence)) 
           print(result2)
           result = data.frame(sample = 1: sample_number %>% as.character(),
                               Lane = result1$Lane %>% as.character(),
@@ -113,34 +124,3 @@ experiment_design = function (index1,
     }
   }
 }
-
-
-check_for_duplicate = function(result1, result2){
-  check = data.frame(Id1 = result1$Id, Id2 = result2$Id)
-  print(check)
-  if (anyDuplicated(check) != 0){
-    d = anyDuplicated(check)
-    for(i in 1 : length(d)){
-      id = result2[d[i],]$Id
-      lane_to_change = result2 %>% filter(Lane == result2[d[i],]$Lane)
-      lanes_to_keep  = result2 %>% filter(Lane != result2[d[i],]$Lane)
-      j = which(lane_to_change$Id == id) %>% as.numeric()
-      if (j<nrow(lane_to_change)){
-        temp = lane_to_change[j,] 
-        lane_to_change[j,] = lane_to_change[j+1,] 
-        lane_to_change[j+1,] = temp
-      }else {
-        temp = lane_to_change[j,] 
-        print(temp)
-        lane_to_change[j,] = lane_to_change[1,] 
-        lane_to_change[1,] = temp
-      }
-      result = bind_rows(lane_to_change,lanes_to_keep) %>% arrange(Lane)
-    }
-    print(result2)
-    return (result)
-  }else{
-    return (result2)
-  }
-}
-

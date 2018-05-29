@@ -1,11 +1,11 @@
 #' @title 
-#' Loading and formatting DNA barcodes.
+#' Loading and checking DNA barcodes.
 #'
 #' @description 
 #' Load the file containing DNA barcodes and analyze barcode content.
 #'
 #' @usage 
-#' file_loading_and_formatting(file)
+#' file_loading_and_checking(file)
 #'
 #' @param file The input data file that contains 2 columns separted by a space or a tabulation, namely the sequence identifiers and corresponding DNA sequence.
 #'
@@ -16,7 +16,8 @@
 #' Returns a dataframe containing sequence identifiers, nucleotide sequence, GC content, presence of homopolymers.
 #'
 #' @examples
-#' write.table(DNABarcodeCompatibility::illumina, file <- tempfile(), row.names = FALSE, col.names = FALSE, quote=FALSE)
+#' write.table(DNABarcodeCompatibility::illumina,
+#'  file <- tempfile(), row.names = FALSE, col.names = FALSE, quote=FALSE)
 #' file_loading_and_checking(file)
 #' 
 #' @export
@@ -28,10 +29,8 @@ file_loading_and_checking = function(file){
     index_number <<- nrow(index)
     index  = index %>% mutate (GC_content = get_index_GC_content(index), 
                                homopolymer = get_index_homopolymer(index))
-    index_distances <<- index_distance(index)
     return (index)
   }else{
     return(NULL)
   }
 }
-
