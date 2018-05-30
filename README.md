@@ -28,7 +28,8 @@ Documentation
 Support
 =========
 
-Please use the [github ticket system](https://github.com/comoto-pasteur-fr/DNABarcodeCompatibility/issues) to report issues or suggestions. We also welcome pull requests.
+Please use the [github ticket system](https://github.com/comoto-pasteur-fr/DNABarcodeCompatibility/issues) to report issues or suggestions. 
+We also welcome pull requests.
 
 
 
