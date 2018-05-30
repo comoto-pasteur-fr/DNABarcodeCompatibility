@@ -170,10 +170,10 @@ multiplexing_level_set = function (sample_number){
   return (multiplexing_level_choices [multiplexing_level_choices< 96])
 }
 
-sample_and_multiplexing_level_check = function(sample_number,multiplexing_level){
+sample_and_multiplexing_level_check = function(sample_number,mplex_level){
   if (sample_number_check(sample_number)){
     possible_multiplexing_level = multiplexing_level_set(sample_number)
-    if (!(multiplexing_level %in% possible_multiplexing_level)){
+    if (!(mplex_level %in% possible_multiplexing_level)){
       display_message( "The sample number isn't a multiple of the multiplexing level. Here are the possible multiplexing levels :")
       display_message(possible_multiplexing_level)
       return(FALSE)
@@ -407,10 +407,10 @@ matrix_id_to_1_channel_image_2_binary_sequence = function(matrix_id, index_df){
 }
 
 # get all compatible combinations of an index for 4_channel chemistry
-get_all_combinations_4_channel = function(index_df, multiplexing_level){
+get_all_combinations_4_channel = function(index_df, mplex_level){
   index_df = index_binary_conversion_4_channel(index_df)
   index_df = index_df %>% arrange(Id)
-  matrix_id = combn(x = index_df$Id, m = multiplexing_level)
+  matrix_id = combn(x = index_df$Id, m = mplex_level)
   matrix_binary_sequence = matrix_id_to_binary_sequence(matrix_id = matrix_id, index_df = index_df)#matches Ids to binary sequences
   logical_rigth_combination = as.logical(x = list_of_good_combinations(m = matrix_binary_sequence))
   list_of_all_combinations = matrix_id[, logical_rigth_combination] %>% t()
@@ -418,10 +418,10 @@ get_all_combinations_4_channel = function(index_df, multiplexing_level){
 }
 
 # get all compatible combinations of an index for 2_channel chemistry
-get_all_combinations_2_channel = function(index_df, multiplexing_level){
+get_all_combinations_2_channel = function(index_df, mplex_level){
   index_df = index_binary_conversion_2_channel(index_df)
   index_df = index_df %>% arrange(Id)
-  matrix_id = combn(x = index_df$Id, m = multiplexing_level)
+  matrix_id = combn(x = index_df$Id, m = mplex_level)
   image_1_matrix_binary_sequence = matrix_id_to_2_channel_image_1_binary_sequence(matrix_id = matrix_id, index_df = index_df)#matches Ids to binary sequences
   image_1_logical_rigth_combination = as.logical(x = list_of_good_combinations_2(m = image_1_matrix_binary_sequence))
   image_2_matrix_binary_sequence = matrix_id_to_2_channel_image_2_binary_sequence(matrix_id = matrix_id, index_df = index_df)#matches Ids to binary sequences
@@ -432,10 +432,10 @@ get_all_combinations_2_channel = function(index_df, multiplexing_level){
 }
 
 # get all compatible combinations of an index for 1_channel chemistry
-get_all_combinations_1_channel = function(index_df, multiplexing_level){
+get_all_combinations_1_channel = function(index_df, mplex_level){
   index_df = index_binary_conversion_1_channel(index_df)
   index_df = index_df %>% arrange(Id)
-  matrix_id = combn(x = index_df$Id, m = multiplexing_level)
+  matrix_id = combn(x = index_df$Id, m = mplex_level)
   image_1_matrix_binary_sequence = matrix_id_to_1_channel_image_1_binary_sequence(matrix_id = matrix_id, index_df = index_df)#matches Ids to binary sequences
   image_1_logical_rigth_combination = as.logical(x = list_of_good_combinations_2(m = image_1_matrix_binary_sequence))
   image_2_matrix_binary_sequence = matrix_id_to_1_channel_image_2_binary_sequence(matrix_id = matrix_id, index_df = index_df)#matches Ids to binary sequences
@@ -447,12 +447,12 @@ get_all_combinations_1_channel = function(index_df, multiplexing_level){
 
 
 # For a random search
-get_random_combinations_4_channel = function (index_df, multiplexing_level){
+get_random_combinations_4_channel = function (index_df, mplex_level){
   index_df = index_binary_conversion_4_channel(index_df)
-  list_of_good_combs = matrix(nrow = 1000, ncol = multiplexing_level)
+  list_of_good_combs = matrix(nrow = 1000, ncol = mplex_level)
   j = 0
   for (i in 1:1000){
-    combination =index_df[sample(x = 1:nrow(index_df), size = (multiplexing_level), replace = FALSE),]
+    combination =index_df[sample(x = 1:nrow(index_df), size = (mplex_level), replace = FALSE),]
     if(is_a_good_combination(combination$binary_4)){
       j = j+1
       combination = arrange(combination, Id) #facilitates the distance filter
@@ -464,12 +464,12 @@ get_random_combinations_4_channel = function (index_df, multiplexing_level){
   return (M)
 }
 
-get_random_combinations_2_channel = function (index_df, multiplexing_level){
+get_random_combinations_2_channel = function (index_df, mplex_level){
   index_df = index_binary_conversion_2_channel(index_df)
-  list_of_good_combs = matrix(nrow = 1000, ncol = multiplexing_level)
+  list_of_good_combs = matrix(nrow = 1000, ncol = mplex_level)
   j = 0
   for (i in 1:1000){
-    combination =index_df[sample(x = 1:nrow(index_df), size = (multiplexing_level), replace = FALSE),]
+    combination =index_df[sample(x = 1:nrow(index_df), size = (mplex_level), replace = FALSE),]
     if(is_a_good_combination_2(combination$binary_2_image_1)&&is_a_good_combination_2(combination$binary_2_image_2)){
       j = j+1
       combination = arrange(combination, Id) #facilitates the distance filter
@@ -481,12 +481,12 @@ get_random_combinations_2_channel = function (index_df, multiplexing_level){
   return (M)
 }
 
-get_random_combinations_1_channel = function (index_df, multiplexing_level){
+get_random_combinations_1_channel = function (index_df, mplex_level){
   index_df = index_binary_conversion_1_channel(index_df)
-  list_of_good_combs = matrix(nrow = 1000, ncol = multiplexing_level)
+  list_of_good_combs = matrix(nrow = 1000, ncol = mplex_level)
   j = 0
   for (i in 1:1000){
-    combination =index_df[sample(x = 1:nrow(index_df), size = (multiplexing_level), replace = FALSE),]
+    combination =index_df[sample(x = 1:nrow(index_df), size = (mplex_level), replace = FALSE),]
     if(is_a_good_combination_2(combination$binary_1_image_1)&&is_a_good_combination_2(combination$binary_1_image_2)){
       j = j+1
       combination = arrange(combination, Id) #facilitates the distance filter
@@ -500,12 +500,12 @@ get_random_combinations_1_channel = function (index_df, multiplexing_level){
 
 
 # gets the rights combinations according to the number of possible combinations
-get_combinations = function (index_df, multiplexing_level, chemistry){
+get_combinations = function (index_df, mplex_level, chemistry){
   
-  if (choose(nrow(index_df),multiplexing_level) <= 2024){
-    return(get_all_combinations(index_df, multiplexing_level, chemistry))
+  if (choose(nrow(index_df),mplex_level) <= 2024){
+    return(get_all_combinations(index_df, mplex_level, chemistry))
   }else {
-    return(get_random_combinations(index_df, multiplexing_level, chemistry))
+    return(get_random_combinations(index_df, mplex_level, chemistry))
   }
 }
 
@@ -613,17 +613,17 @@ recursive_entropy = function(combination_m, nb_lane){
 
 
 # gets the result
-get_result = function (index_df,sample_number, multiplexing_level, chemistry, metric = NULL, d = 3){
+get_result = function (index_df,sample_number, mplex_level, chemistry, metric = NULL, d = 3){
   #browser()
-  combination_m = get_combinations(index_df, multiplexing_level, chemistry)
+  combination_m = get_combinations(index_df, mplex_level, chemistry)
   if(!is.null(metric)){
     combination_m = distance_filter (index_df, combinations_m, metric, d)
   }
-  nb_lane = sample_number %>% as.numeric() / multiplexing_level %>% as.numeric()
+  nb_lane = sample_number %>% as.numeric() / mplex_level %>% as.numeric()
   index_number = nrow(index_df)
   cb = optimize_combinations(combination_m, nb_lane, index_number) %>% as.data.frame()
   result = data.frame(Id = as.vector(cb %>% t() %>% as.vector),
-                      Lane = (rep(1:nb_lane, length.out = sample_number, each = multiplexing_level)))
+                      Lane = (rep(1:nb_lane, length.out = sample_number, each = mplex_level)))
   result$Id = as.character(result$Id)
   return(result)
 }
@@ -683,9 +683,9 @@ is_a_prime_number = function (sample_number){
   return(result)
 }
 
-final_result = function(file1, sample_number, multiplexing_level,chemistry,filter,metric){
+final_result = function(file1, sample_number, mplex_level,chemistry,filter,metric){
   #browser()
-  result1 = get_result(file1,sample_number, multiplexing_level,chemistry, filter,metric)
+  result1 = get_result(file1,sample_number, mplex_level,chemistry, filter,metric)
   result1 = data.frame(sample = 1: sample_number %>% as.character(),
                        Lane = result1$Lane %>% as.character(),
                        Id = result1$Id %>% as.character(),
@@ -695,9 +695,9 @@ final_result = function(file1, sample_number, multiplexing_level,chemistry,filte
 }
 
 
-final_result_dual = function(file1,file2, sample_number, multiplexing_level, chemistry,filter,metric){
-  result1 = get_result(file1, sample_number, multiplexing_level,chemistry,filter,metric)
-  result2 = get_result(file2, sample_number, multiplexing_level,chemistry,filter,metric)
+final_result_dual = function(file1,file2, sample_number, mplex_level, chemistry,filter,metric){
+  result1 = get_result(file1, sample_number, mplex_level,chemistry,filter,metric)
+  result2 = get_result(file2, sample_number, mplex_level,chemistry,filter,metric)
   result2 = check_for_duplicate(result1, result2)
   
   result1 = left_join(result1, select(file1, Id, sequence)) 
