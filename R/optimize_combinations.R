@@ -47,7 +47,16 @@ optimize_combinations = function (combination_m, nb_lane, index_number){
         }
         i = i+1
       }
-    } else {stop("not yet implemented")}
+    } else {
+      a_combination = recursive_entropy(combination_m,nb_lane)
+      i = 0
+      while ((i < 10) && (entropy_result(a_combination) < max) ){
+        temp_combination = recursive_entropy(combination_m, nb_lane)
+        if (entropy_result(temp_combination) > entropy_result(a_combination) ){
+          a_combination = temp_combination
+        }
+      }
+    }
   } else {
     n = nb_lane - nrow(combination_m)
     combination_m = combination_m[sample(1:nrow(combination_m),nrow(combination_m)),]
