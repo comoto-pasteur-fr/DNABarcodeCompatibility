@@ -12,7 +12,7 @@ Installation
 
 * First install R if not yet installed
 
-* Within a R prompt, type in the following commands:
+* Within a R console, type in the following commands:
     
 ```
 install.packages(devtools)
