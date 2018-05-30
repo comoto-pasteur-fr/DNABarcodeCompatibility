@@ -23,7 +23,7 @@ devtools::install_github("comoto-pasteur-fr/DNABarcodeCompatibility")
 Documentation
 ================
 
-[introduction](https://github.com/comoto-pasteur-fr/DNABarcodeCompatibility/tree/master/vignettes/Introduction.html)
+[Introduction](https://comoto-pasteur-fr.github.io/DNABarcodeCompatibility/)
     
 Support
 =========
