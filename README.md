@@ -10,7 +10,7 @@ DNABarcodeCompatibility: R-package to find least-redundant sets of compatible ba
 Installation 
 ================
 
-* First install R if not yet installed
+* First install R if not yet installed.
 
 * Within a R console, type in the following commands:
     
