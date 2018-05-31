@@ -149,7 +149,7 @@ head(m)
 
 ```
 
-### Constrain barcodes to be robust against one subsitution error 
+### Constrain barcodes to be robust against one substitution error 
 
 
 ```{r, echo=TRUE}
