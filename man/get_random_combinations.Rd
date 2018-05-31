@@ -24,8 +24,8 @@ This function is suited if the total number of possible combinations is too high
 }
 \examples{
 write.table(DNABarcodeCompatibility::illumina,
- file <- tempfile(), row.names = FALSE, col.names = FALSE, quote=FALSE)
-barcodes <- file_loading_and_checking(file)
+ txtfile <- tempfile(), row.names = FALSE, col.names = FALSE, quote=FALSE)
+barcodes <- file_loading_and_checking(txtfile)
 get_random_combinations(barcodes, 3, 4)
 
 

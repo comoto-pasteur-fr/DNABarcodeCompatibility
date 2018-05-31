@@ -20,7 +20,7 @@ This function loads the DNA barcodes from the input file and checks barcodes for
 }
 \examples{
 write.table(DNABarcodeCompatibility::illumina,
- file <- tempfile(), row.names = FALSE, col.names = FALSE, quote=FALSE)
-file_loading_and_checking(file)
+ txtfile <- tempfile(), row.names = FALSE, col.names = FALSE, quote=FALSE)
+file_loading_and_checking(txtfile)
 
 }
