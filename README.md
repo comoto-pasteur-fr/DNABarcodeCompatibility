@@ -33,7 +33,7 @@ Documentation
 
 [Introduction](https://comoto-pasteur-fr.github.io/DNABarcodeCompatibility/)
 
-[API documentation](https://comoto-pasteur-fr.github.io/DNABarcodeCompatibility/DNABarcodeCompatibility-manual.pdf)
+API documentation [](https://comoto-pasteur-fr.github.io/DNABarcodeCompatibility/DNABarcodeCompatibility-manual.pdf)
 
 Support
 =========
