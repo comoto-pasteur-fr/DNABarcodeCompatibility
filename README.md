@@ -46,7 +46,7 @@ We also welcome pull requests.
 Reference
 ==========
 
-Céline Trébeau. (2018, May 31). comoto-pasteur-fr/DNABarcodeCompatibility: First stable release (Version v1.0.0). Zenodo. [http://doi.org/10.5281/zenodo.1256863](http://doi.org/10.5281/zenodo.1256863)
+Céline Trébeau, Jacques Boutet de Monvel, Virginie Wong Jun Tai, Raphaël Etournay. (2018, May 31). comoto-pasteur-fr/DNABarcodeCompatibility: First stable release (Version v1.0.0). Zenodo. [http://doi.org/10.5281/zenodo.1256863](http://doi.org/10.5281/zenodo.1256863)
 
 
 
