@@ -1,23 +1,3 @@
-#' Group of utility functions
-#' 
-#' Group of functions that are internally used by the DNABarcodeCompatibility package and by the external GUI in Java
-#' 
-#' These functions are used by the GUI in Java. They are not meant to be used in R scripts.
-#'
-#' @param file a file containing a representation of the DNA-barcode dataset.
-#' @param index a dataframe containing a representation of the DNA-barcode dataset.
-#' @param sequence a DNA sequence as string
-#' @param sequences a lsit DNA sequences as string
-#' @param sample_number number of libraries
-#' @param index_distances a dataframe containing the calculted distances between pairs de DNA barcodes
-#' @param metrict threshold distance between barcodes
-#'
-#' @return The return value depends on the function
-#' @name utilities_DNABarcodeCompatibility
-NULL
-
-
-
 
 # library("dplyr")
 # library("tidyr")
@@ -31,7 +11,6 @@ error_messsage = ""
 
 
 # Inputs ------------------------------------------------------------------
-#' @rdname utilities_DNABarcodeCompatibility 
 read_index = function(file) {
   if(!file.exists(file)){
     display_message("Your file doesn't exist, please check the path", call. = FALSE )
@@ -53,7 +32,7 @@ read_index = function(file) {
   return(index)
 }
 
-#' @rdname utilities_DNABarcodeCompatibility 
+    
 unicity_check = function(index){
   index$sequence <<- toupper(index$sequence)
   if(index$Id %>% anyDuplicated() != 0){#checks if the index Ids are unique
@@ -69,7 +48,7 @@ unicity_check = function(index){
   else{return (TRUE)}
 }
 
-#' @rdname utilities_DNABarcodeCompatibility 
+    
 #check the character for one sequence
 character_check = function(sequence){
   wrong_letters = LETTERS[!(LETTERS) %in% c("A", "G", "C", "T")]
@@ -77,19 +56,19 @@ character_check = function(sequence){
   return(check)
 }
 
-#' @rdname utilities_DNABarcodeCompatibility 
+    
 #checks the characters of each sequence
 sequences_character_check = function(sequences){
   return(map_lgl(sequences, character_check))
 }
 
-#' @rdname utilities_DNABarcodeCompatibility 
+    
 #checks the length of each sequence
 length_check = function(sequences){
   return(str_length(sequences) == str_length(sequences[1]))
 }
 
-#' @rdname utilities_DNABarcodeCompatibility 
+    
 #checks for character type and sequence  length
 character_and_length_check = function(index){
   c_check =  sequences_character_check(index$sequence)
@@ -116,39 +95,39 @@ character_and_length_check = function(index){
 }
 
 
-#' @rdname utilities_DNABarcodeCompatibility 
+    
 ## Check the index for possible issues
 index_check = function(index){
   return (all(unicity_check(index), 
               character_and_length_check(index)))
 }
 
-#' @rdname utilities_DNABarcodeCompatibility 
+    
 get_sequence_GC_content =  function (sequence){
   GC_content = str_count(sequence,pattern = ("G|C"))/nchar(sequence) * 100
   return(round(GC_content, digits = 2))
 }
 
-#' @rdname utilities_DNABarcodeCompatibility 
+    
 get_index_GC_content = function(index){
   index_GC_content = map_dbl(index$sequence, get_sequence_GC_content)
   return (index_GC_content)
 }
 
-#' @rdname utilities_DNABarcodeCompatibility 
+    
 get_sequence_homopolymer = function(sequence){
   if(length(str_which(sequence, "A{3,}|G{3,}|C{3,}|T{3,}")) > 0 ){
     return (TRUE)
   }else{return (FALSE)}
 }
 
-#' @rdname utilities_DNABarcodeCompatibility 
+    
 get_index_homopolymer = function(index){
   homopolymer  = map_lgl(index$sequence, get_sequence_homopolymer)
 }
 
 
-#' @rdname utilities_DNABarcodeCompatibility 
+    
 sample_number_check = function (sample_number){
   # if (!try(x = sample_number, silent = TRUE) ){
   #   print("you have to enter an integer value")
@@ -183,7 +162,7 @@ sample_number_check = function (sample_number){
   }
 }
 
-#' @rdname utilities_DNABarcodeCompatibility 
+    
  
 multiplexing_level_set = function (sample_number){
   v  = 2 : (sample_number-1)
@@ -191,7 +170,7 @@ multiplexing_level_set = function (sample_number){
   return (multiplexing_level_choices [multiplexing_level_choices< 96])
 }
 
-#' @rdname utilities_DNABarcodeCompatibility 
+    
  
 sample_and_multiplexing_level_check = function(sample_number,mplex_level){
   if (sample_number_check(sample_number)){
@@ -222,7 +201,7 @@ sample_and_multiplexing_level_check = function(sample_number,mplex_level){
 #   return (index_df)
 # }
 
-#' @rdname utilities_DNABarcodeCompatibility 
+    
  
 # sequence traduction for a 4_channel chemistry :
 sequence_binary_conversion_4_channel = function(sequence){
@@ -233,7 +212,7 @@ sequence_binary_conversion_4_channel = function(sequence){
   return(binary_sequence)
 }
 
-#' @rdname utilities_DNABarcodeCompatibility 
+    
  
 # index traduction for a 4_channel chemistry :
 index_binary_conversion_4_channel = function(index){
@@ -241,7 +220,7 @@ index_binary_conversion_4_channel = function(index){
   return (index)
 }
 
-#' @rdname utilities_DNABarcodeCompatibility 
+    
  
 # sequence traduction for a 2_channel chemistry for image 1 :
 sequence_binary_conversion_2_channel_1 = function(sequence){
@@ -252,7 +231,7 @@ sequence_binary_conversion_2_channel_1 = function(sequence){
   return(binary_sequence)
 }
 
-#' @rdname utilities_DNABarcodeCompatibility 
+    
  
 # sequence traduction for a 2_channel chemistry for image 2 :
 sequence_binary_conversion_2_channel_2 = function(sequence){
@@ -263,7 +242,7 @@ sequence_binary_conversion_2_channel_2 = function(sequence){
   return(binary_sequence)
 }
 
-#' @rdname utilities_DNABarcodeCompatibility 
+    
  
 # index traduction for a 2_channel chemistry :
 index_binary_conversion_2_channel = function(index){
@@ -272,7 +251,7 @@ index_binary_conversion_2_channel = function(index){
   return (index)
 }
 
-#' @rdname utilities_DNABarcodeCompatibility 
+    
  
 # sequence traduction for a 1_channel chemistry for image 1 :
 sequence_binary_conversion_1_channel_1 = function(sequence){
@@ -283,7 +262,7 @@ sequence_binary_conversion_1_channel_1 = function(sequence){
   return(binary_sequence)
 }
 
-#' @rdname utilities_DNABarcodeCompatibility 
+    
  
 # sequence traduction for a 1_channel chemistry for image 2 :
 sequence_binary_conversion_1_channel_2 = function(sequence){
@@ -294,7 +273,7 @@ sequence_binary_conversion_1_channel_2 = function(sequence){
   return(binary_sequence)
 }
 
-#' @rdname utilities_DNABarcodeCompatibility 
+    
  
 index_binary_conversion_1_channel = function(index){
   index = index %>% mutate (binary_1_image_1 = sequence_binary_conversion_1_channel_1(sequence), 
@@ -306,14 +285,14 @@ index_binary_conversion_1_channel = function(index){
 # Compatibility -----------------------------------------------------------
 
 
-#' @rdname utilities_DNABarcodeCompatibility 
+    
  
 #conversion of the string sequence into a vector of numeric
 binary_word_into_numeric = function (binary_word){
   as.numeric(unlist(strsplit(as.character(binary_word),"")))
 }
 
-#' @rdname utilities_DNABarcodeCompatibility 
+    
  
 #conversion of each index sequence combination into a matrix
 vectors_into_matrix = function (binary_word){
@@ -321,7 +300,7 @@ vectors_into_matrix = function (binary_word){
   return(m)
 }
 
-#' @rdname utilities_DNABarcodeCompatibility 
+    
  
 #test if a column/line of a index combination is correct
 any_different = function(binary_sequence){
@@ -332,7 +311,7 @@ any_different = function(binary_sequence){
   }
 }
 
-#' @rdname utilities_DNABarcodeCompatibility 
+    
  
 has_signal_in_both_channels = function(colored_sequence){
   if(any(as.logical(colored_sequence))){
@@ -342,7 +321,7 @@ has_signal_in_both_channels = function(colored_sequence){
   }
 }
 
-#' @rdname utilities_DNABarcodeCompatibility 
+    
  
 # check if a combination of indexes is correct
 is_a_good_combination = function (combination_matrix){
@@ -351,7 +330,7 @@ is_a_good_combination = function (combination_matrix){
   return(results)
 }
 
-#' @rdname utilities_DNABarcodeCompatibility 
+    
  
 is_a_good_combination_2 = function (combination_matrix){
   all_combinations = vectors_into_matrix(combination_matrix)
@@ -359,7 +338,7 @@ is_a_good_combination_2 = function (combination_matrix){
   return(results)
 }
 
-#' @rdname utilities_DNABarcodeCompatibility 
+    
  
 # keeps only the good ones :
 list_of_good_combinations = function (matrix_id){
@@ -367,14 +346,14 @@ list_of_good_combinations = function (matrix_id){
   return(list)
 }
 
-#' @rdname utilities_DNABarcodeCompatibility 
+    
  
 list_of_good_combinations_2 = function (matrix_id){
   list = apply(matrix_id,2,is_a_good_combination_2)
   return(list)
 }
 
-#' @rdname utilities_DNABarcodeCompatibility 
+    
  
 ##super fast and furious
 #matches an id to its binary_sequence
@@ -384,7 +363,7 @@ id_into_4_channel_binary_sequence = function (index_id_combination, index_df){
   return (index_binary_sequence_combination)
 }
 
-#' @rdname utilities_DNABarcodeCompatibility 
+    
  
 # matches an id to its binary_sequence for 2_channel image 1
 id_into_2_channel_image_1_binary_sequence = function (index_id_combination, index_df){
@@ -393,7 +372,7 @@ id_into_2_channel_image_1_binary_sequence = function (index_id_combination, inde
   return (index_binary_sequence_combination)
 }
 
-#' @rdname utilities_DNABarcodeCompatibility 
+    
  
 # matches an id to its binary_sequence for 2_channel image 2
 id_into_2_channel_image_2_binary_sequence = function (index_id_combination, index_df){
@@ -402,7 +381,7 @@ id_into_2_channel_image_2_binary_sequence = function (index_id_combination, inde
   return (index_binary_sequence_combination)
 }
 
-#' @rdname utilities_DNABarcodeCompatibility 
+    
  
 # matches an id to its binary_sequence for 1_channel image 1
 id_into_1_channel_image_1_binary_sequence = function (index_id_combination, index_df){
@@ -411,7 +390,7 @@ id_into_1_channel_image_1_binary_sequence = function (index_id_combination, inde
   return (index_binary_sequence_combination)
 }
 
-#' @rdname utilities_DNABarcodeCompatibility 
+    
  
 # matches an id to its binary_sequence for 1_channel image 2
 id_into_1_channel_image_2_binary_sequence = function (index_id_combination, index_df){
@@ -428,7 +407,7 @@ id_into_1_channel_image_2_binary_sequence = function (index_id_combination, inde
 #   return (result)
 # }
 
-#' @rdname utilities_DNABarcodeCompatibility 
+    
  
 # matches the matrix_id to the matrix_binary_sequence
 matrix_id_to_binary_sequence = function(matrix_id, index_df){
@@ -438,7 +417,7 @@ matrix_id_to_binary_sequence = function(matrix_id, index_df){
   return (m)
 }
 
-#' @rdname utilities_DNABarcodeCompatibility 
+    
  
 # matches the matrix_id to the matrix_2_channel_immage_1_binary_sequence
 matrix_id_to_2_channel_image_1_binary_sequence = function(matrix_id, index_df){
@@ -448,7 +427,7 @@ matrix_id_to_2_channel_image_1_binary_sequence = function(matrix_id, index_df){
   return (m)
 }
 
-#' @rdname utilities_DNABarcodeCompatibility 
+    
  
 # matches the matrix_id to the matrix_2_channel_immage_2_binary_sequence
 matrix_id_to_2_channel_image_2_binary_sequence = function(matrix_id, index_df){
@@ -458,7 +437,7 @@ matrix_id_to_2_channel_image_2_binary_sequence = function(matrix_id, index_df){
   return (m)
 }
 
-#' @rdname utilities_DNABarcodeCompatibility 
+    
  
 # matches the matrix_id to the matrix_1_channel_immage_1_binary_sequence
 matrix_id_to_1_channel_image_1_binary_sequence = function(matrix_id, index_df){
@@ -468,7 +447,7 @@ matrix_id_to_1_channel_image_1_binary_sequence = function(matrix_id, index_df){
   return (m)
 }
 
-#' @rdname utilities_DNABarcodeCompatibility 
+    
  
 # matches the matrix_id to the matrix_1_channel_immage_2_binary_sequence
 matrix_id_to_1_channel_image_2_binary_sequence = function(matrix_id, index_df){
@@ -478,7 +457,7 @@ matrix_id_to_1_channel_image_2_binary_sequence = function(matrix_id, index_df){
   return (m)
 }
 
-#' @rdname utilities_DNABarcodeCompatibility 
+    
  
 # get all compatible combinations of an index for 4_channel chemistry
 get_all_combinations_4_channel = function(index_df, mplex_level){
@@ -491,7 +470,7 @@ get_all_combinations_4_channel = function(index_df, mplex_level){
   return(list_of_all_combinations)
 }
 
-#' @rdname utilities_DNABarcodeCompatibility 
+    
  
 # get all compatible combinations of an index for 2_channel chemistry
 get_all_combinations_2_channel = function(index_df, mplex_level){
@@ -507,7 +486,7 @@ get_all_combinations_2_channel = function(index_df, mplex_level){
   return(list_of_all_combinations)
 }
 
-#' @rdname utilities_DNABarcodeCompatibility 
+    
  
 # get all compatible combinations of an index for 1_channel chemistry
 get_all_combinations_1_channel = function(index_df, mplex_level){
@@ -523,7 +502,7 @@ get_all_combinations_1_channel = function(index_df, mplex_level){
   return(list_of_all_combinations)
 }
 
-#' @rdname utilities_DNABarcodeCompatibility 
+    
  
 # For a random search
 get_random_combinations_4_channel = function (index_df, mplex_level){
@@ -543,7 +522,7 @@ get_random_combinations_4_channel = function (index_df, mplex_level){
   return (M)
 }
 
-#' @rdname utilities_DNABarcodeCompatibility 
+    
  
 get_random_combinations_2_channel = function (index_df, mplex_level){
   index_df = index_binary_conversion_2_channel(index_df)
@@ -562,7 +541,7 @@ get_random_combinations_2_channel = function (index_df, mplex_level){
   return (M)
 }
 
-#' @rdname utilities_DNABarcodeCompatibility 
+    
  
 get_random_combinations_1_channel = function (index_df, mplex_level){
   index_df = index_binary_conversion_1_channel(index_df)
@@ -581,7 +560,7 @@ get_random_combinations_1_channel = function (index_df, mplex_level){
   return (M)
 }
 
-#' @rdname utilities_DNABarcodeCompatibility 
+    
  
 # gets the rights combinations according to the number of possible combinations
 get_combinations = function (index_df, mplex_level, chemistry){
@@ -599,7 +578,7 @@ get_combinations = function (index_df, mplex_level, chemistry){
 
 # Filtering  --------------------------------------------------------------
 
-#' @rdname utilities_DNABarcodeCompatibility 
+    
  
 # generates all possible couples and caculates DNAbarcodes's hamming and seqlev distances
 index_distance = function (index_df){
@@ -610,7 +589,7 @@ index_distance = function (index_df){
   return(index_distance_df)
 }
 
-#' @rdname utilities_DNABarcodeCompatibility 
+    
  
 # couples with hamming distance under threshold
 low_hamming_distance = function(index_df, index_distance_df, d){
@@ -622,7 +601,7 @@ low_hamming_distance = function(index_df, index_distance_df, d){
   
 }
 
-#' @rdname utilities_DNABarcodeCompatibility 
+    
  
 #couples with seqlev distance under threshold
 low_seqlev_distance = function(index_df,index_distance_df, d){
@@ -633,7 +612,7 @@ low_seqlev_distance = function(index_df,index_distance_df, d){
   return(low_distance_tab)
 }
 
-#' @rdname utilities_DNABarcodeCompatibility 
+    
  
 # low distance tab = hamming rejection table or seq lev rejection table
 filter_combinations = function(combinations_m, low_distance_tab){
@@ -652,14 +631,14 @@ filter_combinations = function(combinations_m, low_distance_tab){
 
 # Result ------------------------------------------------------------------
 
-#' @rdname utilities_DNABarcodeCompatibility 
+    
  
 # Shannon's entropy
 shannon_entropy = function(frequence){
   return(-1 * sum(frequence*log(frequence)))
 }
 
-#' @rdname utilities_DNABarcodeCompatibility 
+    
  
 #for a matrix of combination
 entropy_result = function (index_combination){
@@ -669,7 +648,7 @@ entropy_result = function (index_combination){
   return (entropy)
 }
 
-#' @rdname utilities_DNABarcodeCompatibility 
+    
  
 # Celine's entropy for given parameters
 entropy_n_k = function (index_number,sample_number){
@@ -681,7 +660,7 @@ entropy_n_k = function (index_number,sample_number){
   return(entropy)
 }
 
-#' @rdname utilities_DNABarcodeCompatibility 
+    
  
 entropy_max = function (index_number,sample_number){
   if(sample_number > index_number){
@@ -692,7 +671,7 @@ entropy_max = function (index_number,sample_number){
   }
 }
 
-#' @rdname utilities_DNABarcodeCompatibility 
+    
  
 recursive_entropy = function(combination_m, nb_lane){
   while(nrow(combination_m)> nb_lane){
@@ -709,7 +688,7 @@ recursive_entropy = function(combination_m, nb_lane){
 }
 
 
-#' @rdname utilities_DNABarcodeCompatibility 
+    
  
 # gets the result
 get_result = function (index_df,sample_number, mplex_level, chemistry, metric = NULL, d = 3){
@@ -732,7 +711,7 @@ get_result = function (index_df,sample_number, mplex_level, chemistry, metric = 
 # Experiment Design (single or dual) -----------------------------------------------------------
 
 # change the position of index if there is any duplicate
-#' @rdname utilities_DNABarcodeCompatibility 
+    
  
 # Illumina 770-2017-004-C|page 3
 # Using unique dual index combinations is a
@@ -767,7 +746,7 @@ check_for_duplicate = function(result1, result2){
   }
 }
 
-#' @rdname utilities_DNABarcodeCompatibility 
+    
  
 display_message = function (a_message){
   error_messsage <<- a_message
@@ -778,14 +757,14 @@ display_message = function (a_message){
 
 # For java ----------------------------------------------------------------
 
-#' @rdname utilities_DNABarcodeCompatibility 
+    
  
 is_a_prime_number = function (sample_number){
   result = isPrime(sample_number) %>% as.numeric()
   return(result)
 }
 
-#' @rdname utilities_DNABarcodeCompatibility 
+    
  
 final_result = function(file1, sample_number, mplex_level,chemistry,filter,metric){
   #browser()
@@ -798,7 +777,7 @@ final_result = function(file1, sample_number, mplex_level,chemistry,filter,metri
   return (result1)
 }
 
-#' @rdname utilities_DNABarcodeCompatibility 
+    
  
 final_result_dual = function(file1,file2, sample_number, mplex_level, chemistry,filter,metric){
   result1 = get_result(file1, sample_number, mplex_level,chemistry,filter,metric)
