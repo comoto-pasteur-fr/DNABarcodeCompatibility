@@ -1,6 +1,6 @@
 ---
-title: "Introduction"
-author: "Céline Trébeau"
+title: "Introduction to DNABarcodeCompatibility"
+author: "Céline Trébeau & Raphaël Etournay"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
@@ -16,45 +16,151 @@ knitr::opts_chunk$set(
 )
 ```
 
-Vignettes are long form documentation commonly included in packages. Because they are part of the distribution of the package, they need to be as compact as possible. The `html_vignette` output type provides a custom style sheet (and tweaks some options) to ensure that the resulting html is as small as possible. The `html_vignette` format:
+This document introduces you to DNABarcodeCompatibility’s basic set of tools. 
 
-- Never uses retina figures
-- Has a smaller default figure size
-- Uses a custom CSS stylesheet instead of the default Twitter Bootstrap style
+The DNABarcodeCompatibility package provides six functions to load DNA barcodes, and to generate, filter and optimize sets of compatible barcode combinations for multiplex sequecing experiments. In particular, barcode combinations can be filtered to keep those that are robust against substitution and insertion/deletion errors thereby facilitating the demultiplexing step. In addtion, the package provides an optimizer function to further favor the selection of compatible barcode combinations with least redundancy of DNA barcodes.
 
-## Vignette Info
+This package contains:
 
-Note the various macros within the `vignette` section of the metadata block above. These are required in order to instruct R how to build the vignette. Note that you should change the `title` field and the `\VignetteIndexEntry` to match the title of your vignette.
+* a dataset called IlluminaIndexes for running examples
+* one workflow called `experiment_design()` to perfom all steps in one go
+* a series of API to build your own workflow
 
-## Styles
-
-The `html_vignette` template includes a basic CSS theme. To override this theme you can specify your own CSS in the document metadata as follows:
-
-    output: 
-      rmarkdown::html_vignette:
-        css: mystyles.css
-
-
-## More Examples
-
-You can write math expressions, e.g. $Y = X\beta + \epsilon$, footnotes^[A footnote here.], and tables, e.g. using `knitr::kable()`.
+## Load the package
 
 ```{r, echo=TRUE}
 library("DNABarcodeCompatibility")
-write.table(DNABarcodeCompatibility::IlluminaIndexes, file <- tempfile(), row.names = FALSE, col.names = FALSE, quote=FALSE)
-barcodes <- file_loading_and_checking(file)
+```
+
+## Load the example dataset and save as text file: `txtfile`
+
+```{r, echo=TRUE}
+head(DNABarcodeCompatibility::IlluminaIndexes)
+
+write.table(DNABarcodeCompatibility::IlluminaIndexes,
+ txtfile <- tempfile(), row.names = FALSE, col.names = FALSE, quote=FALSE)
+```
+
+
+## Design an experiment 
+
+The function `experiment_design()` uses the Shannon Entropy to identify a set of compatible barcode combinations with least redundancy between DNA barcodes, in the contexts of single and dual indexing. It performs either an exhaustive or a random search of compatible DNA-barcode combinations depending on the size of the DNA-barcode population and of the number of samples to be multiplexed.
+
+### Single indexing
+
+* 18 libraries sequenced in multiplex of 3 on a HiSeq (4 channels) platform
+```{r, echo=TRUE}
+experiment_design(file1=txtfile, sample_number=18, mplex_level=3, chemistry=4)
+```
+
+* 12 libraries sequenced in multiplex of 3 on a NextSeq (2 channels) platform
+```{r, echo=TRUE}
+experiment_design(file1=txtfile, sample_number=12, mplex_level=3, chemistry=2)
+```
+
+* 18 libraries sequenced in multiplex of 3 on a HiSeq (4 channels) platform using barcode robust againt 1 substitution error
+```{r, echo=TRUE}
+# experiment_design(file1=txtfile, sample_number=18, mplex_level=3, chemistry=4, metric = "hamming", d = 3)
+```
+
+### Dual indexing
+
+* 18 libraries sequenced in multiplex of 3 on a HiSeq (4 channels) platform
+```{r, echo=TRUE}
+# experiment_design(file1=txtfile, sample_number=18, mplex_level=3, chemistry=4, file2 = txtfile)
+```
+
+
+
+
+## Buid your own workflow
+
+This section guides you through the detailed API of the package with the aim to build your own workflow. This will give you more flexibility than the `experiment_design()` function.
+
+### Load and check a dataset of barcodes
+
+The `file_loading_and_checking()` function loads the file containing the DNA barcodes and analyzes its content. In particular, it checks barcodes for unicity (identifier and sequence), DNA content, and equal size. It also calculates the GC content and detects the presence of homopolymers of length >= 3.
+
+```{r, echo=TRUE}
+barcodes <- file_loading_and_checking(txtfile)
 head(barcodes)
-head(get_all_combinations(barcodes, 3, 4))
+```
 
-m <- get_random_combinations(barcodes, 3, 4)
-filtered_m <- distance_filter(barcodes, m, "hamming", 3)
-optimize_combinations(filtered_m, 12, 48)
+### Perform an exhaustive search of compatible barcode combinations
 
-experiment_design(file1=file, sample_number=18, mplex_level=3, chemistry=4)
+The total number of combinations depends on the number of available barcodes and of the multiplex level. For 48 barcodes and a multiplex level of 3, the total number of combination can be calculated using `choose(48,3)`, namely 17296 combinations. However, in many cases the total number of combinations can become gigantic and you must not perform an exhaustive search (see `get_random_combinations()` below).
+
+* 48 barcodes, multiplex level of 2, 4-channel plateform
+```{r, echo=TRUE}
+# Total number of combinations
+choose(48,2)
+
+# Compatible combinations after an exhaustive search
+system.time(m <- get_all_combinations(index_df = barcodes, mplex_level = 2, chemistry = 4))
+head(m)
 
 ```
 
-Also a quote using `>`:
+* 48 barcodes, multiplex level of 3, 4-channel plateform
+```{r, echo=TRUE}
+# Total number of combinations
+choose(48,3)
 
-> "He who gives up [code] safety for [code] speed deserves neither."
-([via](https://twitter.com/hadleywickham/status/504368538874703872))
+# Compatible combinations after an exhaustive search
+system.time(m <- get_all_combinations(index_df = barcodes, mplex_level = 3, chemistry = 4))
+head(m)
+
+```
+
+### Perform a random search of compatible barcode combinations
+
+When the total number of combinations becomes high, it is recommended to pick combinations at random and then select those that are compatible. 
+
+* 48 barcodes, multiplex level of 3, 4-channel plateform
+```{r, echo=TRUE}
+# Total number of combinations
+choose(48,3)
+
+# Compatible combinations after an exhaustive search
+system.time(m <- get_random_combinations(index_df = barcodes, mplex_level = 3, chemistry = 4))
+head(m)
+
+```
+
+* 48 barcodes, multiplex level of 4, 4-channel plateform
+```{r, echo=TRUE}
+# Total number of combinations
+choose(48,4)
+
+# Compatible combinations after an exhaustive search
+system.time(m <- get_random_combinations(index_df = barcodes, mplex_level = 4, chemistry = 4))
+head(m)
+
+```
+
+* 48 barcodes, multiplex level of 6, 4-channel plateform
+```{r, echo=TRUE}
+# Total number of combinations
+choose(48,6)
+
+# Compatible combinations after an exhaustive search
+system.time(m <- get_random_combinations(index_df = barcodes, mplex_level = 6, chemistry = 4))
+head(m)
+
+```
+
+### Constrain barcodes to be robust against one subsitution error 
+
+
+```{r, echo=TRUE}
+m <- get_random_combinations(index_df = barcodes, mplex_level = 3, chemistry = 4)
+filtered_m <- distance_filter(index_df = barcodes, combinations_m = m, metric = "hamming", d = 3)
+head(filtered_m)
+```
+
+### Optimize the set of compatible combinations to reduce barcode redundancy between lanes
+
+```{r, echo=TRUE}
+df <- optimize_combinations(combination_m = filtered_m, nb_lane = 12, index_number = 48)
+head(df)
+```
