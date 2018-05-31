@@ -1,7 +1,7 @@
 Package: DNABarcodeCompatibility
 Type: Package
 Title: A tool for optimizing combinations of compatible DNA barcodes used in Next Generation Sequencing experiments on 4-, 2-, and 1-channel Illumina sequencers
-Version: 0.1.0
+Version: 1.0.0
 Author: Céline Trébeau
 Maintainer: Céline Trébeau <celine.trebeau@pasteur.fr>
 Authors@R: c(
