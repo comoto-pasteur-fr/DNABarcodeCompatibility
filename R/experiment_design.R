@@ -60,8 +60,8 @@
 #'
 #' @examples
 #' write.table(DNABarcodeCompatibility::illumina,
-#'  file <- tempfile(), row.names = FALSE, col.names = FALSE, quote=FALSE)
-#' experiment_design(file1=file, sample_number=18, mplex_level=3, chemistry=4)
+#'  txtfile <- tempfile(), row.names = FALSE, col.names = FALSE, quote=FALSE)
+#' experiment_design(file1=txtfile, sample_number=18, mplex_level=3, chemistry=4)
 #' 
 #'
 #' 

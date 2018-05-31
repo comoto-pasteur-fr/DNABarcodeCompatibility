@@ -19,8 +19,8 @@
 #'
 #' @examples
 #' write.table(DNABarcodeCompatibility::illumina,
-#'  file <- tempfile(), row.names = FALSE, col.names = FALSE, quote=FALSE)
-#' barcodes <- file_loading_and_checking(file)
+#'  txtfile <- tempfile(), row.names = FALSE, col.names = FALSE, quote=FALSE)
+#' barcodes <- file_loading_and_checking(txtfile)
 #' m <- get_random_combinations(barcodes, 3, 4)
 #' optimize_combinations(m, 12, 48)
 #' 
