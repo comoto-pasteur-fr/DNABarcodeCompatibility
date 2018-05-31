@@ -18,7 +18,7 @@
 #' Returns a matrix containing an optimized set of combinations of compatible barcodes.
 #'
 #' @examples
-#' write.table(DNABarcodeCompatibility::illumina,
+#' write.table(DNABarcodeCompatibility::IlluminaIndexes,
 #'  txtfile <- tempfile(), row.names = FALSE, col.names = FALSE, quote=FALSE)
 #' barcodes <- file_loading_and_checking(txtfile)
 #' m <- get_random_combinations(barcodes, 3, 4)
