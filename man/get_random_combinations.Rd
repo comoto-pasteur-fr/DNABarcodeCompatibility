@@ -7,7 +7,7 @@
 get_random_combinations(index_df, mplex_level, chemistry)
 }
 \arguments{
-\item{index_df}{A dataframe containg barcodes identifiers, corresponding DNA sequences along with GC content and presence of homopolymers.}
+\item{index_df}{A dataframe containing barcodes identifiers, corresponding DNA sequences along with GC content and presence of homopolymers.}
 
 \item{mplex_level}{The number at which the barcodes will be multiplexed.}
 
@@ -23,7 +23,7 @@ Find a set of at most 1000 combinations of compatible barcodes by random pick.
 This function is suited if the total number of possible combinations is too high for an exhaustive search in a reasonable amount of time.
 }
 \examples{
-write.table(DNABarcodeCompatibility::illumina,
+write.table(DNABarcodeCompatibility::IlluminaIndexes,
  txtfile <- tempfile(), row.names = FALSE, col.names = FALSE, quote=FALSE)
 barcodes <- file_loading_and_checking(txtfile)
 get_random_combinations(barcodes, 3, 4)

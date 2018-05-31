@@ -7,7 +7,7 @@
 get_all_combinations(index_df, mplex_level, chemistry)
 }
 \arguments{
-\item{index_df}{A dataframe containg barcodes identifiers, corresponding DNA sequences along with GC content and presence of homopolymers.}
+\item{index_df}{A dataframe containing barcodes identifiers, corresponding DNA sequences along with GC content and presence of homopolymers.}
 
 \item{mplex_level}{The number at which the barcodes will be multiplexed.}
 
@@ -23,7 +23,7 @@ Find the exhaustive set of compatible barcode combinations.
 Be aware that the number of combinations may tend to infinity.
 }
 \examples{
-write.table(DNABarcodeCompatibility::illumina,
+write.table(DNABarcodeCompatibility::IlluminaIndexes,
  txtfile <- tempfile(), row.names = FALSE, col.names = FALSE, quote=FALSE)
 barcodes <- file_loading_and_checking(txtfile)
 get_all_combinations(barcodes, 3, 4)

@@ -7,7 +7,7 @@
 #' @usage 
 #' distance_filter(index_df, combinations_m, metric, d)
 #'
-#' @param index_df A dataframe containg barcode identifiers, corresponding DNA sequences along with GC content and presence of homopolymers.
+#' @param index_df A dataframe containing barcodes identifiers, corresponding DNA sequences along with GC content and presence of homopolymers.
 #' @param combinations_m A matrix of compatible barcode combinations.
 #' @param metric The type of distance (hamming or seqlev).
 #' @param d The minimum value of the distance.

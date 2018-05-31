@@ -2,17 +2,17 @@
 #' Find a set of barcode combinations with least redundant barcodes for single and dual indexing
 #'
 #' @description 
-#' This function uses the Shannon Entropy to identify a set of compatible barcode combinations with least redundancy between DNA barcodes, in the contexts of single and dual indexing.
+#' This function uses the Shannon Entropy to identify a set of compatible barcode combinations with least redundancy between DNA barcodes, in the context of single and dual indexing.
 #' It performs either an exhaustive or a random search of compatible DNA-barcode combinations depending on the size of the DNA-barcode population and of the number of samples to be multiplexed.
 #'
 #' @usage 
 #' experiment_design(file1, sample_number, mplex_level, chemistry = 4,
 #'  file2 = NULL, export = NULL, metric = NULL, d = 3)
 #'
-#' @param file1 Path to the file containing the barcode names and the corresponding DNA sequences.
+#' @param file1 The input data file that contains 2 columns separated by a space or a tabulation, namely the sequence identifiers and corresponding DNA sequence
 #' @param sample_number Number of libraries to be sequenced.
 #' @param mplex_level The number at which the barcodes will be multiplexed.
-#' @param file2 Path to the file containing the barcode names and the corresponding DNA sequences; used for dual-indexing.
+#' @param file2 The input data file that contains 2 columns separated by a space or a tabulation, namely the sequence identifiers and corresponding DNA sequence; used for dual-indexing.
 #' @param chemistry An integer representing the number of channels (1, 2, 4) of the desired Illumina plateform.
 #' @param export If not NULL, results are saved in a csv file at the specified path.
 #' @param metric The type of distance (hamming or seqlev).
@@ -35,7 +35,7 @@
 #'  
 #' * Step 2:
 #'  
-#'  We then select the N/k compatible combinations to be used in the experiment using a Shannon entropy maximization approach.
+#'  N/k compatible combinations are then selected using a Shannon entropy maximization approach.
 #'  It can be shown that the maximum value of the entropy that can be attained for a selection of N barcodes among n, with possible repetitions, reads: 
 #'  \deqn{S_{max}=-(n-r)\frac{\lfloor N/n\rfloor}{N}\log(\frac{\lfloor N/n\rfloor}{N})-r\frac{\lceil N/n\rceil}{N}\log(\frac{\lceil N/n\rceil}{N})}
 #'  

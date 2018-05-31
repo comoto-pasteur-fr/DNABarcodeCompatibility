@@ -1,6 +1,6 @@
 #' Barcode dataset from Illumina.
 #'
-#' 48 barcodes from Illumina TruSea Small RNA kits
+#' 48 barcodes from Illumina TruSeq Small RNA kits
 #'
 #' @format A data frame with 48 rows and 2 variables:
 #' \describe{

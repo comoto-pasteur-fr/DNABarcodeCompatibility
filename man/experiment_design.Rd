@@ -8,7 +8,7 @@ experiment_design(file1, sample_number, mplex_level, chemistry = 4,
  file2 = NULL, export = NULL, metric = NULL, d = 3)
 }
 \arguments{
-\item{file1}{Path to the file containing the barcode names and the corresponding DNA sequences.}
+\item{file1}{The input data file that contains 2 columns separated by a space or a tabulation, namely the sequence identifiers and corresponding DNA sequence}
 
 \item{sample_number}{Number of libraries to be sequenced.}
 
@@ -16,7 +16,7 @@ experiment_design(file1, sample_number, mplex_level, chemistry = 4,
 
 \item{chemistry}{An integer representing the number of channels (1, 2, 4) of the desired Illumina plateform.}
 
-\item{file2}{Path to the file containing the barcode names and the corresponding DNA sequences; used for dual-indexing.}
+\item{file2}{The input data file that contains 2 columns separated by a space or a tabulation, namely the sequence identifiers and corresponding DNA sequence; used for dual-indexing.}
 
 \item{export}{If not NULL, results are saved in a csv file at the specified path.}
 
@@ -28,7 +28,7 @@ experiment_design(file1, sample_number, mplex_level, chemistry = 4,
 Returns a dataframe containing compatible DNA-barcode combinations organized by lanes of the flow cell.
 }
 \description{
-This function uses the Shannon Entropy to identify a set of compatible barcode combinations with least redundancy between DNA barcodes, in the contexts of single and dual indexing.
+This function uses the Shannon Entropy to identify a set of compatible barcode combinations with least redundancy between DNA barcodes, in the context of single and dual indexing.
 It performs either an exhaustive or a random search of compatible DNA-barcode combinations depending on the size of the DNA-barcode population and of the number of samples to be multiplexed.
 }
 \details{
@@ -48,7 +48,7 @@ Otherwise, it will proceed by picking up combinations at random, in order to ide
 \item Step 2:
 }
 
-We then select the N/k compatible combinations to be used in the experiment using a Shannon entropy maximization approach.
+N/k compatible combinations are then selected using a Shannon entropy maximization approach.
 It can be shown that the maximum value of the entropy that can be attained for a selection of N barcodes among n, with possible repetitions, reads:
 \deqn{S_{max}=-(n-r)\frac{\lfloor N/n\rfloor}{N}\log(\frac{\lfloor N/n\rfloor}{N})-r\frac{\lceil N/n\rceil}{N}\log(\frac{\lceil N/n\rceil}{N})}
 
@@ -65,7 +65,7 @@ Note that the resulting optimized selection isn't necessary a globally optimal s
 In such a case, there are not enough compatible DNA-barcode combinations and redundancy is inevitable.
 }
 \examples{
-write.table(DNABarcodeCompatibility::illumina,
+write.table(DNABarcodeCompatibility::IlluminaIndexes,
  txtfile <- tempfile(), row.names = FALSE, col.names = FALSE, quote=FALSE)
 experiment_design(file1=txtfile, sample_number=18, mplex_level=3, chemistry=4)
 

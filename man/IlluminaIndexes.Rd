@@ -14,6 +14,6 @@
 IlluminaIndexes
 }
 \description{
-48 barcodes from Illumina TruSea Small RNA kits
+48 barcodes from Illumina TruSeq Small RNA kits
 }
 \keyword{datasets}
