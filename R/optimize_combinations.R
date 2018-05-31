@@ -26,9 +26,9 @@
 #' 
 #'
 #' @seealso 
-#' \code{\link{get_all_combinations()}}, 
-#' \code{\link{get_random_combinations()}}, 
-#' \code{\link{experiment_design()}}
+#' \code{\link{get_all_combinations}}, 
+#' \code{\link{get_random_combinations}}, 
+#' \code{\link{experiment_design}}
 #' 
 #' @export
 #' 

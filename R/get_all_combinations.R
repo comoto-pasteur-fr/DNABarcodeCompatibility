@@ -25,7 +25,7 @@
 #' 
 #'
 #' @seealso 
-#' \code{\link{get_random_combinations()}}
+#' \code{\link{get_random_combinations}}
 #' 
 #' @export
 #' 

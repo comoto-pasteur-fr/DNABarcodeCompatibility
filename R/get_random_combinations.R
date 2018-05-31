@@ -25,7 +25,7 @@
 #' 
 #'
 #' @seealso 
-#' \code{\link{get_all_combinations()}}
+#' \code{\link{get_all_combinations}}
 #' 
 #' @export
 #' 

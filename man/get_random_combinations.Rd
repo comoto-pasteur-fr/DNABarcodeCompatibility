@@ -31,5 +31,5 @@ get_random_combinations(barcodes, 3, 4)
 
 }
 \seealso{
-\code{\link{get_all_combinations()}}
+\code{\link{get_all_combinations}}
 }

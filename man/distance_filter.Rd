@@ -39,6 +39,6 @@ Buschmann, T. 2015. The Systematic Design and Application of Robust DNA Barcodes
 Buschmann, T. 2017. DNABarcodes: an R package for the systematic construction of DNA sample tags. Bioinformatics 33, 920–922.
 }
 \seealso{
-\code{\link{get_all_combinations()}}, 
-\code{\link{get_random_combinations()}}
+\code{\link{get_all_combinations}}, 
+\code{\link{get_random_combinations}}
 }
