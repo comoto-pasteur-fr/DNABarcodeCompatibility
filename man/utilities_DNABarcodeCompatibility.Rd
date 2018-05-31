@@ -192,6 +192,24 @@ final_result(file1, sample_number, mplex_level, chemistry, filter, metric)
 final_result_dual(file1, file2, sample_number, mplex_level, chemistry, filter,
   metric)
 }
+\arguments{
+\item{file}{a file containing a representation of the DNA-barcode dataset.}
+
+\item{index}{a dataframe containing a representation of the DNA-barcode dataset.}
+
+\item{sequence}{a DNA sequence as string}
+
+\item{sequences}{a lsit DNA sequences as string}
+
+\item{sample_number}{number of libraries}
+
+\item{index_distances}{a dataframe containing the calculted distances between pairs de DNA barcodes}
+
+\item{metrict}{threshold distance between barcodes}
+}
+\value{
+The return value depends on the function
+}
 \description{
 Group of functions that are internally used by the DNABarcodeCompatibility package and by the external GUI in Java
 }
