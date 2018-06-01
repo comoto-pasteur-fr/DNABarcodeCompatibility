@@ -78,7 +78,7 @@ experiment_design = function (file1,
                               export = NULL, 
                               metric = NULL, 
                               d = 3){
-  
+  #browser()
   if (is.null(file2)){
     file1  = file_loading_and_checking(file1)
     if (!is.null(file1)) {

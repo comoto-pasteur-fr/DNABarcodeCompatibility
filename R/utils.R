@@ -693,13 +693,13 @@ recursive_entropy = function(combination_m, nb_lane){
 # gets the result
 get_result = function (index_df,sample_number, mplex_level, chemistry, metric = NULL, d = 3){
   #browser()
-  combination_m = get_combinations(index_df, mplex_level, chemistry)
+  combinations_m = get_combinations(index_df, mplex_level, chemistry)
   if(!is.null(metric)){
-    combination_m = distance_filter (index_df, combinations_m, metric, d)
+    combinations_m = distance_filter (index_df, combinations_m, metric, d)
   }
   nb_lane = sample_number %>% as.numeric() / mplex_level %>% as.numeric()
   index_number = nrow(index_df)
-  cb = optimize_combinations(combination_m, nb_lane, index_number) %>% as.data.frame()
+  cb = optimize_combinations(combinations_m, nb_lane, index_number) %>% as.data.frame()
   result = data.frame(Id = as.vector(cb %>% t() %>% as.vector),
                       Lane = (rep(1:nb_lane, length.out = sample_number, each = mplex_level)))
   result$Id = as.character(result$Id)
@@ -766,27 +766,27 @@ is_a_prime_number = function (sample_number){
 
     
  
-final_result = function(file1, sample_number, mplex_level,chemistry,filter,metric){
+final_result = function(index_df, sample_number, mplex_level, chemistry, metric, d){
   #browser()
-  result1 = get_result(file1,sample_number, mplex_level,chemistry, filter,metric)
+  result1 = get_result(index_df, sample_number, mplex_level, chemistry, metric, d)
   result1 = data.frame(sample = 1: sample_number %>% as.character(),
                        Lane = result1$Lane %>% as.character(),
                        Id = result1$Id %>% as.character(),
                        stringsAsFactors = FALSE)
-  result1 = left_join(result1, select(file1, Id, sequence),by="Id") 
+  result1 = left_join(result1, select(index_df, Id, sequence),by="Id") 
   return (result1)
 }
 
     
  
-final_result_dual = function(file1,file2, sample_number, mplex_level, chemistry,filter,metric){
-  result1 = get_result(file1, sample_number, mplex_level,chemistry,filter,metric)
-  result2 = get_result(file2, sample_number, mplex_level,chemistry,filter,metric)
+final_result_dual = function(index_df_1, index_df_2, sample_number, mplex_level, chemistry, metric, d){
+  result1 = get_result(index_df_1, sample_number, mplex_level, chemistry, metric, d)
+  result2 = get_result(index_df_2, sample_number, mplex_level, chemistry, metric, d)
   result2 = check_for_duplicate(result1, result2)
   
-  result1 = left_join(result1, select(file1, Id, sequence)) 
+  result1 = left_join(result1, select(index_df_1, Id, sequence)) 
   print(result1)
-  result2 = left_join(result2, select(file2, Id, sequence)) 
+  result2 = left_join(result2, select(index_df_2, Id, sequence)) 
   print(result2)
   result = data.frame(sample = 1: sample_number %>% as.character(),
                       Lane = result1$Lane %>% as.character(),

@@ -49,3 +49,4 @@ distance_filter = function(index_df, combinations_m, metric, d){
   }
   return (filtered_combinations_m)
 }
+
