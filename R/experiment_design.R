@@ -97,8 +97,8 @@ experiment_design = function (file1,
       file2 = file_loading_and_checking(file2)
       if (!is.null(file2)){
         if(sample_and_multiplexing_level_check(sample_number, mplex_level)){
-          result1 = get_result(file1, sample_number, mplex_level,metric, d)
-          result2 = get_result(file2, sample_number, mplex_level,metric, d)
+          result1 = get_result(file1, sample_number, mplex_level, chemistry, metric, d)
+          result2 = get_result(file2, sample_number, mplex_level, chemistry, metric, d)
           result2 = check_for_duplicate(result1, result2)
           
           result1 = left_join(result1, select(file1, Id, sequence)) 
