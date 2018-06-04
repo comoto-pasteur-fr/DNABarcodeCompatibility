@@ -796,12 +796,5 @@ final_result_dual = function(index_df_1, index_df_2, sample_number, mplex_level,
 }
 
 
-# For dataset in documentation ----------------------------------------------------------------
-# export_dataset_to_file = function(dataset=DNABarcodeCompatibility::illumina) {
-#   if (class(dataset)=="data.frame") {
-#     write.table(DNABarcodeCompatibility::illumina,
-#                 textfile <<- tempfile(), row.names = FALSE, col.names = FALSE, quote=FALSE)
-#     print("Dataset successfully exported into file: see the 'textfile' variable")
-#   } else print("The input dataset isn't a data.frame: NOT exported into file")
-# }
+
 
