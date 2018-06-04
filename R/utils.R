@@ -7,7 +7,7 @@
 # library("DNABarcodes")
 
 
-error_messsage = ""
+
 
 
 # Inputs ------------------------------------------------------------------
@@ -748,10 +748,7 @@ check_for_duplicate = function(result1, result2){
 
     
  
-display_message = function (a_message){
-  error_messsage <<- a_message
-  print(a_message)
-}
+
 
 
 
