@@ -2,7 +2,7 @@
 #' Loading and checking DNA barcodes.
 #'
 #' @description 
-#' Load the file containing DNA barcodes and analyze barcode content.
+#' Loads the file containing DNA barcodes and analyze barcode content.
 #'
 #' @usage 
 #' file_loading_and_checking(file)
@@ -10,10 +10,11 @@
 #' @param file The input data file that contains 2 columns separated by a space or a tabulation, namely the sequence identifiers and corresponding DNA sequence.
 #'
 #' @details 
-#' This function loads the DNA barcodes from the input file and checks barcodes for unicity (identifier and sequence), DNA content, and equal size. It also calculates the GC content and detects the presence of homopolymers of length >= 3.
+#' This function loads the DNA barcodes from the input file and checks barcodes for unicity (identifier and sequence), DNA content, and equal size. 
+#' It also calculates the fraction of G and C relative to A and T, as refered to as "GC content", and it detects the presence of homopolymers of length >= 3.
 #'
 #' @return 
-#' Returns a dataframe containing sequence identifiers, nucleotide sequence, GC content, presence of homopolymers.
+#' A dataframe containing sequence identifiers, nucleotide sequence, GC content, presence of homopolymers.
 #'
 #' @examples
 #' write.table(DNABarcodeCompatibility::IlluminaIndexes,

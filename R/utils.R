@@ -628,8 +628,7 @@ low_seqlev_distance = function(index_df,index_distance_df, d){
 
 filter_combinations = function(combinations_m, low_distance_tab){
   
-  
-  combinations_df <- combinations_m %>% as.data.frame(., stringsAsFactors=F) %>% mutate(combID=0:((nrow(.)>0)*(nrow(.)-1))) 
+  combinations_df <- combinations_m %>% as.data.frame(., stringsAsFactors=F) %>% mutate(combID=0:(nrow(.)>0)*(nrow(.)-1)) 
   head(combinations_df)
   
   combinations_df_long <- gather(combinations_df, bc_gp, barcodes, -combID) %>% select(-bc_gp) %>% arrange(combID) 

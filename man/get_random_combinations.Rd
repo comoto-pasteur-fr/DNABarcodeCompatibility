@@ -11,16 +11,16 @@ get_random_combinations(index_df, mplex_level, chemistry)
 
 \item{mplex_level}{The number at which the barcodes will be multiplexed.}
 
-\item{chemistry}{An integer representing the number of channels (1, 2, 4) of the desired Illumina plateform.}
+\item{chemistry}{An integer representing the number of channels (1, 2, 4) of the Illumina plateform to be used.}
 }
 \value{
-Returns a matrix containing the identifiers of compatible barcode combinations.
+A matrix containing the identifiers of compatible barcode combinations.
 }
 \description{
-Find a set of at most 1000 combinations of compatible barcodes by random pick.
+Finds a randomly generated set of at most 1000 combinations of compatible barcodes.
 }
 \details{
-This function is suited if the total number of possible combinations is too high for an exhaustive search in a reasonable amount of time.
+This function is suited if the total number of possible combinations is too high for an exhaustive search to be possible in a reasonable amount of time.
 }
 \examples{
 write.table(DNABarcodeCompatibility::IlluminaIndexes,

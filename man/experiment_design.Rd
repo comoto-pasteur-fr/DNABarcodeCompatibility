@@ -25,15 +25,15 @@ experiment_design(file1, sample_number, mplex_level, chemistry = 4,
 \item{d}{The minimum value of the distance.}
 }
 \value{
-Returns a dataframe containing compatible DNA-barcode combinations organized by lanes of the flow cell.
+A dataframe containing compatible DNA-barcode combinations organized by lanes of the flow cell.
 }
 \description{
 This function uses the Shannon Entropy to identify a set of compatible barcode combinations with least redundancy between DNA barcodes, in the context of single and dual indexing.
-It performs either an exhaustive or a random search of compatible DNA-barcode combinations depending on the size of the DNA-barcode population and of the number of samples to be multiplexed.
+It performs either an exhaustive or a random-greedy search of compatible DNA-barcode combinations depending on the size of the DNA-barcode population and of the number of samples to be multiplexed.
 }
 \details{
 By specifying the total number of libraries and the number of libraries to be multiplexed,
-this function returns an optimal combination of DNA barcodes to be used for sequencing.
+this function returns an optimal set of DNA-barcode combinations to be used for sequencing.
 
 The inputs of the algorithm are a list of n distinct barcodes, the number N of required libraries, and the multiplex level k; N = ak, where a is the number of lanes of the flow cells to be used for the experiment.
 \itemize{
@@ -48,21 +48,7 @@ Otherwise, it will proceed by picking up combinations at random, in order to ide
 \item Step 2:
 }
 
-N/k compatible combinations are then selected using a Shannon entropy maximization approach.
-It can be shown that the maximum value of the entropy that can be attained for a selection of N barcodes among n, with possible repetitions, reads:
-\deqn{S_{max}=-(n-r)\frac{\lfloor N/n\rfloor}{N}\log(\frac{\lfloor N/n\rfloor}{N})-r\frac{\lceil N/n\rceil}{N}\log(\frac{\lceil N/n\rceil}{N})}
-
-where r denotes the rest of the division of N by n, and
-\deqn{\lfloor N/n\rfloor} and \deqn{\lceil N/n\rceil} denote
-the lower and upper integer parts of N/n, respectively.\preformatted{+ Case 1: number of lanes < number of compatible DNA-barcode combinations
-}
-
-This function seeks for compatible DNA-barcode combinations of highest entropy.
-In brief this function uses a greedy descent algorithm to find an optimized selection.
-Note that the resulting optimized selection isn't necessary a globally optimal solution.\preformatted{+ Case 2: number of lanes >= number of compatible DNA-barcode combinations
-}
-
-In such a case, there are not enough compatible DNA-barcode combinations and redundancy is inevitable.
+Finds an optimized set of barcode combinations in which barcode redundancy is minimized (see details in \code{\link{optimize_combinations}})
 }
 \examples{
 write.table(DNABarcodeCompatibility::IlluminaIndexes,
