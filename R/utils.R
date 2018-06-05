@@ -605,7 +605,7 @@ low_hamming_distance = function(index_df, index_distance_df, d){
  
 #couples with seqlev distance under threshold
 low_seqlev_distance = function(index_df,index_distance_df, d){
-  i_d = index_distance_df %>% filter(seqlev > d) # suoerieur ou superieur ou egal
+  i_d = index_distance_df %>% filter(seqlev < d) # suoerieur ou superieur ou egal
   i_d = i_d %>% group_by(n) %>% mutate(Id1 = index_df$Id[which(V1 == index_df$sequence)],
                                        Id2 = index_df$Id[which(V2 == index_df$sequence)]) # matches the sequence to the id
   low_distance_tab = i_d %>% ungroup() %>% select(Id1, Id2)
@@ -623,36 +623,37 @@ low_seqlev_distance = function(index_df,index_distance_df, d){
 #   id2 = apply(id2, 1, any)
 #   to_remove = id1 * id2
 #   return(combinations_m [!as.logical(to_remove),])
-#   
+# 
 # }
 
 filter_combinations = function(combinations_m, low_distance_tab){
-  
-  combinations_df <- combinations_m %>% as.data.frame(., stringsAsFactors=F) %>% mutate(combID=0:((nrow(.)>0)*(nrow(.)-1))) 
-  head(combinations_df)
-  
-  combinations_df_long <- gather(combinations_df, bc_gp, barcodes, -combID) %>% select(-bc_gp) %>% arrange(combID) 
-  head(combinations_df_long)
-  
-  dist_tab_long <- gather(low_distance_tab %>% mutate(pairID = 0:((nrow(low_distance_tab)>0)*(nrow(low_distance_tab)-1))), bcID, barcodes, -pairID) %>% select(-bcID) %>% arrange(pairID) 
-  head(dist_tab_long)
-  
-  droppedComb <- combinations_df_long %>%  group_by(combID) %>% 
+  # browser()
+  combinations_df <- combinations_m %>% as.data.frame(., stringsAsFactors=F) %>% mutate(combID=0:((nrow(.)>0)*(nrow(.)-1)))
+  # head(combinations_df)
+
+  combinations_df_long <- gather(combinations_df, bc_gp, barcodes, -combID) %>% select(-bc_gp) %>% arrange(combID)
+  # head(combinations_df_long)
+
+  dist_tab_long <- gather(low_distance_tab %>% mutate(pairID = 0:((nrow(low_distance_tab)>0)*(nrow(low_distance_tab)-1))), bcID, barcodes, -pairID) %>% select(-bcID) %>% arrange(pairID)
+  # head(dist_tab_long)
+
+  droppedComb <- combinations_df_long %>%  group_by(combID) %>%
     do ({
       single_comb <- .
       dist_tab_long %>% group_by(pairID) %>%
         summarise(matchOcc=sum(barcodes %in% single_comb$barcodes)) %>% ungroup() %>%
-        mutate(isDropping = (matchOcc == 2)) %>%
+        mutate(isDropping = as.logical(matchOcc == 2)) %>%
         summarise(isDropping = any(isDropping))
-    }) %>% ungroup() 
-  
+    }) %>% ungroup()
+
+
   keptComb <- inner_join(combinations_df, droppedComb, by = "combID") %>%
     filter(!isDropping) %>% select(-c(combID,isDropping)) %>% as.matrix()
-  # browser()
+
   # if (nrow(keptComb)<1) stop("No combination left after filtering, please reduce the threshold.")
-  
+
   return(keptComb)
-  
+
 }
 
 
