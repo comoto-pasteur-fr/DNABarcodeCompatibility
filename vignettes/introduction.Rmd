@@ -35,9 +35,9 @@ library("DNABarcodeCompatibility")
 ## Load the example dataset and save as text file: `txtfile`
 
 ```{r, echo=TRUE}
-head(DNABarcodeCompatibility::IlluminaIndexes)
+head(DNABarcodeCompatibility::IlluminaIndexesRaw)
 
-export_dataset_to_file = function(dataset=DNABarcodeCompatibility::IlluminaIndexes) {
+export_dataset_to_file = function(dataset=DNABarcodeCompatibility::IlluminaIndexesRaw) {
   if (class(dataset)=="data.frame") {
     write.table(dataset,
                 textfile <- tempfile(), row.names = FALSE, col.names = FALSE, quote=FALSE)
@@ -57,19 +57,19 @@ The function `experiment_design()` uses the Shannon Entropy to identify a set of
 
 * 18 libraries sequenced in multiplex of 3 on a HiSeq (4 channels) platform
 ```{r, echo=TRUE}
-txtfile <- export_dataset_to_file(DNABarcodeCompatibility::IlluminaIndexes)
+txtfile <- export_dataset_to_file(DNABarcodeCompatibility::IlluminaIndexesRaw)
 experiment_design(file1=txtfile, sample_number=18, mplex_level=3, chemistry=4)
 ```
 
 * 12 libraries sequenced in multiplex of 3 on a NextSeq (2 channels) platform
 ```{r, echo=TRUE}
-txtfile <- export_dataset_to_file(DNABarcodeCompatibility::IlluminaIndexes)
+txtfile <- export_dataset_to_file(DNABarcodeCompatibility::IlluminaIndexesRaw)
 experiment_design(file1=txtfile, sample_number=12, mplex_level=3, chemistry=2)
 ```
 
 * 18 libraries sequenced in multiplex of 3 on a HiSeq (4 channels) platform using barcode robust againt 1 substitution error
 ```{r, echo=TRUE}
-txtfile <- export_dataset_to_file(DNABarcodeCompatibility::IlluminaIndexes)
+txtfile <- export_dataset_to_file(DNABarcodeCompatibility::IlluminaIndexesRaw)
 experiment_design(file1=txtfile, sample_number=18, mplex_level=3, chemistry=4, metric = "hamming", d = 3)
 
 ```
@@ -80,22 +80,22 @@ experiment_design(file1=txtfile, sample_number=18, mplex_level=3, chemistry=4, m
 * 18 libraries sequenced in multiplex of 3 on a HiSeq (4 channels) platform
 ```{r, echo=TRUE}
 # Select the first half of barcodes from the dataset
-txtfile1 <- export_dataset_to_file(DNABarcodeCompatibility::IlluminaIndexes[1:24,])
+txtfile1 <- export_dataset_to_file(DNABarcodeCompatibility::IlluminaIndexesRaw[1:24,])
 
 # Select the second half of barcodes from the dataset
-txtfile2 <- export_dataset_to_file(DNABarcodeCompatibility::IlluminaIndexes[25:48,])
+txtfile2 <- export_dataset_to_file(DNABarcodeCompatibility::IlluminaIndexesRaw[25:48,])
 
 # Get compatibles combinations of least redundant barcodes
-experiment_design(file1=txtfile1, sample_number=18, mplex_level=3, chemistry=4, file2=txtfile2)
+# experiment_design(file1=txtfile1, sample_number=18, mplex_level=3, chemistry=4, file2=txtfile2)
 ```
 
 * 18 libraries sequenced in multiplex of 3 on a HiSeq (4 channels) platform, robust againts substitution errors
 ```{r, echo=TRUE}
 # Select the first half of barcodes from the dataset
-txtfile1 <- export_dataset_to_file(DNABarcodeCompatibility::IlluminaIndexes[1:24,])
+txtfile1 <- export_dataset_to_file(DNABarcodeCompatibility::IlluminaIndexesRaw[1:24,])
 
 # Select the second half of barcodes from the dataset
-txtfile2 <- export_dataset_to_file(DNABarcodeCompatibility::IlluminaIndexes[25:48,])
+txtfile2 <- export_dataset_to_file(DNABarcodeCompatibility::IlluminaIndexesRaw[25:48,])
 
 # Get compatibles combinations of least redundant barcodes
 experiment_design(file1=txtfile1, sample_number=18, mplex_level=3, chemistry=4, file2=txtfile2, metric="hamming", d=3)
@@ -111,7 +111,7 @@ This section guides you through the detailed API of the package with the aim to 
 The `file_loading_and_checking()` function loads the file containing the DNA barcodes and analyzes its content. In particular, it checks barcodes for unicity (identifier and sequence), DNA content, and equal size. It also calculates the GC content and detects the presence of homopolymers of length >= 3.
 
 ```{r, echo=TRUE}
-barcodes <- file_loading_and_checking(export_dataset_to_file(DNABarcodeCompatibility::IlluminaIndexes))
+barcodes <- DNABarcodeCompatibility::IlluminaIndexes
 head(barcodes)
 ```
 
@@ -125,7 +125,7 @@ The total number of combinations depends on the number of available barcodes and
 choose(48,2)
 
 # Compatible combinations after an exhaustive search
-barcodes <- file_loading_and_checking(export_dataset_to_file(DNABarcodeCompatibility::IlluminaIndexes))
+barcodes <- DNABarcodeCompatibility::IlluminaIndexes
 system.time(m <- get_all_combinations(index_df = barcodes, mplex_level = 2, chemistry = 4))
 head(m)
 
@@ -137,7 +137,7 @@ head(m)
 choose(48,3)
 
 # Compatible combinations after an exhaustive search
-barcodes <- file_loading_and_checking(export_dataset_to_file(DNABarcodeCompatibility::IlluminaIndexes))
+barcodes <- DNABarcodeCompatibility::IlluminaIndexes
 system.time(m <- get_all_combinations(index_df = barcodes, mplex_level = 3, chemistry = 4))
 head(m)
 
@@ -153,7 +153,7 @@ When the total number of combinations becomes high, it is recommended to pick co
 choose(48,3)
 
 # Compatible combinations after an exhaustive search
-barcodes <- file_loading_and_checking(export_dataset_to_file(DNABarcodeCompatibility::IlluminaIndexes))
+barcodes <- DNABarcodeCompatibility::IlluminaIndexes
 system.time(m <- get_random_combinations(index_df = barcodes, mplex_level = 2, chemistry = 4))
 head(m)
 
@@ -165,7 +165,7 @@ head(m)
 choose(48,4)
 
 # Compatible combinations after an exhaustive search
-barcodes <- file_loading_and_checking(export_dataset_to_file(DNABarcodeCompatibility::IlluminaIndexes))
+barcodes <- DNABarcodeCompatibility::IlluminaIndexes
 system.time(m <- get_random_combinations(index_df = barcodes, mplex_level = 4, chemistry = 4))
 head(m)
 
@@ -177,7 +177,7 @@ head(m)
 choose(48,6)
 
 # Compatible combinations after an exhaustive search
-barcodes <- file_loading_and_checking(export_dataset_to_file(DNABarcodeCompatibility::IlluminaIndexes))
+barcodes <- DNABarcodeCompatibility::IlluminaIndexes
 system.time(m <- get_random_combinations(index_df = barcodes, mplex_level = 6, chemistry = 4))
 head(m)
 
@@ -187,7 +187,7 @@ head(m)
 
 
 ```{r, echo=TRUE}
-barcodes <- file_loading_and_checking(export_dataset_to_file(DNABarcodeCompatibility::IlluminaIndexes))
+barcodes <- DNABarcodeCompatibility::IlluminaIndexes
 m <- get_random_combinations(index_df = barcodes, mplex_level = 3, chemistry = 4)
 filtered_m <- distance_filter(index_df = barcodes, combinations_m = m, metric = "hamming", d = 4)
 head(filtered_m)
@@ -196,7 +196,7 @@ head(filtered_m)
 ### Optimize the set of compatible combinations to reduce barcode redundancy between lanes
 
 ```{r, echo=TRUE}
-filtered_m <- distance_filter(index_df = file_loading_and_checking(export_dataset_to_file(DNABarcodeCompatibility::IlluminaIndexes)),
+filtered_m <- distance_filter(index_df = DNABarcodeCompatibility::IlluminaIndexes,
                               combinations_m = get_random_combinations(index_df = barcodes, mplex_level = 3, chemistry = 4),
                               metric = "hamming", d = 3)
 df <- optimize_combinations(combination_m = filtered_m, nb_lane = 12, index_number = 48)
