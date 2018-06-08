@@ -24,6 +24,6 @@
 #' 
 
 display_message <- function (a_message){
-  error_messsage <<- a_message
+  error_message <<- a_message
   print(a_message)
 }

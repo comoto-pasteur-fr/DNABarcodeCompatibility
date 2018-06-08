@@ -1,10 +1,10 @@
 
-# library("dplyr")
-# library("tidyr")
-# library("numbers")
-# library("purrr")
-# library ("stringr")
-# library("DNABarcodes")
+ library("dplyr")
+ library("tidyr")
+ library("numbers")
+ library("purrr")
+ library ("stringr")
+ library("DNABarcodes")
 
 
 
@@ -764,7 +764,6 @@ is_a_prime_number = function (sample_number){
     
  
 final_result = function(index_df, sample_number, mplex_level, chemistry, metric, d){
-  #browser()
   result1 = get_result(index_df, sample_number, mplex_level, chemistry, metric, d)
   result1 = data.frame(sample = 1: sample_number %>% as.character(),
                        Lane = result1$Lane %>% as.character(),
@@ -776,7 +775,7 @@ final_result = function(index_df, sample_number, mplex_level, chemistry, metric,
 
     
  
-final_result_dual = function(index_df_1, index_df_2, sample_number, mplex_level, chemistry, metric, d){
+final_result_dual = function(index_df_1, index_df_2, sample_number, mplex_level, chemistry = 4, metric = NULL, d = 3){
   result1 = get_result(index_df_1, sample_number, mplex_level, chemistry, metric, d)
   result2 = get_result(index_df_2, sample_number, mplex_level, chemistry, metric, d)
   result2 = check_for_duplicate(result1, result2)
@@ -785,12 +784,14 @@ final_result_dual = function(index_df_1, index_df_2, sample_number, mplex_level,
   print(result1)
   result2 = left_join(result2, select(index_df_2, Id, sequence)) 
   print(result2)
-  result = data.frame(sample = 1: sample_number %>% as.character(),
+  result = data.frame(sample = 1: sample_number %>% as.numeric(),
                       Lane = result1$Lane %>% as.character(),
                       Id1 = result1$Id %>% as.character(),
                       sequence1 = result1$sequence %>% as.character(),
                       Id2 = result2$Id %>% as.character(),
-                      sequence2 = result2$sequence%>% as.character()) %>% arrange(Lane)
+                      sequence2 = result2$sequence%>% as.character(),
+                      stringsAsFactors = FALSE) %>% arrange(sample)
+  result$sample = as.character(result$sample)
   return(result)
   
 }
