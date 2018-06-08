@@ -86,7 +86,7 @@ txtfile1 <- export_dataset_to_file(DNABarcodeCompatibility::IlluminaIndexesRaw[1
 txtfile2 <- export_dataset_to_file(DNABarcodeCompatibility::IlluminaIndexesRaw[25:48,])
 
 # Get compatibles combinations of least redundant barcodes
-experiment_design(file1=txtfile1, sample_number=18, mplex_level=3, chemistry=4, file2=txtfile2)
+# experiment_design(file1=txtfile1, sample_number=18, mplex_level=3, chemistry=4, file2=txtfile2)
 ```
 
 * 18 libraries sequenced in multiplex of 3 on a HiSeq (4 channels) platform, robust againts substitution errors
@@ -196,7 +196,7 @@ head(filtered_m)
 ### Optimize the set of compatible combinations to reduce barcode redundancy between lanes
 
 ```{r, echo=TRUE}
-filtered_m <- distance_filter(index_df = file_loading_and_checking(export_dataset_to_file(DNABarcodeCompatibility::IlluminaIndexes)),
+filtered_m <- distance_filter(index_df = DNABarcodeCompatibility::IlluminaIndexes,
                               combinations_m = get_random_combinations(index_df = barcodes, mplex_level = 3, chemistry = 4),
                               metric = "hamming", d = 3)
 df <- optimize_combinations(combination_m = filtered_m, nb_lane = 12, index_number = 48)
