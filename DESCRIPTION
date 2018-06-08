@@ -1,14 +1,14 @@
 Package: DNABarcodeCompatibility
 Type: Package
-Title: A tool for optimizing combinations of compatible DNA barcodes used in Next Generation Sequencing experiments on 4-, 2-, and 1-channel Illumina sequencers
+Title: A tool for optimizing combinations of DNA barcodes used in multiplxed experiments on Next Generation Sequencing plateforms.
 Version: 1.0.0
-Author: Céline Trébeau
+Author: Céline Trébeau, Jacques Boutet de Monvel, Raphaël Etournay
 Maintainer: Céline Trébeau <celine.trebeau@pasteur.fr>
 Authors@R: c(
     person("Céline", "Trébeau", email = "celine.trebeau@pasteur.fr", role = "aut"),
     person("Jacques", "Boutet de Monvel", email = "jacques.boutet-de-monvel@pasteur.fr", role = "ctb"),
     person("Raphaël", "Etournay", email = "raphael.etournay@pasteur.fr", role = "ctb"))
-Description: The package allows one to obtain an optimized combination of compatible DNA barcodes to be used for multiplex sequencing. The user inputs a list of available DNA barcodes, the total number of libraries to be sequenced and the number of libraries to be multiplexed. The resulting output consists of a set of least redundant and compatible DNA barcodes.
+Description: The package allows one to obtain optimized combinations of DNA barcodes to be used for multiplex sequencing. In each barcode combination, barcodes are pooled with respect to Illumina chemistry constraints. Combinations can be filtered to keep those that are robust against substitution and insertion/deletion errors thereby facilitating the demultiplexing step. In addtion, the package provides an optimizer function to further favor the selection of barcode combinations with least redundancy of DNA barcodes. 
 License: GPL-2
 Encoding: UTF-8
 LazyData: true

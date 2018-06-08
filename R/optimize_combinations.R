@@ -12,10 +12,29 @@
 #' @param index_number The total number of distinct DNA barcodes in the dataset.
 #'
 #' @details 
-#' 
+#' N/k compatible combinations are then selected using a Shannon entropy maximization approach.
+#' It can be shown that the maximum value of the entropy that can be attained for a selection of N barcodes among n, with possible repetitions, reads: 
+#'  \deqn{S_{max}=-(n-r)\frac{\lfloor N/n\rfloor}{N}\log(\frac{\lfloor N/n\rfloor}{N})-r\frac{\lceil N/n\rceil}{N}\log(\frac{\lceil N/n\rceil}{N})}
+#'  
+#'  where r denotes the rest of the division of N by n, while
+#'  \deqn{\lfloor N/n\rfloor} and \deqn{\lceil N/n\rceil} denote
+#'  the lower and upper integer parts of N/n, respectively.
 #'
+#'     + Case 1: number of lanes < number of compatible DNA-barcode combinations
+#'     
+#' This function seeks for compatible DNA-barcode combinations of highest entropy.
+#' In brief this function uses a randomized greedy descent algorithm to find an optimized selection. 
+#' Note that the resulting optimized selection may not be globally optimal.
+#' It is actually close to optimal and much improved in terms of non-redundancy of DNA barcodes used, compared to a randomly choosen set of combinations of compatible barcodes.
+#'
+#'     + Case 2: number of lanes >= number of compatible DNA-barcode combinations
+#'     
+#' In such a case, there are not enough compatible DNA-barcode combinations and redundancy is inevitable.
+#'
+#' @md
+#' 
 #' @return 
-#' Returns a matrix containing an optimized set of combinations of compatible barcodes.
+#' A matrix containing an optimized set of combinations of compatible barcodes.
 #'
 #' @examples
 #' write.table(DNABarcodeCompatibility::IlluminaIndexes,

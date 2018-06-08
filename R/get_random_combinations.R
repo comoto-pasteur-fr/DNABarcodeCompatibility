@@ -2,20 +2,20 @@
 #' Get a large set of compatible combinations.
 #'
 #' @description 
-#' Find a set of at most 1000 combinations of compatible barcodes by random pick.
+#' Finds a randomly generated set of at most 1000 combinations of compatible barcodes.
 #'
 #' @usage 
 #' get_random_combinations(index_df, mplex_level, chemistry)
 #'
 #' @param index_df A dataframe containing barcodes identifiers, corresponding DNA sequences along with GC content and presence of homopolymers.
 #' @param mplex_level The number at which the barcodes will be multiplexed.
-#' @param chemistry An integer representing the number of channels (1, 2, 4) of the desired Illumina plateform.
+#' @param chemistry An integer representing the number of channels (1, 2, 4) of the Illumina plateform to be used.
 #'
 #' @details 
-#' This function is suited if the total number of possible combinations is too high for an exhaustive search in a reasonable amount of time.
+#' This function is suited if the total number of possible combinations is too high for an exhaustive search to be possible in a reasonable amount of time.
 #'
 #' @return 
-#' Returns a matrix containing the identifiers of compatible barcode combinations.
+#' A matrix containing the identifiers of compatible barcode combinations.
 #'
 #' @examples
 #' write.table(DNABarcodeCompatibility::IlluminaIndexes,
