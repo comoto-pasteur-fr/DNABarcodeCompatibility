@@ -170,8 +170,7 @@ multiplexing_level_set = function (sample_number){
   return (multiplexing_level_choices [multiplexing_level_choices< 96])
 }
 
-    
- 
+  
 sample_and_multiplexing_level_check = function(sample_number,mplex_level){
   if (sample_number_check(sample_number)){
     possible_multiplexing_level = multiplexing_level_set(sample_number)
@@ -183,6 +182,8 @@ sample_and_multiplexing_level_check = function(sample_number,mplex_level){
       return (TRUE)
     }
   }else {return(FALSE)}}
+
+
 
 
 # Binary conversion -------------------------------------------------------
@@ -746,7 +747,7 @@ check_for_duplicate = function(result1, result2){
   }
 }
 
-    
+  
  
 
 
@@ -795,6 +796,13 @@ final_result_dual = function(index_df_1, index_df_2, sample_number, mplex_level,
   return(result)
   
 }
+
+
+
+display_message <- function (a_message){
+  error_message <<- a_message
+  print(a_message)
+} 
 
 
 # For dataset in documentation ----------------------------------------------------------------
