@@ -53,7 +53,7 @@
 #' 
 
 optimize_combinations = function (combination_m, nb_lane, index_number){
-  browser()
+  # browser()
   if (nrow(as.matrix(combination_m)) == 0){
     display_message("No combinations have been found")
   }else {
