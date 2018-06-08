@@ -39,14 +39,22 @@
 # \link{http://www.qucosa.de/recherche/frontdoor/?tx_slubopus4frontend%5bid%5d=urn:nbn:de:bsz:15-qucosa-209812}
 
 distance_filter = function(index_df, combinations_m, metric, d){
-  index_distance_df =  index_distance(index_df)
-  if (metric == "hamming"){
-    hamming_rejection_table = low_hamming_distance(index_df, index_distance_df, d)
-    filtered_combinations_m = filter_combinations(combinations_m, hamming_rejection_table)
-  }else if (metric == "seqlev") {
-    seqlev_rejection_table = low_seqlev_distance(index_df, index_distance_df, d) 
-    filtered_combinations_m = filter_combinations(combinations_m, seqlev_rejection_table)
+  if (is.numeric(d)){
+    index_distance_df =  index_distance(index_df)
+    if(metric == "hamming" || metric == "seqlev"){
+      if (metric == "hamming"){
+        hamming_rejection_table = low_hamming_distance(index_df, index_distance_df, d)
+        filtered_combinations_m = filter_combinations(combinations_m, hamming_rejection_table)
+      }else if (metric == "seqlev") {
+        seqlev_rejection_table = low_seqlev_distance(index_df, index_distance_df, d) 
+        filtered_combinations_m = filter_combinations(combinations_m, seqlev_rejection_table)
+      }
+      return (filtered_combinations_m)
+    }else{
+      display_message("metric should be 'hamming' or 'seqlev'")
+    }
+  }else{
+    display_message("Please enter a number as d")
   }
-  return (filtered_combinations_m)
 }
 
