@@ -720,7 +720,7 @@ recursive_entropy = function(combination_m, nb_lane){
  
 # gets the result
 get_result = function (index_df,sample_number, mplex_level, chemistry, metric = NULL, d = 3){
-  #browser()
+  # browser()
   combinations_m = get_combinations(index_df, mplex_level, chemistry)
   if(!is.null(metric)){
     combinations_m = distance_filter (index_df, combinations_m, metric, d)
