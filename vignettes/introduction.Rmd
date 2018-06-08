@@ -98,7 +98,7 @@ txtfile1 <- export_dataset_to_file(DNABarcodeCompatibility::IlluminaIndexes[1:24
 txtfile2 <- export_dataset_to_file(DNABarcodeCompatibility::IlluminaIndexes[25:48,])
 
 # Get compatibles combinations of least redundant barcodes
-# experiment_design(file1=txtfile1, sample_number=18, mplex_level=3, chemistry=4, file2=txtfile2, metric="hamming", d=3)
+experiment_design(file1=txtfile1, sample_number=18, mplex_level=3, chemistry=4, file2=txtfile2, metric="hamming", d=3)
 ```
 
 
@@ -189,7 +189,7 @@ head(m)
 ```{r, echo=TRUE}
 barcodes <- file_loading_and_checking(export_dataset_to_file(DNABarcodeCompatibility::IlluminaIndexes))
 m <- get_random_combinations(index_df = barcodes, mplex_level = 3, chemistry = 4)
-filtered_m <- distance_filter(index_df = barcodes, combinations_m = m, metric = "hamming", d = 3)
+filtered_m <- distance_filter(index_df = barcodes, combinations_m = m, metric = "hamming", d = 4)
 head(filtered_m)
 ```
 
