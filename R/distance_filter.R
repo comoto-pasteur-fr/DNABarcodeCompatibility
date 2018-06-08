@@ -14,7 +14,7 @@
 #'
 #' @details 
 #' The "hamming" distance is suitable for correcting substitution errors. 
-#' The "seqlev" distance is suitable for correcting insertion/deletion errors.
+#' The "seqlev" distance is suitable for correcting both substitution and insertion/deletion errors.
 #'
 #' @return 
 #' A filtered matrix containing the identifiers of the barcodes satisfying the distance constraints.
