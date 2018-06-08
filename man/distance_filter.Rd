@@ -23,7 +23,7 @@ Filters a list of barcode combinations for a given distance metric (hamming or s
 }
 \details{
 The "hamming" distance is suitable for correcting substitution errors. 
-The "seqlev" distance is suitable for correcting insertion/deletion errors.
+The "seqlev" distance is suitable for correcting both substitution and insertion/deletion errors.
 }
 \examples{
 write.table(DNABarcodeCompatibility::IlluminaIndexes,
