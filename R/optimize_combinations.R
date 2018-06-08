@@ -34,55 +34,60 @@
 #' 
 
 optimize_combinations = function (combination_m, nb_lane, index_number){
-  if(is.numeric(index_number)){
-    if (is.numeric(nb_lane)){
-      
-      max = entropy_max(index_number, ncol(combination_m) * nb_lane)
-      print(max)
-      if(nb_lane < nrow(combination_m)){
-        if (nrow(combination_m > 80)){ 
-          a_combination = recursive_entropy(combination_m[sample(1:nrow(combination_m),80),],nb_lane)
-          i = 0
-          while ((i < 10) && (entropy_result(a_combination) < max) ){
-            temp_combination = recursive_entropy(combination_m[sample(1:nrow(combination_m),80),], nb_lane)
-            if (entropy_result(temp_combination) > entropy_result(a_combination) ){
-              a_combination = temp_combination
+  if (nrow(as.matrix(combination_m) == 0)){
+    display_message("No combinations have been found")
+  }else {
+    if(is.numeric(index_number)){
+      if (is.numeric(nb_lane)){
+        
+        max = entropy_max(index_number, ncol(combination_m) * nb_lane)
+        print(max)
+        if(nb_lane < nrow(combination_m)){
+          if (nrow(combination_m) > 80){ 
+            a_combination = recursive_entropy(combination_m[sample(1:nrow(combination_m),80),],nb_lane)
+            i = 0
+            while ((i < 10) && (entropy_result(a_combination) < max) ){
+              temp_combination = recursive_entropy(combination_m[sample(1:nrow(combination_m),80),], nb_lane)
+              if (entropy_result(temp_combination) > entropy_result(a_combination) ){
+                a_combination = temp_combination
+              }
+              i = i+1
             }
-            i = i+1
+          } else {
+            a_combination = recursive_entropy(combination_m,nb_lane)
+            i = 0
+            while ((i < 10) && (entropy_result(a_combination) < max) ){
+              temp_combination = recursive_entropy(combination_m, nb_lane)
+              if (entropy_result(temp_combination) > entropy_result(a_combination) ){
+                a_combination = temp_combination
+              }
+              i = i+1
+            }
           }
         } else {
-          a_combination = recursive_entropy(combination_m,nb_lane)
+          n = nb_lane - nrow(combination_m)
+          combination_m = combination_m[sample(1:nrow(combination_m),nrow(combination_m)),]
+          part_combination = combination_m[sample(1:nrow(combination_m),n, replace = TRUE),]
+          a_combination = rbind(combination_m, part_combination)
           i = 0
-          while ((i < 10) && (entropy_result(a_combination) < max) ){
-            temp_combination = recursive_entropy(combination_m, nb_lane)
+          while ((i < 30) && (entropy_result(a_combination) < max) && n > 0){
+            part_combination = combination_m[sample(1:nrow(combination_m),n, replace = TRUE),]
+            temp_combination = rbind(combination_m, part_combination)
             if (entropy_result(temp_combination) > entropy_result(a_combination) ){
               a_combination = temp_combination
             }
+            i = i + 1
           }
+          a_combination = a_combination[sample(1:nrow(a_combination),nrow(a_combination)),]
         }
+        print(entropy_result(a_combination))
+        return(a_combination)
       } else {
-        n = nb_lane - nrow(combination_m)
-        combination_m = combination_m[sample(1:nrow(combination_m),nrow(combination_m)),]
-        part_combination = combination_m[sample(1:nrow(combination_m),n, replace = TRUE),]
-        a_combination = rbind(combination_m, part_combination)
-        i = 0
-        while ((i < 30) && (entropy_result(a_combination) < max) && n > 0){
-          part_combination = combination_m[sample(1:nrow(combination_m),n, replace = TRUE),]
-          temp_combination = rbind(combination_m, part_combination)
-          if (entropy_result(temp_combination) > entropy_result(a_combination) ){
-            a_combination = temp_combination
-          }
-          i = i + 1
-        }
-        a_combination = a_combination[sample(1:nrow(a_combination),nrow(a_combination)),]
+        display_message("Please enter a number as nb_lane")
       }
-      print(entropy_result(a_combination))
-      return(a_combination)
     } else {
-      display_message("Please enter a number as nb_lane")
+      display_message("Please enter a number as index_number")
     }
-  } else {
-    display_message("Please enter a number as index_number")
   }
 }
 

@@ -41,7 +41,11 @@ get_all_combinations = function(index_df, mplex_level, chemistry){
     } else {
       display_message("Please choose a correct chemistry for your experiment ")
     }
-    return (combinations_m)
+    if(nrow(as.matrix(combinations_m)) == 0){
+      display_message("The programm did'nt find any compatible combination, please check your index list")
+    }else{
+      return (combinations_m)
+    }
   }else{
     display_message("please enter a number as mplex_level")
   }
