@@ -31,14 +31,19 @@
 #' 
 
 get_all_combinations = function(index_df, mplex_level, chemistry){
-  if (chemistry == 4 ){
-    combinations_m = get_all_combinations_4_channel(index_df, mplex_level)
-  } else if (chemistry == 2){
-    combinations_m = get_all_combinations_2_channel(index_df, mplex_level)
-  } else if (chemistry == 1){
-    combinations_m = get_all_combinations_1_channel(index_df, mplex_level)
-  } else {
-    display_message("Please choose a correct chemistry for your experiment ")
+  if (is.numeric(mplex_level)){
+    if (chemistry == 4 ){
+      combinations_m = get_all_combinations_4_channel(index_df, mplex_level)
+    } else if (chemistry == 2){
+      combinations_m = get_all_combinations_2_channel(index_df, mplex_level)
+    } else if (chemistry == 1){
+      combinations_m = get_all_combinations_1_channel(index_df, mplex_level)
+    } else {
+      display_message("Please choose a correct chemistry for your experiment ")
+    }
+    return (combinations_m)
+  }else{
+    display_message("please enter a number as mplex_level")
   }
-  return (combinations_m)
+  
 }
