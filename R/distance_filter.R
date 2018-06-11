@@ -2,7 +2,7 @@
 #' Select barcode combinations with error correction properties
 #'
 #' @description 
-#' Filter barcode combinations for a given distance metric (hamming or seqlev) and threshold.
+#' Filters a list of barcode combinations for a given distance metric (hamming or seqlev) and threshold in order to produce a list of barcodes satisfying the distance constraints.
 #'
 #' @usage 
 #' distance_filter(index_df, combinations_m, metric, d)
@@ -13,11 +13,11 @@
 #' @param d The minimum value of the distance.
 #'
 #' @details 
-#' The Hamming distance is suitable for correcting substitution errors. 
-#' The SeqLev distance is suitable for correcting insertion/deletion errors.
+#' The "hamming" distance is suitable for correcting substitution errors. 
+#' The "seqlev" distance is suitable for correcting both substitution and insertion/deletion errors.
 #'
 #' @return 
-#' Returns a filtered matrix containing the identifiers of compatible combinations of barcodes.
+#' A filtered matrix containing the identifiers of the barcodes satisfying the distance constraints.
 #'
 #' @examples
 #' write.table(DNABarcodeCompatibility::IlluminaIndexes,

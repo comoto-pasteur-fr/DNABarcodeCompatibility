@@ -11,16 +11,16 @@ get_all_combinations(index_df, mplex_level, chemistry)
 
 \item{mplex_level}{The number at which the barcodes will be multiplexed.}
 
-\item{chemistry}{An integer representing the number of channels (1, 2, 4) of the desired Illumina plateform.}
+\item{chemistry}{An integer representing the number of channels (1, 2, 4) of the Illumina plateform to be used.}
 }
 \value{
-Returns a matrix containing the identifiers of compatible barcode combinations.
+A matrix containing the identifiers of compatible barcode combinations.
 }
 \description{
-Find the exhaustive set of compatible barcode combinations.
+Finds the exhaustive set of compatible barcode combinations.
 }
 \details{
-Be aware that the number of combinations may tend to infinity.
+Be aware that the total number of combinations may become prohibitively large for large barcode sets and large multiplexing numbers.
 }
 \examples{
 write.table(DNABarcodeCompatibility::IlluminaIndexes,

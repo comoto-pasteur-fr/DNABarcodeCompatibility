@@ -16,14 +16,14 @@ distance_filter(index_df, combinations_m, metric, d)
 \item{d}{The minimum value of the distance.}
 }
 \value{
-Returns a filtered matrix containing the identifiers of compatible combinations of barcodes.
+A filtered matrix containing the identifiers of the barcodes satisfying the distance constraints.
 }
 \description{
-Filter barcode combinations for a given distance metric (hamming or seqlev) and threshold.
+Filters a list of barcode combinations for a given distance metric (hamming or seqlev) and threshold in order to produce a list of barcodes satisfying the distance constraints.
 }
 \details{
-The Hamming distance is suitable for correcting substitution errors. 
-The SeqLev distance is suitable for correcting insertion/deletion errors.
+The "hamming" distance is suitable for correcting substitution errors. 
+The "seqlev" distance is suitable for correcting both substitution and insertion/deletion errors.
 }
 \examples{
 write.table(DNABarcodeCompatibility::IlluminaIndexes,

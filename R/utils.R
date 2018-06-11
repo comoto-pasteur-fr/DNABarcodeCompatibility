@@ -606,35 +606,45 @@ low_hamming_distance = function(index_df, index_distance_df, d){
  
 #couples with seqlev distance under threshold
 low_seqlev_distance = function(index_df,index_distance_df, d){
-  i_d = index_distance_df %>% filter(seqlev > d) # suoerieur ou superieur ou egal
+  i_d = index_distance_df %>% filter(seqlev < d) # suoerieur ou superieur ou egal
   i_d = i_d %>% group_by(n) %>% mutate(Id1 = index_df$Id[which(V1 == index_df$sequence)],
                                        Id2 = index_df$Id[which(V2 == index_df$sequence)]) # matches the sequence to the id
   low_distance_tab = i_d %>% ungroup() %>% select(Id1, Id2)
   return(low_distance_tab)
 }
 
-
-is_not_present = function (combination, identifier){
-  return(length(intersect(combination, identifier)) < 2)
-}
-
     
  
 # low distance tab = hamming rejection table or seq lev rejection table
 filter_combinations = function(combinations_m, low_distance_tab){
-  to_remove = vector(mode = "logical", length =  nrow(combinations_m))
-  for ( j in 1 :  nrow (combinations_m)){
-    for (i in 1 : nrow(low_distance_tab)){
-      if (!DNABarcodeCompatibility ::: is_not_present(combinations_m[j,], low_distance_tab[i,])){
-        to_remove[j] = TRUE
-        i = nrow(low_distance_tab)
-      }
-    }
-  }
-  return(combinations_m [!as.logical(to_remove),])
+  # browser()
+  combinations_df <- combinations_m %>% as.data.frame(., stringsAsFactors=F) %>% mutate(combID=0:((nrow(.)>0)*(nrow(.)-1)))
+  # head(combinations_df)
+
+  combinations_df_long <- gather(combinations_df, bc_gp, barcodes, -combID) %>% select(-bc_gp) %>% arrange(combID)
+  # head(combinations_df_long)
+
+  dist_tab_long <- gather(low_distance_tab %>% mutate(pairID = 0:((nrow(low_distance_tab)>0)*(nrow(low_distance_tab)-1))), bcID, barcodes, -pairID) %>% select(-bcID) %>% arrange(pairID)
+  # head(dist_tab_long)
+
+  droppedComb <- combinations_df_long %>%  group_by(combID) %>%
+    do ({
+      single_comb <- .
+      dist_tab_long %>% group_by(pairID) %>%
+        summarise(matchOcc=sum(barcodes %in% single_comb$barcodes)) %>% ungroup() %>%
+        mutate(isDropping = as.logical(matchOcc == 2)) %>%
+        summarise(isDropping = any(isDropping))
+    }) %>% ungroup()
+
+
+  keptComb <- inner_join(combinations_df, droppedComb, by = "combID") %>%
+    filter(!isDropping) %>% select(-c(combID,isDropping)) %>% as.matrix()
+
+  # if (nrow(keptComb)<1) stop("No combination left after filtering, please reduce the threshold.")
+
+  return(keptComb)
+
 }
-
-
 
 
 # Result ------------------------------------------------------------------
@@ -700,7 +710,7 @@ recursive_entropy = function(combination_m, nb_lane){
  
 # gets the result
 get_result = function (index_df,sample_number, mplex_level, chemistry, metric = NULL, d = 3){
-  #browser()
+  # browser()
   combinations_m = get_combinations(index_df, mplex_level, chemistry)
   if(!is.null(metric)){
     combinations_m = distance_filter (index_df, combinations_m, metric, d)
@@ -810,14 +820,4 @@ display_message <- function (a_message){
   error_message <<- a_message
   print(a_message)
 } 
-
-
-# For dataset in documentation ----------------------------------------------------------------
-# export_dataset_to_file = function(dataset=DNABarcodeCompatibility::illumina) {
-#   if (class(dataset)=="data.frame") {
-#     write.table(DNABarcodeCompatibility::illumina,
-#                 textfile <<- tempfile(), row.names = FALSE, col.names = FALSE, quote=FALSE)
-#     print("Dataset successfully exported into file: see the 'textfile' variable")
-#   } else print("The input dataset isn't a data.frame: NOT exported into file")
-# }
 
