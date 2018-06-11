@@ -17,7 +17,7 @@
 #' A dataframe containing sequence identifiers, nucleotide sequence, GC content, presence of homopolymers.
 #'
 #' @examples
-#' write.table(DNABarcodeCompatibility::IlluminaIndexes,
+#' write.table(DNABarcodeCompatibility::IlluminaIndexesRaw,
 #'  txtfile <- tempfile(), row.names = FALSE, col.names = FALSE, quote=FALSE)
 #' file_loading_and_checking(txtfile)
 #' 

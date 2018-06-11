@@ -44,7 +44,7 @@
 #' A dataframe containing compatible DNA-barcode combinations organized by lanes of the flow cell.
 #'
 #' @examples
-#' write.table(DNABarcodeCompatibility::IlluminaIndexes,
+#' write.table(DNABarcodeCompatibility::IlluminaIndexesRaw,
 #'  txtfile <- tempfile(), row.names = FALSE, col.names = FALSE, quote=FALSE)
 #' experiment_design(file1=txtfile, sample_number=18, mplex_level=3, chemistry=4)
 #' 
