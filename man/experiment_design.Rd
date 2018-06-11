@@ -51,7 +51,7 @@ Otherwise, it will proceed by picking up combinations at random, in order to ide
 Finds an optimized set of barcode combinations in which barcode redundancy is minimized (see details in \code{\link{optimize_combinations}})
 }
 \examples{
-write.table(DNABarcodeCompatibility::IlluminaIndexes,
+write.table(DNABarcodeCompatibility::IlluminaIndexesRaw,
  txtfile <- tempfile(), row.names = FALSE, col.names = FALSE, quote=FALSE)
 experiment_design(file1=txtfile, sample_number=18, mplex_level=3, chemistry=4)
 

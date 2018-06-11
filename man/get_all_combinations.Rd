@@ -23,10 +23,7 @@ Finds the exhaustive set of compatible barcode combinations.
 Be aware that the total number of combinations may become prohibitively large for large barcode sets and large multiplexing numbers.
 }
 \examples{
-write.table(DNABarcodeCompatibility::IlluminaIndexes,
- txtfile <- tempfile(), row.names = FALSE, col.names = FALSE, quote=FALSE)
-barcodes <- file_loading_and_checking(txtfile)
-get_all_combinations(barcodes, 3, 4)
+get_all_combinations(DNABarcodeCompatibility::IlluminaIndexes, 3, 4)
 
 
 }

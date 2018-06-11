@@ -38,10 +38,7 @@ It is actually close to optimal and much improved in terms of non-redundancy of 
 In such a case, there are not enough compatible DNA-barcode combinations and redundancy is inevitable.
 }
 \examples{
-write.table(DNABarcodeCompatibility::IlluminaIndexes,
- txtfile <- tempfile(), row.names = FALSE, col.names = FALSE, quote=FALSE)
-barcodes <- file_loading_and_checking(txtfile)
-m <- get_random_combinations(barcodes, 3, 4)
+m <- get_random_combinations(DNABarcodeCompatibility::IlluminaIndexes, 3, 4)
 optimize_combinations(m, 12, 48)
 
 

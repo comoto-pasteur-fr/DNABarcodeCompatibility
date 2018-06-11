@@ -20,7 +20,7 @@ This function loads the DNA barcodes from the input file and checks barcodes for
 It also calculates the fraction of G and C relative to A and T, as refered to as "GC content", and it detects the presence of homopolymers of length >= 3.
 }
 \examples{
-write.table(DNABarcodeCompatibility::IlluminaIndexes,
+write.table(DNABarcodeCompatibility::IlluminaIndexesRaw,
  txtfile <- tempfile(), row.names = FALSE, col.names = FALSE, quote=FALSE)
 file_loading_and_checking(txtfile)
 
