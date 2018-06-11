@@ -66,7 +66,7 @@ optimize_combinations = function (combination_m, nb_lane, index_number){
           }
         } else {
           n = nb_lane - nrow(combination_m)
-          combination_m = combination_m[sample(1:nrow(combination_m),nrow(combination_m)),]
+          combination_m = combination_m[sample(1:nrow(combination_m),nrow(combination_m)),,drop = F]
           part_combination = combination_m[sample(1:nrow(combination_m),n, replace = TRUE),]
           a_combination = rbind(combination_m, part_combination)
           i = 0
