@@ -33,7 +33,8 @@ Documentation
 
 [Introduction](https://comoto-pasteur-fr.github.io/DNABarcodeCompatibility/)
 
-API documentation [](https://comoto-pasteur-fr.github.io/DNABarcodeCompatibility/DNABarcodeCompatibility-manual.pdf)
+! Soon available ! 
+[API documentation](https://comoto-pasteur-fr.github.io/DNABarcodeCompatibility/DNABarcodeCompatibility-manual.pdf)
 
 Support
 =========
@@ -46,7 +47,7 @@ We also welcome pull requests.
 Reference
 ==========
 
-Céline Trébeau, Jacques Boutet de Monvel, Virginie Wong Jun Tai, Raphaël Etournay. (2018, May 31). comoto-pasteur-fr/DNABarcodeCompatibility: First stable release (Version v0.0.0.9000). Zenodo. [http://doi.org/10.5281/zenodo.1256863](http://doi.org/10.5281/zenodo.1256863)
+Céline Trébeau, Jacques Boutet de Monvel, Fabienne Wong Jun Tai, Raphaël Etournay. (2018, May 31). comoto-pasteur-fr/DNABarcodeCompatibility: First complete release (Version v0.0.0.9000). Zenodo. [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1256863.svg)](https://doi.org/10.5281/zenodo.1256863)
 
 
 
