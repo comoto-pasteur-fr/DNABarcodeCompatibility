@@ -613,18 +613,25 @@ low_seqlev_distance = function(index_df,index_distance_df, d){
   return(low_distance_tab)
 }
 
+
+is_not_present = function (combination, identifier){
+  return(length(intersect(combination, identifier)) < 2)
+}
+
     
  
 # low distance tab = hamming rejection table or seq lev rejection table
 filter_combinations = function(combinations_m, low_distance_tab){
-  #browser()
-  id1 = combinations_m %>% as.data.frame() %>% select_all() == unlist(low_distance_tab$Id1)
-  id1 = apply(id1, 1, any)
-  id2 = combinations_m %>% as.data.frame() %>% select_all() == unlist(low_distance_tab$Id2)
-  id2 = apply(id2, 1, any)
-  to_remove = id1 * id2
+  to_remove = vector(mode = "logical", length =  nrow(combinations_m))
+  for ( j in 1 :  nrow (combinations_m)){
+    for (i in 1 : nrow(low_distance_tab)){
+      if (!DNABarcodeCompatibility ::: is_not_present(combinations_m[j,], low_distance_tab[i,])){
+        to_remove[j] = TRUE
+        i = nrow(low_distance_tab)
+      }
+    }
+  }
   return(combinations_m [!as.logical(to_remove),])
-  
 }
 
 
