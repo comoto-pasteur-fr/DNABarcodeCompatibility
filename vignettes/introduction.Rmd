@@ -244,7 +244,7 @@ df <- optimize_combinations(combination_m = filtered_m, nb_lane = 12, index_numb
 df
 ```
 
-### The optimized result may not be an optimum when reducing the number of available barcodes
+### The optimized result cannot be an optimum when filtering out too many barcodes
 
 * Increased distance between barcode sequences: redundancy may become inevitable
 ```{r, echo=TRUE}
