@@ -20,8 +20,8 @@ Imports:
     numbers,
     purrr,
     DNABarcodes,
-    stringr,
-    rJava
+    rJava,
+    stringr
 Suggests: knitr,
     rmarkdown,
     testthat
