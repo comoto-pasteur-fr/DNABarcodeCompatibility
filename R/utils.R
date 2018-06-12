@@ -13,7 +13,7 @@
 # Inputs ------------------------------------------------------------------
 read_index = function(file) {
   if(!file.exists(file)){
-    display_message("Your file doesn't exist, please check the path", call. = FALSE )
+    display_message("Your file doesn't exist, please check the path")
     index <<- NULL
   }else{
     index <<- try(as.data.frame(read.table(file, 
