@@ -737,7 +737,7 @@ get_result = function (index_df,sample_number, mplex_level, chemistry, metric = 
 # impact variant calling or assignment of gene expression counts.
 check_for_duplicate = function(result1, result2){
   check = data.frame(Id1 = result1$Id, Id2 = result2$Id)
-  print(check)
+  # print(check)
   if (anyDuplicated(check) != 0){
     d = anyDuplicated(check)
     for(i in 1 : length(d)){
@@ -757,7 +757,7 @@ check_for_duplicate = function(result1, result2){
       }
       result = bind_rows(lane_to_change,lanes_to_keep) %>% arrange(Lane)
     }
-    print(result2)
+    # print(result2)
     return (result)
   }else{
     return (result2)
@@ -798,10 +798,10 @@ final_result_dual = function(index_df_1, index_df_2, sample_number, mplex_level,
   result2 = get_result(index_df_2, sample_number, mplex_level, chemistry, metric, d)
   result2 = check_for_duplicate(result1, result2)
   
-  result1 = left_join(result1, select(index_df_1, Id, sequence)) 
-  print(result1)
-  result2 = left_join(result2, select(index_df_2, Id, sequence)) 
-  print(result2)
+  result1 = left_join(result1, select(index_df_1, Id, sequence), by = "Id") 
+  # print(result1)
+  result2 = left_join(result2, select(index_df_2, Id, sequence), by = "Id") 
+  # print(result2)
   result = data.frame(sample = 1: sample_number %>% as.numeric(),
                       Lane = result1$Lane %>% as.character(),
                       Id1 = result1$Id %>% as.character(),

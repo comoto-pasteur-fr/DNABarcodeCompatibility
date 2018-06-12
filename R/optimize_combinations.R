@@ -58,7 +58,7 @@ optimize_combinations = function (combination_m, nb_lane, index_number){
       if (is.numeric(nb_lane)){
         
         max = entropy_max(index_number, ncol(combination_m) * nb_lane)
-        print(max)
+        print(paste("Theoretical max entropy:",round(max, 3)))
         if(nb_lane < nrow(combination_m)){
           if (nrow(combination_m) > 80){ 
             a_combination = recursive_entropy(combination_m[sample(1:nrow(combination_m),80),],nb_lane)
@@ -97,7 +97,7 @@ optimize_combinations = function (combination_m, nb_lane, index_number){
           }
           a_combination = a_combination[sample(1:nrow(a_combination),nrow(a_combination)),]
         }
-        print(entropy_result(a_combination))
+        print(paste("Entropy of the optimized set:", round(entropy_result(a_combination),3)))
         return(a_combination)
       } else {
         display_message("Please enter a number as nb_lane")

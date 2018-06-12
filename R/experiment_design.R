@@ -68,7 +68,7 @@ experiment_design = function (file1,
     file1  = file_loading_and_checking(file1)
     if (!is.null(file1)) {
       if (sample_and_multiplexing_level_check(sample_number, mplex_level) == TRUE){
-        print("mlx and sample ok")
+        # print("mlx and sample ok")
         result1 = final_result(file1,sample_number, mplex_level,chemistry, metric, d)
         if(!is.null(export)) {write.csv2(result1, file = export)}
         return(result1)
@@ -86,10 +86,10 @@ experiment_design = function (file1,
           result2 = get_result(file2, sample_number, mplex_level, chemistry, metric, d)
           result2 = check_for_duplicate(result1, result2)
           
-          result1 = left_join(result1, select(file1, Id, sequence)) 
-          print(result1)
-          result2 = left_join(result2, select(file2, Id, sequence)) 
-          print(result2)
+          result1 = left_join(result1, select(file1, Id, sequence), by = "Id") 
+          # print(result1)
+          result2 = left_join(result2, select(file2, Id, sequence), by = "Id") 
+          # print(result2)
           result = data.frame(sample = 1: sample_number %>% as.character(),
                               Lane = result1$Lane %>% as.character(),
                               Id1 = result1$Id %>% as.character(),
