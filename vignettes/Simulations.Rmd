@@ -9,6 +9,7 @@ editor_options:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+SCRIPT_DIR=file.path(Sys.getenv("HOME"),"DNABarcodeCompatibility")
 ```
 
 DNABarcodeCompatibility works in 2 steps:
@@ -33,7 +34,7 @@ TODO:
 ```{r echo = FALSE}
 
 R=2
-L = c(12,18,24,30,36,42,48)
+L = c(12,18)#,24,30,36,42,48)
 N = 2:5
 C = c(1,2,4)
 
@@ -57,7 +58,7 @@ nb_cpu=parallel::detectCores()
 
 # Run simulation using GNU parallel (Windows users need cygwin + Gnu parallel; MacOs: brew install parallel; Linux: apt-get install parallel)
 system.time({
-  system(paste0("parallel -j",nb_cpu," Rscript /Users/retourna/DNABarcodeCompatibility/vignettes/sim_get_all_combinations.R {1} {2} {3} {4} {5} ::: ",paste(rep(N,R), collapse=" ")," ::: ",paste(L, collapse=" ")," ::: ",paste(C, collapse=" "), " ::: ", paste(outputfile1, collapse=""), " ::: ", paste(outputfile2, collapse="")))
+  system(paste0("parallel -j",nb_cpu," Rscript ",SCRIPT_DIR,"/vignettes/sim_get_all_combinations.R {1} {2} {3} {4} {5} ::: ",paste(rep(N,R), collapse=" ")," ::: ",paste(L, collapse=" ")," ::: ",paste(C, collapse=" "), " ::: ", paste(outputfile1, collapse=""), " ::: ", paste(outputfile2, collapse="")))
 })
 
 # Import results
@@ -76,6 +77,8 @@ save(results, file = "results")
 ### Plot execution time = f(barcode set size)
 ```{r echo = FALSE}
 library("dplyr")
+library("ggplot2")
+
 results %>% group_by(mplex_level, barcode_number, chemistry) %>%
   summarise(time.avg=mean(time), time.sd=sd(time), nb_total_combinations=nb_total_combinations[1], nb_comp_combinations.avg=mean(nb_comp_combinations)) %>%
   ungroup() %>% mutate(mplex_level=as.factor(mplex_level),
@@ -132,7 +135,7 @@ results %>% group_by(mplex_level, barcode_number, chemistry) %>%
                 size=0.3,color="black") +
   theme(axis.text.x=element_text(angle=45, hjust=1, vjust=1))+
   facet_grid(~channel) +
-  scale_y_continuous(breaks=seq(0, 1, 0.2), limit=c(0, 1))
+  scale_y_continuous(breaks=seq(0, 1, 0.2), limit=c(0, 1)) +
   xlab("Condition: mplex_level-barcode_number")+
   ylab("Proportion of compatible barcodes")+
 ggtitle(paste("Proportion of compatible barcodes for", R, "replicates of each simulation"))
@@ -171,11 +174,11 @@ From simulations in step1, we know that a threshold of 1000 compatible barcode c
 
 ```{r echo = FALSE}
 
-R=100
+R=20
 L = c(18)
 N = 4
 C = c(4)
-thrs_size_comb=c(80, 120)#,160,320,640)
+thrs_size_comb=c(160)#, 100, 300, 500, 750, 1000)
 nb_lane=c(4)
 
 print(paste("Number of conditions:",R*length(L)*length(N)*length(C)*length(thrs_size_comb)*length(nb_lane)))
@@ -205,7 +208,7 @@ nb_cpu=parallel::detectCores()
 
 # Run simulation using GNU parallel (Windows users need cygwin + Gnu parallel; MacOs: brew install parallel; Linux: apt-get install parallel)
 system.time({
-  system(paste0("parallel -j",nb_cpu," Rscript /Users/retourna/DNABarcodeCompatibility/vignettes/sim_optimize_combinations.R {1} {2} {3} {4} {5} {6} {7} {8} ::: ",paste(1:R, collapse=" ")," ::: ",paste(thrs_size_comb, collapse=" ")," ::: ",paste(inputfile, collapse=""), " ::: ", paste(nb_lane, collapse=""), " ::: ", paste(L, collapse=""), " ::: ", paste(4, collapse=""), " ::: ", paste(outputfile1, collapse="")))
+  system(paste0("parallel -j",nb_cpu," Rscript ",SCRIPT_DIR,"/vignettes/sim_optimize_combinations.R {1} {2} {3} {4} {5} {6} {7} {8} ::: ",paste(1:R, collapse=" ")," ::: ",paste(thrs_size_comb, collapse=" ")," ::: ",paste(inputfile, collapse=""), " ::: ", paste(nb_lane, collapse=""), " ::: ", paste(L, collapse=""), " ::: ", paste(4, collapse=""), " ::: ", paste(outputfile1, collapse="")))
 })
 
 # Import results
