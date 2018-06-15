@@ -239,13 +239,13 @@ save(probaSmax, file ="probaSmax")
 
 ```{r }
 for (i in thrs_size_comb){
-  for (i in barcode_number) {
+  # for (j in barcode_number) {
     stat <- probaSmax %>% filter(thrs_size_comb==i) %>%
       select(-c(rep_number,barcode_number,thrs_size_comb,chemistry,nb_lane)) %>%
       summary()
     print(i)
     print(stat)
-  }
+  # }
 }
 ```
 
