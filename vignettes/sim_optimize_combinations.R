@@ -3,7 +3,7 @@
 ## Setup  I/O ####
 argv = commandArgs(TRUE)
 
-if((length(argv) < 2) | (length(argv) > 8)){
+if((length(argv) < 2) | (length(argv) > 9)){
   stop("Usage: time_simulation_s.R <mplex_level> <barcode_number> <chemistry> <outputfile1> <outputfile2>")
 }else{
   rep_number=as.integer(argv[1])
@@ -13,6 +13,8 @@ if((length(argv) < 2) | (length(argv) > 8)){
   barcode_number=as.integer(argv[5])
   chemistry=as.integer(argv[6])
   outputfile1=normalizePath(argv[7])
+  outputfile2=normalizePath(argv[8])
+  outputfile3=normalizePath(argv[9])
 }
 
 
@@ -98,9 +100,29 @@ S_random=DNABarcodeCompatibility:::entropy_result(unlist(out_comb$random_comb))
 print(paste(rep_number, round(elapsed,0), nrow(combination_m), barcode_number, thrs_size_comb, chemistry, nb_lane), quote=F)
 
 
+## Save barcode occurrence from random pick, with input simulation parameters
+df <- dplyr::mutate(as.data.frame(table(unlist(out_comb$random_comb))),
+                    rep_number=rep_number,
+                    thrs_size_comb=thrs_size_comb,
+                    barcode_number=barcode_number,
+                    chemistry=chemistry, 
+                    nb_lane=nb_lane)
+write.table(df, file = outputfile1 , quote = F, row.names = F, col.names = F, append = T)
+
+
+## Save barcode occurrence from optimized set, with input simulation parameters
+df <- dplyr::mutate(as.data.frame(table(unlist(out_comb$opt_comb))),
+                    rep_number=rep_number,
+                    thrs_size_comb=thrs_size_comb,
+                    barcode_number=barcode_number,
+                    chemistry=chemistry, 
+                    nb_lane=nb_lane)
+write.table(df, file = outputfile2 , quote = F, row.names = F, col.names = F, append = T)
+
+
 ## Save simulation parameters and elasped time
 
 df <- data.frame(time=round(elapsed,3), nb_comp_combinations=nrow(combination_m), rep_number=rep_number, barcode_number=barcode_number, 
                  thrs_size_comb=thrs_size_comb, S_max, S_random, S_opt, chemistry=chemistry, nb_lane=nb_lane)
-write.table(df, file = outputfile1 , quote = F, row.names = F, col.names = F, append = T)
+write.table(df, file = outputfile3 , quote = F, row.names = F, col.names = F, append = T)
 

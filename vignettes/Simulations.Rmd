@@ -10,6 +10,8 @@ editor_options:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 SCRIPT_DIR=file.path(Sys.getenv("HOME"),"DNABarcodeCompatibility")
+library("dplyr")
+library("ggplot2")
 ```
 
 DNABarcodeCompatibility works in 2 steps:
@@ -33,9 +35,9 @@ TODO:
 ## Define parameters for the simulations
 ```{r echo = FALSE}
 
-R=2
-L = c(12,18)#,24,30,36,42,48)
-N = 2:5
+R=10
+L = c(12,15)#,24,30,36,42,48)
+N = 2:4
 C = c(1,2,4)
 
 print(paste("Number of conditions:",R*length(L)*length(N)*length(C)))
@@ -76,8 +78,7 @@ save(results, file = "results")
 
 ### Plot execution time = f(barcode set size)
 ```{r echo = FALSE}
-library("dplyr")
-library("ggplot2")
+
 
 results %>% group_by(mplex_level, barcode_number, chemistry) %>%
   summarise(time.avg=mean(time), time.sd=sd(time), nb_total_combinations=nb_total_combinations[1], nb_comp_combinations.avg=mean(nb_comp_combinations)) %>%
@@ -93,7 +94,7 @@ ggplot(aes( x = barcode_number, y = time.avg, color = mplex_level))+
   geom_hline(yintercept=10, linetype="dashed", color = "red")+
   geom_smooth(method = "lm", se = FALSE)+
   facet_grid(~channel) +
-  ggtitle(paste("Execution time by chemistry (log-log scale) for", R, "replicates of each simulation"))+
+  ggtitle(paste("Execution time by chemistry (log-log scale) for", R,"replicates of each simulation"))+
   xlab("Barcode set size")+
   ylab("Execution time [s]")
 
@@ -112,7 +113,7 @@ ggplot(aes( x = nb_total_combinations, y = nb_comp_combinations.avg, color = mpl
   geom_smooth(method = "lm", se = FALSE)+
   # geom_smooth(method = "lm", formula =  y ~ poly(x, 2), se = FALSE) +
   facet_grid(~channel) +
-  ggtitle(paste("XX by chemistry (log-log scale) for", R, "replicates of each simulation"))+
+  ggtitle(paste("XX by chemistry (log-log scale) for", R,"replicates of each simulation"))+
   xlab("nb_total_combinations")+
   ylab("nb_comp_combinations.avg")
 
@@ -138,7 +139,7 @@ results %>% group_by(mplex_level, barcode_number, chemistry) %>%
   scale_y_continuous(breaks=seq(0, 1, 0.2), limit=c(0, 1)) +
   xlab("Condition: mplex_level-barcode_number")+
   ylab("Proportion of compatible barcodes")+
-ggtitle(paste("Proportion of compatible barcodes for", R, "replicates of each simulation"))
+ggtitle(paste("Average proportion of compatible barcodes for", R,"simulations"))
 
 
 ```
@@ -174,11 +175,11 @@ From simulations in step1, we know that a threshold of 1000 compatible barcode c
 
 ```{r echo = FALSE}
 
-R=20
+R=100
 L = c(18)
 N = 4
 C = c(4)
-thrs_size_comb=c(160)#, 100, 300, 500, 750, 1000)
+thrs_size_comb=c(80, 100)#, 100, 300, 500, 750, 1000)
 nb_lane=c(4)
 
 print(paste("Number of conditions:",R*length(L)*length(N)*length(C)*length(thrs_size_comb)*length(nb_lane)))
@@ -193,48 +194,100 @@ index <- dplyr::sample_n(DNABarcodeCompatibility::IlluminaIndexes, nrow(DNABarco
 
 # combination_m_2ch <- DNABarcodeCompatibility::get_all_combinations(index_df = index[1:L,], mplex_level = N, chemistry = 2)
 
-
+# Initialize input file with a matrix of all combinations
 combination_m_4ch <- DNABarcodeCompatibility::get_all_combinations(index_df = index[1:L,], mplex_level = N, chemistry = 4)
 inputfile <- tempfile()
 save(combination_m_4ch, file=inputfile)
 
-
-# Initialize output file1 (calcul of proba to get an optimal solution)
-write.table(data.frame(time=numeric(0), nb_comp_combinations=integer(0), rep_number=integer(0), barcode_number=integer(0), thrs_size_comb=integer(0), S_max=numeric(0), S_random=numeric(0), S_opt=numeric(0), chemistry=integer(0), nb_lane=integer(0)),
+# Initialize output file1 (barcode occurrence from random pic)
+write.table(data.frame(Var1=character(0), Freq=integer(0), rep_number=integer(0), thrs_size_comb=integer(0), barcode_number=integer(0), chemistry=integer(0), nb_lane=integer(0)),
             outputfile1 <- tempfile(), row.names = FALSE, col.names = T, quote=FALSE)
+
+# Initialize output file2 (barcode occurrence from optimized set)
+write.table(data.frame(Var1=character(0), Freq=integer(0), rep_number=integer(0), thrs_size_comb=integer(0), barcode_number=integer(0), chemistry=integer(0), nb_lane=integer(0)),
+            outputfile2 <- tempfile(), row.names = FALSE, col.names = T, quote=FALSE)
+
+# Initialize output file3 (calcul of proba to get an optimal solution)
+write.table(data.frame(time=numeric(0), nb_comp_combinations=integer(0), rep_number=integer(0), barcode_number=integer(0), thrs_size_comb=integer(0), S_max=numeric(0), S_random=numeric(0), S_opt=numeric(0), chemistry=integer(0), nb_lane=integer(0)),
+            outputfile3 <- tempfile(), row.names = FALSE, col.names = T, quote=FALSE)
 
 # Detect CPU number
 nb_cpu=parallel::detectCores()
 
 # Run simulation using GNU parallel (Windows users need cygwin + Gnu parallel; MacOs: brew install parallel; Linux: apt-get install parallel)
 system.time({
-  system(paste0("parallel -j",nb_cpu," Rscript ",SCRIPT_DIR,"/vignettes/sim_optimize_combinations.R {1} {2} {3} {4} {5} {6} {7} {8} ::: ",paste(1:R, collapse=" ")," ::: ",paste(thrs_size_comb, collapse=" ")," ::: ",paste(inputfile, collapse=""), " ::: ", paste(nb_lane, collapse=""), " ::: ", paste(L, collapse=""), " ::: ", paste(4, collapse=""), " ::: ", paste(outputfile1, collapse="")))
+  system(paste0("parallel -j",nb_cpu," Rscript ",SCRIPT_DIR,"/vignettes/sim_optimize_combinations.R {1} {2} {3} {4} {5} {6} {7} {8} {9} ::: ",paste(1:R, collapse=" ")," ::: ",paste(thrs_size_comb, collapse=" ")," ::: ",paste(inputfile, collapse=""), " ::: ", paste(nb_lane, collapse=""), " ::: ", paste(L, collapse=""), " ::: ", paste(4, collapse=""), " ::: ", paste(outputfile1, collapse=""), " ::: ", paste(outputfile2, collapse=""), " ::: ", paste(outputfile3, collapse="")))
 })
 
 # Import results
-probaSmax <- read.table(file=outputfile1, header = T, sep = " ", stringsAsFactors = FALSE)
 
+barcodeStat_random <- read.table(file=outputfile1, header = T, sep = " ", stringsAsFactors = FALSE)
+save(barcodeStat_random, file ="barcodeStat_random")
+# barcodeStat_random <- local(get(load("barcodeStat_random")))
+
+barcodeStat_opt <- read.table(file=outputfile2, header = T, sep = " ", stringsAsFactors = FALSE)
+save(barcodeStat_opt, file ="barcodeStat_opt")
+# barcodeStat_opt <- local(get(load("barcodeStat_opt")))
+
+probaSmax <- read.table(file=outputfile3, header = T, sep = " ", stringsAsFactors = FALSE)
 save(probaSmax, file ="probaSmax")
 # probaSmax <- local(get(load("probaSmax")))
 
-# results <- read.table(file=outputfile2, header = T, sep = " ", stringsAsFactors = FALSE)
-
 ```
 
+### Statistic summary
+
+```{r }
+for (i in thrs_size_comb){
+  for (i in barcode_number) {
+    stat <- probaSmax %>% filter(thrs_size_comb==i) %>%
+      select(-c(rep_number,barcode_number,thrs_size_comb,chemistry,nb_lane)) %>%
+      summary()
+    print(i)
+    print(stat)
+  }
+}
+```
 
 ### Plot proba to get exactly Smax 
 ```{r echo = FALSE}
 
-probaSmax %>% mutate(isSmax=ifelse(S==Smax, T, F)) %>%
+probaSmax %>% mutate(isSmax=ifelse(S_opt==S_max, T, F)) %>%
   group_by(barcode_number, chemistry, nb_lane, thrs_size_comb) %>%
-  summarise(time.avg=mean(time), time.sd=sd(time), nb_comp_combinations=nb_comp_combinations[1], S_max=S_max[1], ProbaOfSmax=sum(isSmax)/length(S)) %>%
+  summarise(time.avg=mean(time), time.sd=sd(time), nb_comp_combinations=nb_comp_combinations[1], S_max=S_max[1], ProbaOfSmax=sum(isSmax)/length(S_opt)) %>%
   mutate(thrs_size_comb=as.factor(thrs_size_comb)) %>%
   ungroup() %>% 
 ggplot(aes( x = thrs_size_comb, y = ProbaOfSmax)) +
   geom_histogram(stat = "identity") +
-  ggtitle(paste("Proba to get exactly Smax  for", R, " greedy-descent runs")) +
+  ggtitle(paste("Proba to get exactly Smax  for", R, "greedy-descent runs")) +
   xlab("Size of the initial set of compatible barcodes") +
-  ylab("Proba of Smax")
+  ylab("Probability to get an optimal combination [S_max]")
+
+
+```
+
+
+### Plot histogram of S_opt and S_random
+```{r echo = FALSE}
+
+probaSmax %>% mutate(isSmax=ifelse(S_opt==S_max, T, F)) %>%
+  # group_by(barcode_number, chemistry, nb_lane, thrs_size_comb) %>%
+  mutate(thrs_size_comb=as.factor(thrs_size_comb)) %>%
+  ungroup() %>% 
+ggplot(aes(x = S_opt)) +
+  geom_density(aes(fill="S_opt"), alpha=0.6, adjust=2) +
+  geom_density(aes(S_random, fill="S_random"), alpha=0.6, adjust=2) +
+  geom_vline(aes(xintercept = S_max[1], color="S_max"), linetype="dashed") +
+  scale_fill_manual("Entropy",
+                      breaks = c("S_opt", "S_random"),
+                      values = c("green", "red")) +
+  scale_color_manual("",
+                      breaks = c("S_max"),
+                      values = c("red")) +
+  # facet_wrap(~thrs_size_comb) +
+  xlab("Entropy values") +
+  ylab("Count") +
+  ggtitle(paste("Smoothed distributions of entropy values for", R, "greedy-descent runs")) 
 
 
 ```
