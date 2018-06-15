@@ -75,7 +75,7 @@ save(results, file = "results")
 
 ### Plot execution time = f(barcode set size)
 ```{r echo = FALSE}
-libray("dplyr")
+library("dplyr")
 results %>% group_by(mplex_level, barcode_number, chemistry) %>%
   summarise(time.avg=mean(time), time.sd=sd(time), nb_total_combinations=nb_total_combinations[1], nb_comp_combinations.avg=mean(nb_comp_combinations)) %>%
   ungroup() %>% mutate(mplex_level=as.factor(mplex_level),
@@ -175,7 +175,7 @@ R=100
 L = c(18)
 N = 4
 C = c(4)
-thrs_size_comb=c(160)#, 100, 300, 500, 750, 1000)
+thrs_size_comb=c(80, 120)#,160,320,640)
 nb_lane=c(4)
 
 print(paste("Number of conditions:",R*length(L)*length(N)*length(C)*length(thrs_size_comb)*length(nb_lane)))
@@ -197,7 +197,7 @@ save(combination_m_4ch, file=inputfile)
 
 
 # Initialize output file1 (calcul of proba to get an optimal solution)
-write.table(data.frame(time=numeric(0), nb_comp_combinations=integer(0), rep_number=integer(0), barcode_number=integer(0), thrs_size_comb=integer(0), Smax=numeric(0), S=numeric(0), chemistry=integer(0), nb_lane=integer(0)),
+write.table(data.frame(time=numeric(0), nb_comp_combinations=integer(0), rep_number=integer(0), barcode_number=integer(0), thrs_size_comb=integer(0), S_max=numeric(0), S_random=numeric(0), S_opt=numeric(0), chemistry=integer(0), nb_lane=integer(0)),
             outputfile1 <- tempfile(), row.names = FALSE, col.names = T, quote=FALSE)
 
 # Detect CPU number
@@ -215,5 +215,23 @@ save(probaSmax, file ="probaSmax")
 # probaSmax <- local(get(load("probaSmax")))
 
 # results <- read.table(file=outputfile2, header = T, sep = " ", stringsAsFactors = FALSE)
+
+```
+
+
+### Plot proba to get exactly Smax 
+```{r echo = FALSE}
+
+probaSmax %>% mutate(isSmax=ifelse(S==Smax, T, F)) %>%
+  group_by(barcode_number, chemistry, nb_lane, thrs_size_comb) %>%
+  summarise(time.avg=mean(time), time.sd=sd(time), nb_comp_combinations=nb_comp_combinations[1], S_max=S_max[1], ProbaOfSmax=sum(isSmax)/length(S)) %>%
+  mutate(thrs_size_comb=as.factor(thrs_size_comb)) %>%
+  ungroup() %>% 
+ggplot(aes( x = thrs_size_comb, y = ProbaOfSmax)) +
+  geom_histogram(stat = "identity") +
+  ggtitle(paste("Proba to get exactly Smax  for", R, " greedy-descent runs")) +
+  xlab("Size of the initial set of compatible barcodes") +
+  ylab("Proba of Smax")
+
 
 ```
