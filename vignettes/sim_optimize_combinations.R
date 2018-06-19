@@ -102,6 +102,7 @@ S_opt=DNABarcodeCompatibility:::entropy_result(unlist(out_comb$opt_comb))
 S_random=DNABarcodeCompatibility:::entropy_result(unlist(out_comb$random_comb))
 
 print(paste(rep_number, round(elapsed,0), nrow(combination_m), barcode_number, thrs_size_comb, chemistry, nb_lane), quote=F)
+data.frame(rep_number=rep_number, time=round(elapsed,0), nb_comp_comb=nrow(combination_m), barcode_set_size=barcode_number, barcaode_subset_size=thrs_size_comb, chemistry=chemistry, nb_lane=nb_lane)
 
 
 ## Save barcode occurrence from random pick, with input simulation parameters
