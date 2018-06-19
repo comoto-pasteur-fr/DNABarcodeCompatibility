@@ -70,7 +70,7 @@ print(paste("Total number of simulations:",R*length(L)*length(N)*length(C)))
 ```{r echo = FALSE, cache=T}
 
 # Initialize output file1 (barcode occurrences)
-write.table(data.frame(rep_number=integer(0), barcodeID=character(0), occurrence=integer(0), mplex_level=integer(0), barcode_number=integer(0), chemistry=integer(0)),
+write.table(data.frame(barcodeID=character(0), occurrence=integer(0), rep_number=integer(0), mplex_level=integer(0), barcode_number=integer(0), chemistry=integer(0)),
  outputfile1 <- tempfile(), row.names = FALSE, col.names = T, quote=FALSE)
 
 # Initialize output file2 (execution time)
