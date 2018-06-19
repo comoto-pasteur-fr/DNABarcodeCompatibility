@@ -411,7 +411,7 @@ R=100
 L = c(18)
 N = 4
 C = c(4)
-thrs_size_comb=c(60, 70, 80, 120, 160, 320, 640)
+thrs_size_comb=c(60, 70, 80, 90, 100, 120, 160, 320, 640)
 max_iteration = 0
 nb_lane=c(4)
 
@@ -553,7 +553,7 @@ ggplot(aes( x = thrs_size_comb, y = time.avg)) +
   geom_errorbar(aes(ymin=(time.avg-time.sd), ymax=(time.avg+time.sd)),
                 color="black") +
   geom_smooth(method = "lm", se = FALSE)+
-  scale_x_log10(breaks=c(70,80, 120, 160, 320, 640)) +
+  scale_x_log10(breaks=c(60, 70, 80, 90, 100, 120, 160, 320, 640)) +
   scale_y_log10(breaks = c(1, 2,5, 10,30,90,200,1000,5000))+
   geom_hline(yintercept=30, linetype="dashed", color = "red")+
   geom_hline(yintercept=10, linetype="dashed", color = "red")+
@@ -631,11 +631,111 @@ probaSmax %>% mutate(isSmax=ifelse(S_opt==S_max, T, F)) %>%
 
 To visualize the efficacy of the greedy-descent algorithm, we compare the distributions of entropy values obtained either from randomly generated sets of compatible barcodes or from optimized (by greedy-descent) sets of compatible barcodes. The graphs below show that the greedy-descent algorithm dramatically reduces the barcode redanduncy by favoring sets of compatible barcode combinations with a higher entropy.
 
+* For 60 randomly picked up compatible combinations
+```{r echo = FALSE,  warning=FALSE, message=FALSE, fig.width=11}
+if (60 %in% probaSmax$thrs_size_comb) {
+  probaSmax %>% mutate(isSmax=ifelse(S_opt==S_max, T, F)) %>%
+    filter(thrs_size_comb == 60) %>%
+    mutate(thrs_size_comb=as.factor(thrs_size_comb)) %>%
+    ggplot(aes(y = (..count..)/sum(..count..))) +
+    geom_histogram(aes(x = S_opt,fill="S_opt"), color= "black", alpha=0.5, boundary=0.25) +
+    geom_histogram(aes(x = S_random,fill="S_random"), color= "black", alpha=0.5, boundary=0.25) +
+    # geom_density(aes(fill="S_opt"), alpha=0.5, color= "black", adjust=1) +
+    # geom_density(aes(S_random, fill="S_random"), alpha=0.5, color= "black", adjust=0.1) +
+    geom_vline(aes(xintercept = S_max[1], color="S_max"), linetype="dashed") +
+    scale_fill_manual("Entropy",
+                      breaks = c("S_opt", "S_random"),
+                      values = c("green", "red")) +
+    scale_color_manual("",
+                       breaks = c("S_max"),
+                       values = c("blue")) +
+    facet_wrap(~thrs_size_comb) +
+    xlab("Entropy values") +
+    ylab("Frequency") +
+    ggtitle(paste("Frequency distributions of entropy values for", R, "runs")) 
+}
+```
+
+* For 70 randomly picked up compatible combinations
+```{r echo = FALSE,  warning=FALSE, message=FALSE, fig.width=11}
+if (70 %in% probaSmax$thrs_size_comb) {
+  probaSmax %>% mutate(isSmax=ifelse(S_opt==S_max, T, F)) %>%
+    filter(thrs_size_comb == 70) %>%
+    mutate(thrs_size_comb=as.factor(thrs_size_comb)) %>%
+    ggplot(aes(y = (..count..)/sum(..count..))) +
+    geom_histogram(aes(x = S_opt,fill="S_opt"), color= "black", alpha=0.5, boundary=0.25) +
+    geom_histogram(aes(x = S_random,fill="S_random"), color= "black", alpha=0.5, boundary=0.25) +
+    # geom_density(aes(fill="S_opt"), alpha=0.5, color= "black", adjust=1) +
+    # geom_density(aes(S_random, fill="S_random"), alpha=0.5, color= "black", adjust=0.1) +
+    geom_vline(aes(xintercept = S_max[1], color="S_max"), linetype="dashed") +
+    scale_fill_manual("Entropy",
+                      breaks = c("S_opt", "S_random"),
+                      values = c("green", "red")) +
+    scale_color_manual("",
+                       breaks = c("S_max"),
+                       values = c("blue")) +
+    facet_wrap(~thrs_size_comb) +
+    xlab("Entropy values") +
+    ylab("Frequency") +
+    ggtitle(paste("Frequency distributions of entropy values for", R, "runs")) 
+}
+```
+
 * For 80 randomly picked up compatible combinations
 ```{r echo = FALSE,  warning=FALSE, message=FALSE, fig.width=11}
 if (80 %in% probaSmax$thrs_size_comb) {
   probaSmax %>% mutate(isSmax=ifelse(S_opt==S_max, T, F)) %>%
     filter(thrs_size_comb == 80) %>%
+    mutate(thrs_size_comb=as.factor(thrs_size_comb)) %>%
+    ggplot(aes(y = (..count..)/sum(..count..))) +
+    geom_histogram(aes(x = S_opt,fill="S_opt"), color= "black", alpha=0.5, boundary=0.25) +
+    geom_histogram(aes(x = S_random,fill="S_random"), color= "black", alpha=0.5, boundary=0.25) +
+    # geom_density(aes(fill="S_opt"), alpha=0.5, color= "black", adjust=1) +
+    # geom_density(aes(S_random, fill="S_random"), alpha=0.5, color= "black", adjust=0.1) +
+    geom_vline(aes(xintercept = S_max[1], color="S_max"), linetype="dashed") +
+    scale_fill_manual("Entropy",
+                      breaks = c("S_opt", "S_random"),
+                      values = c("green", "red")) +
+    scale_color_manual("",
+                       breaks = c("S_max"),
+                       values = c("blue")) +
+    facet_wrap(~thrs_size_comb) +
+    xlab("Entropy values") +
+    ylab("Frequency") +
+    ggtitle(paste("Frequency distributions of entropy values for", R, "runs")) 
+}
+```
+
+* For 90 randomly picked up compatible combinations
+```{r echo = FALSE,  warning=FALSE, message=FALSE, fig.width=11}
+if (90 %in% probaSmax$thrs_size_comb) {
+  probaSmax %>% mutate(isSmax=ifelse(S_opt==S_max, T, F)) %>%
+    filter(thrs_size_comb == 90) %>%
+    mutate(thrs_size_comb=as.factor(thrs_size_comb)) %>%
+    ggplot(aes(y = (..count..)/sum(..count..))) +
+    geom_histogram(aes(x = S_opt,fill="S_opt"), color= "black", alpha=0.5, boundary=0.25) +
+    geom_histogram(aes(x = S_random,fill="S_random"), color= "black", alpha=0.5, boundary=0.25) +
+    # geom_density(aes(fill="S_opt"), alpha=0.5, color= "black", adjust=1) +
+    # geom_density(aes(S_random, fill="S_random"), alpha=0.5, color= "black", adjust=0.1) +
+    geom_vline(aes(xintercept = S_max[1], color="S_max"), linetype="dashed") +
+    scale_fill_manual("Entropy",
+                      breaks = c("S_opt", "S_random"),
+                      values = c("green", "red")) +
+    scale_color_manual("",
+                       breaks = c("S_max"),
+                       values = c("blue")) +
+    facet_wrap(~thrs_size_comb) +
+    xlab("Entropy values") +
+    ylab("Frequency") +
+    ggtitle(paste("Frequency distributions of entropy values for", R, "runs")) 
+}
+```
+
+* For 100 randomly picked up compatible combinations
+```{r echo = FALSE,  warning=FALSE, message=FALSE, fig.width=11}
+if (100 %in% probaSmax$thrs_size_comb) {
+  probaSmax %>% mutate(isSmax=ifelse(S_opt==S_max, T, F)) %>%
+    filter(thrs_size_comb == 100) %>%
     mutate(thrs_size_comb=as.factor(thrs_size_comb)) %>%
     ggplot(aes(y = (..count..)/sum(..count..))) +
     geom_histogram(aes(x = S_opt,fill="S_opt"), color= "black", alpha=0.5, boundary=0.25) +
@@ -681,6 +781,59 @@ ggplot(aes(y = (..count..)/sum(..count..))) +
 }
 
 ```
+
+* For 160 randomly picked up compatible combinations
+```{r echo = FALSE,  warning=FALSE, message=FALSE, fig.width=11}
+if (160 %in% probaSmax$thrs_size_comb) {
+  probaSmax %>% mutate(isSmax=ifelse(S_opt==S_max, T, F)) %>%
+  filter(thrs_size_comb == 160) %>%
+  mutate(thrs_size_comb=as.factor(thrs_size_comb)) %>%
+ggplot(aes(y = (..count..)/sum(..count..))) +
+  geom_histogram(aes(x = S_opt,fill="S_opt"), color= "black", alpha=0.5, boundary=-5) +
+  geom_histogram(aes(x = S_random,fill="S_random"), color= "black", alpha=0.5, boundary=-5) +
+  # geom_density(aes(fill="S_opt"), alpha=0.5, color= "black", adjust=1) +
+  # geom_density(aes(S_random, fill="S_random"), alpha=0.5, color= "black", adjust=0.1) +
+  geom_vline(aes(xintercept = S_max[1], color="S_max"), linetype="dashed") +
+  scale_fill_manual("Entropy",
+                      breaks = c("S_opt", "S_random"),
+                      values = c("green", "red")) +
+  scale_color_manual("",
+                      breaks = c("S_max"),
+                      values = c("blue")) +
+  facet_wrap(~thrs_size_comb) +
+  xlab("Entropy values") +
+  ylab("Frequency") +
+  ggtitle(paste("Frequency distributions of entropy values for", R, "runs")) 
+}
+
+```
+
+* For 320 randomly picked up compatible combinations
+```{r echo = FALSE,  warning=FALSE, message=FALSE, fig.width=11}
+if (320 %in% probaSmax$thrs_size_comb) {
+  probaSmax %>% mutate(isSmax=ifelse(S_opt==S_max, T, F)) %>%
+  filter(thrs_size_comb == 320) %>%
+  mutate(thrs_size_comb=as.factor(thrs_size_comb)) %>%
+ggplot(aes(y = (..count..)/sum(..count..))) +
+  geom_histogram(aes(x = S_opt,fill="S_opt"), color= "black", alpha=0.5, boundary=-5) +
+  geom_histogram(aes(x = S_random,fill="S_random"), color= "black", alpha=0.5, boundary=-5) +
+  # geom_density(aes(fill="S_opt"), alpha=0.5, color= "black", adjust=1) +
+  # geom_density(aes(S_random, fill="S_random"), alpha=0.5, color= "black", adjust=0.1) +
+  geom_vline(aes(xintercept = S_max[1], color="S_max"), linetype="dashed") +
+  scale_fill_manual("Entropy",
+                      breaks = c("S_opt", "S_random"),
+                      values = c("green", "red")) +
+  scale_color_manual("",
+                      breaks = c("S_max"),
+                      values = c("blue")) +
+  facet_wrap(~thrs_size_comb) +
+  xlab("Entropy values") +
+  ylab("Frequency") +
+  ggtitle(paste("Frequency distributions of entropy values for", R, "runs")) 
+}
+
+```
+
 
 * For 640 randomly picked up compatible combinations
 ```{r echo = FALSE,  warning=FALSE, message=FALSE, fig.width=11}
