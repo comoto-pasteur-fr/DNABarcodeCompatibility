@@ -482,7 +482,7 @@ nb_cpu=parallel::detectCores()
 
 # Run simulation using GNU parallel (Windows users need cygwin + Gnu parallel; MacOs: brew install parallel; Linux: apt-get install parallel)
 system.time({
-  system(paste0("parallel -j",nb_cpu," Rscript ",SCRIPT_DIR,"/vignettes/sim_optimize_combinations.R {1} {2} {3} {4} {5} {6} {7} {8} {9} ::: ",paste(1:R, collapse=" ")," ::: ",paste(thrs_size_comb, collapse=" ")," ::: " , paste(max_iteration, collapse=" "), " ::: ",paste(inputfile, collapse=""), " ::: ", paste(nb_lane, collapse=""), " ::: ", paste(L, collapse=""), " ::: ", paste(4, collapse=""), " ::: ", paste(outputfile1, collapse=""), " ::: ", paste(outputfile2, collapse=""), " ::: ", paste(outputfile3, collapse="")))
+  system(paste0("parallel -j",nb_cpu," Rscript ",SCRIPT_DIR,"/vignettes/sim_optimize_combinations.R {1} {2} {3} {4} {5} {6} {7} {8} {9} {10} ::: ",paste(1:R, collapse=" ")," ::: ",paste(thrs_size_comb, collapse=" ")," ::: " , paste(max_iteration, collapse=" "), " ::: ",paste(inputfile, collapse=""), " ::: ", paste(nb_lane, collapse=""), " ::: ", paste(L, collapse=""), " ::: ", paste(4, collapse=""), " ::: ", paste(outputfile1, collapse=""), " ::: ", paste(outputfile2, collapse=""), " ::: ", paste(outputfile3, collapse="")))
 })
 
 # Import results
@@ -789,7 +789,7 @@ nb_cpu=parallel::detectCores()
 
 # Run simulation using GNU parallel (Windows users need cygwin + Gnu parallel; MacOs: brew install parallel; Linux: apt-get install parallel)
 system.time({
-  system(paste0("parallel -j",nb_cpu," Rscript ",SCRIPT_DIR,"/vignettes/sim_optimize_combinations.R {1} {2} {3} {4} {5} {6} {7} {8} {9} ::: ",paste(1:R, collapse=" ")," ::: ",paste(thrs_size_comb, collapse=" ")," ::: " , paste(max_iteration, collapse=" "), " ::: ",paste(inputfile, collapse=""), " ::: ", paste(nb_lane, collapse=""), " ::: ", paste(L, collapse=""), " ::: ", paste(4, collapse=""), " ::: ", paste(outputfile1, collapse=""), " ::: ", paste(outputfile2, collapse=""), " ::: ", paste(outputfile3, collapse="")))
+  system(paste0("parallel -j",nb_cpu," Rscript ",SCRIPT_DIR,"/vignettes/sim_optimize_combinations.R {1} {2} {3} {4} {5} {6} {7} {8} {9} {10} ::: ",paste(1:R, collapse=" ")," ::: ",paste(thrs_size_comb, collapse=" ")," ::: " , paste(max_iteration, collapse=" "), " ::: ",paste(inputfile, collapse=""), " ::: ", paste(nb_lane, collapse=""), " ::: ", paste(L, collapse=""), " ::: ", paste(4, collapse=""), " ::: ", paste(outputfile1, collapse=""), " ::: ", paste(outputfile2, collapse=""), " ::: ", paste(outputfile3, collapse="")))
 })
 
 # Import results

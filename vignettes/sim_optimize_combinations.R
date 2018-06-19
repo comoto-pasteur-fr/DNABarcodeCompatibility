@@ -4,7 +4,7 @@
 argv = commandArgs(TRUE)
 
 if((length(argv) < 2) | (length(argv) > 10)){
-  stop("Usage: time_simulation_s.R <mplex_level> <barcode_number> <chemistry> <outputfile1> <outputfile2>")
+  stop("Usage: time_simulation_s.R <rep_number> <thrs_size_comb> <max_iteration> <inputfile> <nb_lane> <barcode_number> <chemistry> <outputfile1> <outputfile2> <outputfile3>")
 }else{
   rep_number=as.integer(argv[1])
   thrs_size_comb=as.integer(argv[2])
