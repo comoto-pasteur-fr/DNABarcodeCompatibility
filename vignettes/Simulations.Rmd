@@ -415,13 +415,13 @@ thrs_size_comb=c(60, 70, 80, 120, 160, 320, 640)
 max_iteration = 0
 nb_lane=c(4)
 
-# R=10
-# L = c(18)
-# N = 4
-# C = c(4)
-# thrs_size_comb=c(60, 80)
-# max_iteration = 0
-# nb_lane=c(4)
+R=10
+L = c(18)
+N = 4
+C = c(4)
+thrs_size_comb=c(60, 80)
+max_iteration = 0
+nb_lane=c(4)
 
 
 print("CONDITIONS:")
