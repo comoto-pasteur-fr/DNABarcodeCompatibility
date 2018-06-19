@@ -8,16 +8,17 @@ if((length(argv) < 2) | (length(argv) > 9)){
 }else{
   rep_number=as.integer(argv[1])
   thrs_size_comb=as.integer(argv[2])
-  inputfile=normalizePath(argv[3])
-  nb_lane=as.integer(argv[4])
-  barcode_number=as.integer(argv[5])
-  chemistry=as.integer(argv[6])
-  outputfile1=normalizePath(argv[7])
-  outputfile2=normalizePath(argv[8])
-  outputfile3=normalizePath(argv[9])
+  max_iteration=as.integer(argv[3])
+  inputfile=normalizePath(argv[4])
+  nb_lane=as.integer(argv[5])
+  barcode_number=as.integer(argv[6])
+  chemistry=as.integer(argv[7])
+  outputfile1=normalizePath(argv[8])
+  outputfile2=normalizePath(argv[9])
+  outputfile3=normalizePath(argv[10])
 }
 
-
+# max_iteration=0
 # rep_number=1
 # chemistry=4
 # thrs_size_comb=80
@@ -39,6 +40,7 @@ optimize_combinations = function (combination_m, nb_lane, index_number, thrs_siz
         if(nb_lane < nrow(combination_m)){
           if (nrow(combination_m) > thrs_size_comb){ 
             init_combination_m = combination_m[sample(1:nrow(combination_m),thrs_size_comb),]
+            print(paste("Entropy of the entire subset:",round(DNABarcodeCompatibility:::entropy_result(init_combination_m), 3)))
             random_pick_combination_m = init_combination_m[sample(1:nrow(init_combination_m), size = nb_lane),]
             print(paste("Entropy of a random pick:",round(DNABarcodeCompatibility:::entropy_result(random_pick_combination_m), 3)))
             a_combination = DNABarcodeCompatibility:::recursive_entropy(init_combination_m,nb_lane)
@@ -62,6 +64,7 @@ optimize_combinations = function (combination_m, nb_lane, index_number, thrs_siz
             }
           }
         } else {
+          stop("nb_lane > nrow(combination_m): case not implemented for simulations")
           n = nb_lane - nrow(combination_m)
           combination_m = combination_m[sample(1:nrow(combination_m),nrow(combination_m)),,drop = F]
           part_combination = combination_m[sample(1:nrow(combination_m),n, replace = TRUE),]
@@ -78,7 +81,7 @@ optimize_combinations = function (combination_m, nb_lane, index_number, thrs_siz
           a_combination = a_combination[sample(1:nrow(a_combination),nrow(a_combination)),]
         }
         print(paste("Entropy of the optimized set:", round(DNABarcodeCompatibility:::entropy_result(a_combination),3)))
-        return(list("opt_comb"=a_combination, "random_comb"=random_pick_combination_m))
+        return(list("init_comb"=init_combination_m, "opt_comb"=a_combination, "random_comb"=random_pick_combination_m))
       } else {
         display_message("Please enter a number as nb_lane")
       }
@@ -93,7 +96,8 @@ optimize_combinations = function (combination_m, nb_lane, index_number, thrs_siz
 combination_m <- local(get(load(inputfile)))
 
 S_max = DNABarcodeCompatibility:::entropy_max(barcode_number, ncol(combination_m) * nb_lane)
-elapsed <- as.numeric(system.time({out_comb <- optimize_combinations(combination_m, nb_lane, index_number=barcode_number, thrs_size_comb=thrs_size_comb, max_iteration=0)}))[3]
+elapsed <- as.numeric(system.time({out_comb <- optimize_combinations(combination_m, nb_lane, index_number=barcode_number, thrs_size_comb=thrs_size_comb, max_iteration=max_iteration)}))[3]
+S_init=DNABarcodeCompatibility:::entropy_result(unlist(out_comb$init_comb))
 S_opt=DNABarcodeCompatibility:::entropy_result(unlist(out_comb$opt_comb))
 S_random=DNABarcodeCompatibility:::entropy_result(unlist(out_comb$random_comb))
 
@@ -123,6 +127,6 @@ write.table(df, file = outputfile2 , quote = F, row.names = F, col.names = F, ap
 ## Save simulation parameters and elasped time
 
 df <- data.frame(time=round(elapsed,3), nb_comp_combinations=nrow(combination_m), rep_number=rep_number, barcode_number=barcode_number, 
-                 thrs_size_comb=thrs_size_comb, S_max, S_random, S_opt, chemistry=chemistry, nb_lane=nb_lane)
+                 thrs_size_comb=thrs_size_comb, S_max, S_init, S_random, S_opt, chemistry=chemistry, nb_lane=nb_lane)
 write.table(df, file = outputfile3 , quote = F, row.names = F, col.names = F, append = T)
 
