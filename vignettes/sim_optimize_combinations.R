@@ -3,7 +3,7 @@
 ## Setup  I/O ####
 argv = commandArgs(TRUE)
 
-if((length(argv) < 2) | (length(argv) > 9)){
+if((length(argv) < 2) | (length(argv) > 10)){
   stop("Usage: time_simulation_s.R <mplex_level> <barcode_number> <chemistry> <outputfile1> <outputfile2>")
 }else{
   rep_number=as.integer(argv[1])
