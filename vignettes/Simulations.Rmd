@@ -15,7 +15,7 @@ editor_options:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-options(width=100)
+options(width=120)
 
 SCRIPT_DIR=file.path(Sys.getenv("HOME"),"DNABarcodeCompatibility")
 library("dplyr")
