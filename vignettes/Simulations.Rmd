@@ -1,7 +1,7 @@
 ---
 title: "Simulations"
-author: "Raphael"
-date: "14/6/2018"
+author: "Trébeau, Boutet de Monvel, et al., Etournay."
+date: "`r format(Sys.Date(), '%m/%d/%Y')`"
 output:
   html_document:
     fig_caption: yes
@@ -17,7 +17,7 @@ editor_options:
 knitr::opts_chunk$set(echo = TRUE)
 options(width=120)
 
-SCRIPT_DIR=file.path(Sys.getenv("HOME"),"DNABarcodeCompatibility")
+SCRIPT_DIR=file.path(Sys.getenv("HOME"),"DNABarcodeCompatibility/vignettes/")
 library("dplyr")
 library("ggplot2")
 ```
@@ -41,17 +41,17 @@ However, the total number of combinations may become prohibitively large for lar
 
 The execution time of the program depends on the size of the barcode dataset, the multiplex level and the Illumina chemistry. We therefore test different values of these parameters to vizualise how they influence the execution time.
 
-```{r echo = FALSE, cache=T}
+```{r echo = FALSE, cache=F}
 
 R=10
 L = c(12,18,24,30,36,42,48)
 N = 2:5
 C = c(1,2,4)
 
-R=2
-L = c(12,18)
-N = 2:5
-C = c(2,4)
+# R=2
+# L = c(12,18)
+# N = 2:5
+# C = c(2,4)
 
 print("CONDITIONS:")
 print("Barcode set size:")
@@ -66,8 +66,8 @@ print(paste("Total number of simulations:",R*length(L)*length(N)*length(C)))
 
 ```
 
-## Run simulations
-```{r echo = FALSE, cache=T}
+## Run simulations for exhaustive searches
+```{r echo = FALSE, cache=F}
 
 # Initialize output file1 (barcode occurrences)
 write.table(data.frame(barcodeID=character(0), occurrence=integer(0), rep_number=integer(0), mplex_level=integer(0), barcode_number=integer(0), chemistry=integer(0)),
@@ -80,20 +80,20 @@ write.table(data.frame(rep_number=integer(0), time=numeric(0), nb_total_combinat
 # Detect CPU number
 nb_cpu=parallel::detectCores()
 
-# Run simulation using GNU parallel (Windows users need cygwin + Gnu parallel; MacOs: brew install parallel; Linux: apt-get install parallel)
-print(paste("Running", R*length(L)*length(N)*length(C) ,"simulations..."))
-system.time({
-  system(paste0("parallel -j",nb_cpu," Rscript ",SCRIPT_DIR,"/vignettes/sim_get_all_combinations.R {1} {2} {3} {4} {5} {6} ::: ",paste(1:R, collapse=" ")," ::: ",paste(N, collapse=" ")," ::: ",paste(L, collapse=" ")," ::: ",paste(C, collapse=" "), " ::: ", paste(outputfile1, collapse=""), " ::: ", paste(outputfile2, collapse="")))
-})
+# # Run simulation using GNU parallel (Windows users need cygwin + Gnu parallel; MacOs: brew install parallel; Linux: apt-get install parallel)
+# print(paste("Running", R*length(L)*length(N)*length(C) ,"simulations..."))
+# system.time({
+#   system(paste0("parallel -j",nb_cpu," Rscript ",SCRIPT_DIR,"sim_get_all_combinations.R {1} {2} {3} {4} {5} {6} ::: ",paste(1:R, collapse=" ")," ::: ",paste(N, collapse=" ")," ::: ",paste(L, collapse=" ")," ::: ",paste(C, collapse=" "), " ::: ", paste(outputfile1, collapse=""), " ::: ", paste(outputfile2, collapse="")))
+# })
 
 # Import results
-barcodeFreq <- read.table(file=outputfile1, header = T, sep = " ", stringsAsFactors = FALSE)
-save(barcodeFreq, file ="barcodeFreq")
-# barcodeFreq <- local(get(load("barcodeFreq")))
+# barcodeFreq <- read.table(file=outputfile1, header = T, sep = " ", stringsAsFactors = FALSE)
+# save(barcodeFreq, file = paste0(SCRIPT_DIR,"barcodeFreq"))
+barcodeFreq <- local(get(load(paste0(SCRIPT_DIR,"barcodeFreq"))))
 
-results <- read.table(file=outputfile2, header = T, sep = " ", stringsAsFactors = FALSE)
-save(results, file = "results")
-# results <- local(get(load("results")))
+# results <- read.table(file=outputfile2, header = T, sep = " ", stringsAsFactors = FALSE)
+# save(results, file = paste0(SCRIPT_DIR,"results"))
+results <- local(get(load(paste0(SCRIPT_DIR,"results"))))
 
 ```
 
@@ -128,7 +128,7 @@ ggplot(aes( x = nb_total_combinations, y = time.avg))+
 ```
 
 
-### Execution time as a function of the barcode-set size, for various multiplex levels
+### Execution time as a function of the barcode-set size
 
 The total number of combinations can be expressed as a binomial coefficient that is indexed by n barcodes in the barcode dataset and a mutliplex level k, where both n and k are positive integers.
 We now plot the execution time as function of the barcode-set size for various multiplex levels. This reveals that the execution time is less than 2 seconds for a multiplex level of 2 with the 48-barcode Illumina small RNA TruSep kit.
@@ -165,7 +165,7 @@ ggplot(aes( x = barcode_number, y = time.avg, color = mplex_level))+
 
 ### Probability to find compatible barcodes in the complete ensemble of combinations
 
-* The proportion of compatible barcodes does not significantly depend on the barcode-set size
+* The probability to find compatible barcodes is more variable for smaller barcode sets 
 
 ```{r echo = FALSE, warning=FALSE, fig.width=11}
 results %>% group_by(mplex_level, barcode_number, chemistry) %>%
@@ -192,7 +192,7 @@ ggtitle(paste("Average proportion of compatible barcodes ( average over", R,"sim
 ```
 
 
-* The probability to find compatible barcodes depends on the multiplex level
+* The probability to find compatible barcodes increases with the multiplex level
 
 
 ```{r echo = FALSE, warning=FALSE, fig.width=11}
@@ -303,79 +303,93 @@ if (1 %in% barcodeFreq$chemistry) {
 
 ```
 
-### Compatible barcode combinations: barcode frequencies for a few examples
+### Compatible barcode combinations: single examples
 
-For individual barcode sets of 12 barcodes, we clearly see that barcode frequencies are very heterogeneous even for the higher multiplex levels of 4 or 5.
-Therefore, consumable usage may strongly be biased among preparation kits.
+Individual barcode sets of 12 barcodes were randomly generated from the four Illumina TruSeq small RNA kits comprising 48 barcodes in total. We clearly see that barcode occurences are very heterogeneous even for multiplex levels of 4 or 5. Therefore, consumable usage may strongly be biased among preparation kits.
 
 * 4-channel chemistry, multiplex level 4, barcode-set size 12
 
-```{r echo = FALSE, warning=FALSE, fig.width=11}
+```{r echo = FALSE, warning=FALSE, fig.width=8}
+chem=4
+mpl=4
+bcnb=12
+repnb=3
 
-#TODO
-# make sure that all barcodes are represented
-barcodeFreq %>% filter(chemistry == 4) %>% 
-  filter(mplex_level==4) %>%
-  filter(barcode_number==12) %>%
-  group_by(mplex_level, chemistry) %>%
-  mutate(sum_barcodes=sum(occurrence)) %>%
-  group_by(barcodeID, mplex_level, chemistry) %>%
-  summarise(freq=sum(occurrence)/sum_barcodes[1]) %>% ungroup() %>%
+nb_comp_combinations <- (results %>% filter(chemistry == chem) %>% 
+   filter(mplex_level==mpl) %>%
+   filter(barcode_number==bcnb) %>%
+   filter(rep_number==repnb))$nb_comp_combinations
+
+barcodeFreq %>% filter(chemistry == chem) %>% 
+  filter(mplex_level==mpl) %>%
+  filter(barcode_number==bcnb) %>%
+  filter(rep_number==repnb) %>%
   mutate(channel=paste0(chemistry, "-channel"),
-         mplex_level=as.factor(mplex_level)) %>%
-  ggplot(aes(x=barcodeID,y=freq, fill=mplex_level))+
+         mplex_level=paste("mutiplex level",mplex_level)) %>%
+  ggplot(aes(x=barcodeID,y=occurrence, fill=mplex_level))+
   geom_histogram(stat = "identity", fill= "darkgrey")+
   theme(axis.text.x=element_text(angle=90, hjust=1, vjust=1))+
-  scale_y_continuous(breaks=seq(0, 0.18, 0.04), limit=c(0, 0.18)) +
   facet_grid(mplex_level~channel) +
   xlab("BarcodeID")+
-  ylab("Barcodes frequency")+
-ggtitle(paste("Barcodes frequency among compatible barcode combinations (4-channel chemistry)"))
+  ylab("Barcode occurrences")+
+ggtitle(paste("Barcode occurences among",nb_comp_combinations,"compatible barcode combinations (",chem,"- channel )"))
 ```
 
 * 4-channel chemistry, multiplex level 5, barcode-set size 12
 
-```{r echo = FALSE, warning=FALSE, fig.width=11}
-barcodeFreq %>% filter(chemistry == 4) %>% 
-  filter(mplex_level==5) %>%
-  filter(barcode_number==12) %>%
-  group_by(mplex_level, chemistry) %>%
-  mutate(sum_barcodes=sum(occurrence)) %>%
-  group_by(barcodeID, mplex_level, chemistry) %>%
-  summarise(freq=sum(occurrence)/sum_barcodes[1]) %>% ungroup() %>%
+```{r echo = FALSE, warning=FALSE, fig.width=8}
+chem=4
+mpl=5
+bcnb=12
+repnb=3
+
+nb_comp_combinations <- (results %>% filter(chemistry == chem) %>% 
+   filter(mplex_level==mpl) %>%
+   filter(barcode_number==bcnb) %>%
+   filter(rep_number==repnb))$nb_comp_combinations
+
+barcodeFreq %>% filter(chemistry == chem) %>% 
+  filter(mplex_level==mpl) %>%
+  filter(barcode_number==bcnb) %>%
+  filter(rep_number==repnb) %>%
   mutate(channel=paste0(chemistry, "-channel"),
-         mplex_level=as.factor(mplex_level)) %>%
-  ggplot(aes(x=barcodeID,y=freq, fill=mplex_level))+
+         mplex_level=paste("mutiplex level",mplex_level)) %>%
+  ggplot(aes(x=barcodeID,y=occurrence, fill=mplex_level))+
   geom_histogram(stat = "identity", fill= "darkgrey")+
   theme(axis.text.x=element_text(angle=90, hjust=1, vjust=1))+
-  scale_y_continuous(breaks=seq(0, 0.18, 0.04), limit=c(0, 0.18)) +
   facet_grid(mplex_level~channel) +
   xlab("BarcodeID")+
-  ylab("Barcodes frequency")+
-ggtitle(paste("Barcodes frequency among compatible barcode combinations (4-channel chemistry)"))
+  ylab("Barcode occurences")+
+ggtitle(paste("Barcode occurences among",nb_comp_combinations,"compatible barcode combinations (",chem,"- channel )"))
 ```
 
 
 * 2-channel chemistry, multiplex level 4, barcode-set size 12
 
-```{r echo = FALSE, warning=FALSE, fig.width=11}
-barcodeFreq %>% filter(chemistry == 2) %>% 
-  filter(mplex_level==4) %>%
-  filter(barcode_number==12) %>%
-  group_by(mplex_level, chemistry) %>%
-  mutate(sum_barcodes=sum(occurrence)) %>%
-  group_by(barcodeID, mplex_level, chemistry) %>%
-  summarise(freq=sum(occurrence)/sum_barcodes[1]) %>% ungroup() %>%
+```{r echo = FALSE, warning=FALSE, fig.width=8}
+chem=2
+mpl=4
+bcnb=12
+repnb=3
+
+nb_comp_combinations <- (results %>% filter(chemistry == chem) %>% 
+   filter(mplex_level==mpl) %>%
+   filter(barcode_number==bcnb) %>%
+   filter(rep_number==repnb))$nb_comp_combinations
+
+barcodeFreq %>% filter(chemistry == chem) %>% 
+  filter(mplex_level==mpl) %>%
+  filter(barcode_number==bcnb) %>%
+  filter(rep_number==repnb) %>%
   mutate(channel=paste0(chemistry, "-channel"),
-         mplex_level=as.factor(mplex_level)) %>%
-  ggplot(aes(x=barcodeID,y=freq, fill=mplex_level))+
+         mplex_level=paste("mutiplex level",mplex_level)) %>%
+  ggplot(aes(x=barcodeID,y=occurrence, fill=mplex_level))+
   geom_histogram(stat = "identity", fill= "darkgrey")+
   theme(axis.text.x=element_text(angle=90, hjust=1, vjust=1))+
-  scale_y_continuous(breaks=seq(0, 0.18, 0.04), limit=c(0, 0.18)) +
   facet_grid(mplex_level~channel) +
   xlab("BarcodeID")+
-  ylab("Barcodes frequency")+
-ggtitle(paste("Barcodes frequency among compatible barcode combinations (2-channel chemistry)"))
+  ylab("Barcode occurences")+
+ggtitle(paste("Barcode occurences among",nb_comp_combinations,"compatible barcode combinations (",chem,"- channel )"))
 ```
 
 
@@ -387,16 +401,17 @@ ggtitle(paste("Barcodes frequency among compatible barcode combinations (2-chann
 The goal is to estimate the probability to get an optimal solution (maximum entropy) and to test how the optimizer improves the solution compared with a random pick.
 To estimate the probability to get an optimal with the greedy-descent algorithm, we perform 100 simulations for a fixed size of a randomly generated subset of compatible combinations.
 We also test how the size of the subset of compatible combinations influences the probability to obtain an optimal solution. This allows us to find a good compromise between computation time and accuracy.
-In practice the running time of the greedy-descent algorithm gets very long for large initial sets of compatible combinations. So, we randomly generate a subset from the entire set of compatible combinations and run the simulations to estimate the probability q to get an optimal solution for each trial. Based on this result, we devised an optimizer function that performs N trials of the greedy-descent algorithm from the same subset of compatible combinations. The probability P of getting an optimal solution reads P = 1-(1-q)^N. For example, if we want to find an optimal solution for 90% of cases (P = 0.90), N = log(0.1)/log(1-q).  
-
-We therefore run two series of simulations:
-
-    + First series: find the probalibity q of to get an optimal combination for each trial given the subset size, estimate N for P = 0.90, and refine computation time.
-    
-    + Second series: check the efficacy of the optimizer function with a fixed set of parameters q, N and subset size.
+In practice the running time of the greedy-descent algorithm gets very long for large initial sets of compatible combinations. So, we randomly generate a subset from the entire set of compatible combinations and run the simulations to estimate the probability q to get an optimal solution for each trial. Based on this result, we devised an optimizer function that performs N trials of the greedy-descent algorithm from the same subset of compatible combinations. The probability P of getting an optimal solution after $N$ iterations reads $P_{N} = 1-(1-P_{1})^N$. For example, if we want to find an optimal solution at least 90% of cases $(P_{N} = 0.9)$, we need a number of iterations $N >= log(1-P_{N})/log(1-P_{1})$.  
 
 
-## Define parameters for the first series of simulations
+
+* We therefore run two series of simulations:
+
+    + Step2a: find the probability q of to get an optimal combination for each trial given the subset size, estimate N for P = 0.90, and refine computation time.
+    + Step2b: check the efficacy of the optimizer function with a fixed set of parameters p, N and subset size.
+
+
+## Step2a: set parameters for the simulations
 
 From simulations in step1, we know that at least 1000 compatible barcode combinations can be obtained for mplex_level >= 4 , barcode set >= 18, regardless the chemistry.
 We define a set of parameters that are relevant in the context of RNAseq:
@@ -408,12 +423,12 @@ We define a set of parameters that are relevant in the context of RNAseq:
 
 ```{r echo = FALSE}
 R=100
-L = c(18)
-N = 4
+L = c(12,18,24)
+N = 3:5
 C = c(4)
-thrs_size_comb=c(60, 70, 80, 90, 100, 120, 160, 320, 640)
+thrs_size_comb=c(seq(10,50,5),seq(60,150, 10), seq(200,350,50))
 max_iteration = 0
-nb_lane=c(4)
+nb_lane=c(4,6)
 
 R=10
 L = c(18)
@@ -449,67 +464,68 @@ print(paste("Number of conditions:",R*length(L)*length(N)*length(C)*length(thrs_
 
 ```
 
-## Run first series of simulations for step2
+## Run simulations for step2a
 
 
-```{r echo = FALSE, cache=T}
-
-# Generate 2 large sets of compatible combinations
-index <- dplyr::sample_n(DNABarcodeCompatibility::IlluminaIndexes, nrow(DNABarcodeCompatibility::IlluminaIndexes), replace = FALSE)
-
-# combination_m_2ch <- DNABarcodeCompatibility::get_all_combinations(index_df = index[1:L,], mplex_level = N, chemistry = 2)
-
-# Initialize input file with a matrix of all combinations
-combination_m_4ch <- DNABarcodeCompatibility::get_all_combinations(index_df = index[1:L,], mplex_level = N, chemistry = 4)
-inputfile <- tempfile()
-save(combination_m_4ch, file=inputfile)
-save(combination_m_4ch, file="combination_m_4ch")
+```{r echo = FALSE, cache=F, eval=F}
 
 # Initialize output file1 (barcode occurrence from random pic)
-write.table(data.frame(barcodeID=character(0), occurrence=integer(0), rep_number=integer(0), thrs_size_comb=integer(0), barcode_number=integer(0), chemistry=integer(0), nb_lane=integer(0)),
+write.table(data.frame(barcodeID=character(0), occurrence=integer(0), rep_number=integer(0), thrs_size_comb=integer(0), barcode_number=integer(0), chemistry=integer(0), nb_lane=integer(0), mplex_level=integer(0)),
             outputfile1 <- tempfile(), row.names = FALSE, col.names = T, quote=FALSE)
 
 # Initialize output file2 (barcode occurrence from optimized set)
-write.table(data.frame(barcodeID=character(0), occurrence=integer(0), rep_number=integer(0), thrs_size_comb=integer(0), barcode_number=integer(0), chemistry=integer(0), nb_lane=integer(0)),
+write.table(data.frame(barcodeID=character(0), occurrence=integer(0), rep_number=integer(0), thrs_size_comb=integer(0), barcode_number=integer(0), chemistry=integer(0), nb_lane=integer(0), mplex_level=integer(0)),
             outputfile2 <- tempfile(), row.names = FALSE, col.names = T, quote=FALSE)
 
 # Initialize output file3 (calcul of proba to get an optimal solution)
-write.table(data.frame(time=numeric(0), nb_comp_combinations=integer(0), rep_number=integer(0), barcode_number=integer(0), thrs_size_comb=integer(0), S_max=numeric(0), S_init=numeric(0), S_random=numeric(0), S_opt=numeric(0), chemistry=integer(0), nb_lane=integer(0)),
+write.table(data.frame(time=numeric(0), nb_comp_combinations=integer(0), rep_number=integer(0), barcode_number=integer(0), thrs_size_comb=integer(0), S_max=numeric(0), S_init=numeric(0), S_random=numeric(0), S_opt=numeric(0), chemistry=integer(0), nb_lane=integer(0), mplex_level=integer(0)),
             outputfile3 <- tempfile(), row.names = FALSE, col.names = T, quote=FALSE)
 
 # Detect CPU number
 nb_cpu=parallel::detectCores()
 
-# Run simulation using GNU parallel (Windows users need cygwin + Gnu parallel; MacOs: brew install parallel; Linux: apt-get install parallel)
 system.time({
-  system(paste0("parallel -j",nb_cpu," Rscript ",SCRIPT_DIR,"/vignettes/sim_optimize_combinations.R {1} {2} {3} {4} {5} {6} {7} {8} {9} {10} ::: ",paste(1:R, collapse=" ")," ::: ",paste(thrs_size_comb, collapse=" ")," ::: " , paste(max_iteration, collapse=" "), " ::: ",paste(inputfile, collapse=""), " ::: ", paste(nb_lane, collapse=""), " ::: ", paste(L, collapse=""), " ::: ", paste(4, collapse=""), " ::: ", paste(outputfile1, collapse=""), " ::: ", paste(outputfile2, collapse=""), " ::: ", paste(outputfile3, collapse="")))
+  for (i in L) {
+    for (j in N) {
+      for (k in C) {
+        # Generate a large set of compatible combinations
+        index <- dplyr::sample_n(DNABarcodeCompatibility::IlluminaIndexes, nrow(DNABarcodeCompatibility::IlluminaIndexes), replace = FALSE)
+        
+        # Initialize input file with a matrix of all combinations
+        combination_m <- DNABarcodeCompatibility::get_all_combinations(index_df = index[1:i,], mplex_level = j, chemistry = k)
+        inputfile <- tempfile()
+        save(combination_m, file=inputfile)
+        # save(combination_m, file="combination_m_4ch")
+        
+        # Run simulation using GNU parallel (Windows users need cygwin + Gnu parallel; MacOs: brew install parallel; Linux: apt-get install parallel)
+        
+        system(paste0("parallel -j",nb_cpu," Rscript ",SCRIPT_DIR,"sim_optimize_combinations.R {1} {2} {3} {4} {5} {6} {7} {8} {9} {10} {11} ::: ",paste(1:R, collapse=" ")," ::: ",paste(thrs_size_comb, collapse=" ")," ::: " , paste(max_iteration, collapse=" "), " ::: ",paste(inputfile, collapse=""), " ::: ", paste(nb_lane, collapse=""), " ::: ", paste(i, collapse=""), " ::: ", paste(k, collapse=""), " ::: ", paste(outputfile1, collapse=""), " ::: ", paste(outputfile2, collapse=""), " ::: ", paste(outputfile3, collapse=""), " ::: ", paste(j, collapse="")))
+        
+      }
+    }
+  }
 })
 
 # Import results
 
 barcodeStat_random <- read.table(file=outputfile1, header = T, sep = " ", stringsAsFactors = FALSE)
-save(barcodeStat_random, file ="sim1_barcodeStat_random")
-# barcodeStat_random <- local(get(load("sim1_barcodeStat_random")))
-# barcodeStat_random <- local(get(load("barcodeStat_random")))
-
+save(barcodeStat_random, file = paste0(SCRIPT_DIR,"sim1_barcodeStat_random"))
+# barcodeStat_random <- local(get(load(paste0(SCRIPT_DIR,"sim1_barcodeStat_random"))))
 
 barcodeStat_opt <- read.table(file=outputfile2, header = T, sep = " ", stringsAsFactors = FALSE)
-save(barcodeStat_opt, file ="sim1_barcodeStat_opt")
-# barcodeStat_opt <- local(get(load("sim1_barcodeStat_opt")))
-# barcodeStat_opt <- local(get(load("barcodeStat_opt")))
-
+save(barcodeStat_opt, file = paste0(SCRIPT_DIR,"sim1_barcodeStat_opt"))
+# barcodeStat_opt <- local(get(load(paste0(SCRIPT_DIR,"sim1_barcodeStat_opt"))))
 
 probaSmax <- read.table(file=outputfile3, header = T, sep = " ", stringsAsFactors = FALSE)
-save(probaSmax, file ="sim1_probaSmax")
-# probaSmax <- local(get(load("sim1_probaSmax")))
-# probaSmax <- local(get(load("probaSmax")))
+save(probaSmax, file = paste0(SCRIPT_DIR,"sim1_probaSmax"))
+# probaSmax <- local(get(load(paste0(SCRIPT_DIR,"sim1_probaSmax"))))
 
 
 ```
 
 ### Statistic summary
 
-```{r , fig.width=11}
+```{r echo = FALSE, fig.width=11}
 for (i in thrs_size_comb){
   # for (j in barcode_number) {
     stat <- probaSmax %>% filter(thrs_size_comb==i) %>%
@@ -567,7 +583,7 @@ ggplot(aes( x = thrs_size_comb, y = time.avg)) +
 ### Estimation of the maximum execution time of N iterations of the greedy-descent to obtain the max entropy in 90% of cases
 
 
- The probability P of getting an optimal solution reads P = 1-(1-q)^N. For example, if we want to find an optimal solution for 90% of cases (P = 0.90), N = log(0.1)/log(1-q).
+ The probability P of getting an optimal solution reads $P = 1-(1-q)^N$. For example, if we want to find an optimal solution for 90% of cases (P = 0.90), $N = log(0.1)/log(1-q)$.
  
 
 ```{r echo = FALSE,  warning=FALSE}
@@ -583,7 +599,7 @@ probaSmax %>% mutate(isSmax=ifelse(S_opt==S_max, T, F)) %>%
          N=as.factor(N)) %>%
   ggplot(aes(x = thrs_size_comb, y = exec_time, color=N)) +
   geom_point(shape=17, size = 4) +
-  scale_x_log10(breaks=c(70,80, 120, 160, 320, 640)) +
+  scale_x_log10(breaks=c(60, 70, 80, 90, 100, 120, 160, 320, 640)) +
   scale_y_log10(breaks = c(1, 2,5, 10,30,90,200,1000,5000,10000, 20000)) +
   geom_hline(yintercept=30, linetype="dashed", color = "red")+
   geom_hline(yintercept=10, linetype="dashed", color = "red")+
@@ -598,7 +614,7 @@ probaSmax %>% mutate(isSmax=ifelse(S_opt==S_max, T, F)) %>%
 ### Estimation of the maximum execution time of N iterations of the greedy-descent to obtain the max entropy in 99% of cases
 
 
- The probability P of getting an optimal solution reads P = 1-(1-q)^N. For example, if we want to find an optimal solution for 99% of cases (P = 0.99), N = log(0.1)/log(1-q).
+ The probability P of getting an optimal solution reads $P = 1-(1-q)^N$. For example, if we want to find an optimal solution for 99% of cases (P = 0.99), $N = log(0.01)/log(1-q)$.
  
 
 ```{r echo = FALSE,  warning=FALSE}
@@ -614,7 +630,7 @@ probaSmax %>% mutate(isSmax=ifelse(S_opt==S_max, T, F)) %>%
          N=as.factor(N)) %>%
   ggplot(aes(x = thrs_size_comb, y = exec_time, color=N)) +
   geom_point(shape=17, size = 4) +
-  scale_x_log10(breaks=c(70,80, 120, 160, 320, 640)) +
+  scale_x_log10(breaks=c(60, 70, 80, 90, 100, 120, 160, 320, 640)) +
   scale_y_log10(breaks = c(1, 2,5, 10,30,90,200,1000,5000,10000, 20000, 36000)) +
   geom_hline(yintercept=30, linetype="dashed", color = "red")+
   geom_hline(yintercept=10, linetype="dashed", color = "red")+
@@ -629,7 +645,7 @@ probaSmax %>% mutate(isSmax=ifelse(S_opt==S_max, T, F)) %>%
 
 ### Distributions of entropy values without (S_random) and with (S_opt) optimization
 
-To visualize the efficacy of the greedy-descent algorithm, we compare the distributions of entropy values obtained either from randomly generated sets of compatible barcodes or from optimized (by greedy-descent) sets of compatible barcodes. The graphs below show that the greedy-descent algorithm dramatically reduces the barcode redanduncy by favoring sets of compatible barcode combinations with a higher entropy.
+To visualize the efficacy of the greedy-descent algorithm, we compare the distribution of entropy values obtained from randomly generated sets of compatible barcodes with the distribution of entropy values obtained from optimized (by greedy-descent) sets of compatible barcodes. The graphs below show that the greedy-descent algorithm dramatically reduces the barcode redanduncy by favoring sets of compatible barcode combinations with a higher entropy.
 
 * For 60 randomly picked up compatible combinations
 ```{r echo = FALSE,  warning=FALSE, message=FALSE, fig.width=11}
@@ -861,8 +877,7 @@ if (640 %in% probaSmax$thrs_size_comb) {
 ```
 
 
-## Define parameters for the second series of simulations
-
+## Step2b: set parameters for the simulations
 
 * Chemistry: 4 (4-channel chemistry)
 * Barcode-set size: 18
@@ -872,7 +887,7 @@ if (640 %in% probaSmax$thrs_size_comb) {
 * Iterations: 14
 
 ```{r echo = FALSE}
-R=10
+R=100
 L = c(18)
 N = 4
 C = c(4)
@@ -880,13 +895,13 @@ thrs_size_comb=c(80)
 max_iteration = 14
 nb_lane=c(4)
 
-R=1
-L = c(18)
-N = 4
-C = c(4)
-thrs_size_comb=c(80)
-max_iteration = 14
-nb_lane=c(4)
+# R=1
+# L = c(18)
+# N = 4
+# C = c(4)
+# thrs_size_comb=c(80)
+# max_iteration = 14
+# nb_lane=c(4)
 
 
 print("CONDITIONS:")
@@ -914,8 +929,7 @@ print(paste("Number of conditions:",R*length(L)*length(N)*length(C)*length(thrs_
 
 ```
 
-## Run second series of simulations for step2
-
+## Run simulations for step2b
 
 ```{r echo = FALSE, cache=T}
 
@@ -941,23 +955,23 @@ write.table(data.frame(time=numeric(0), nb_comp_combinations=integer(0), rep_num
 nb_cpu=parallel::detectCores()
 
 # Run simulation using GNU parallel (Windows users need cygwin + Gnu parallel; MacOs: brew install parallel; Linux: apt-get install parallel)
-system.time({
-  system(paste0("parallel -j",nb_cpu," Rscript ",SCRIPT_DIR,"/vignettes/sim_optimize_combinations.R {1} {2} {3} {4} {5} {6} {7} {8} {9} {10} ::: ",paste(1:R, collapse=" ")," ::: ",paste(thrs_size_comb, collapse=" ")," ::: " , paste(max_iteration, collapse=" "), " ::: ",paste(inputfile, collapse=""), " ::: ", paste(nb_lane, collapse=""), " ::: ", paste(L, collapse=""), " ::: ", paste(4, collapse=""), " ::: ", paste(outputfile1, collapse=""), " ::: ", paste(outputfile2, collapse=""), " ::: ", paste(outputfile3, collapse="")))
-})
+# system.time({
+#   system(paste0("parallel -j",nb_cpu," Rscript ",SCRIPT_DIR,"sim_optimize_combinations.R {1} {2} {3} {4} {5} {6} {7} {8} {9} {10} ::: ",paste(1:R, collapse=" ")," ::: ",paste(thrs_size_comb, collapse=" ")," ::: " , paste(max_iteration, collapse=" "), " ::: ",paste(inputfile, collapse=""), " ::: ", paste(nb_lane, collapse=""), " ::: ", paste(L, collapse=""), " ::: ", paste(4, collapse=""), " ::: ", paste(outputfile1, collapse=""), " ::: ", paste(outputfile2, collapse=""), " ::: ", paste(outputfile3, collapse="")))
+# })
 
 # Import results
 
-sime2_barcodeStat_random <- read.table(file=outputfile1, header = T, sep = " ", stringsAsFactors = FALSE)
-save(sime2_barcodeStat_random, file ="sim2_barcodeStat_random")
-# barcodeStat_random <- local(get(load("sim2_barcodeStat_random")))
+# sime2_barcodeStat_random <- read.table(file=outputfile1, header = T, sep = " ", stringsAsFactors = FALSE)
+# save(sime2_barcodeStat_random, file = paste0(SCRIPT_DIR,"sim2_barcodeStat_random"))
+barcodeStat_random <- local(get(load(paste0(SCRIPT_DIR,"sim2_barcodeStat_random"))))
 
-sim2_barcodeStat_opt <- read.table(file=outputfile2, header = T, sep = " ", stringsAsFactors = FALSE)
-save(barcodeStat_opt, file ="sim2_barcodeStat_opt")
-# barcodeStat_opt <- local(get(load("sim2_barcodeStat_opt")))
+# sim2_barcodeStat_opt <- read.table(file=outputfile2, header = T, sep = " ", stringsAsFactors = FALSE)
+# save(barcodeStat_opt, file = paste0(SCRIPT_DIR,"sim2_barcodeStat_opt"))
+barcodeStat_opt <- local(get(load(paste0(SCRIPT_DIR,"sim2_barcodeStat_opt"))))
 
-sim2_probaSmax <- read.table(file=outputfile3, header = T, sep = " ", stringsAsFactors = FALSE)
-save(probaSmax, file ="sim2_probaSmax")
-# probaSmax <- local(get(load("sim2_probaSmax")))
+# sim2_probaSmax <- read.table(file=outputfile3, header = T, sep = " ", stringsAsFactors = FALSE)
+# save(probaSmax, file = paste0(SCRIPT_DIR,"sim2_probaSmax"))
+probaSmax <- local(get(load(paste0(SCRIPT_DIR,"sim2_probaSmax"))))
 
 ```
 

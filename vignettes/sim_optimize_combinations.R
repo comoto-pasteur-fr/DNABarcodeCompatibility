@@ -3,7 +3,7 @@
 ## Setup  I/O ####
 argv = commandArgs(TRUE)
 
-if((length(argv) < 2) | (length(argv) > 10)){
+if((length(argv) < 2) | (length(argv) > 11)){
   stop("Usage: time_simulation_s.R <rep_number> <thrs_size_comb> <max_iteration> <inputfile> <nb_lane> <barcode_number> <chemistry> <outputfile1> <outputfile2> <outputfile3>")
 }else{
   rep_number=as.integer(argv[1])
@@ -16,6 +16,7 @@ if((length(argv) < 2) | (length(argv) > 10)){
   outputfile1=normalizePath(argv[8])
   outputfile2=normalizePath(argv[9])
   outputfile3=normalizePath(argv[10])
+  mplex_level=as.integer(argv[11])
 }
 
 # max_iteration=0
@@ -25,6 +26,7 @@ if((length(argv) < 2) | (length(argv) > 10)){
 # combination_m=DNABarcodeCompatibility::get_all_combinations(index_df = DNABarcodeCompatibility::IlluminaIndexes[1:18,], mplex_level = 4, chemistry = 4)
 # nb_lane=4
 # barcode_number=18
+# mplex_level = 4
 
 ## Parametrize the optimize_combination function for the sake of the simulation
 optimize_combinations = function (combination_m, nb_lane, index_number, thrs_size_comb=80, max_iteration=10){
@@ -102,7 +104,7 @@ S_opt=DNABarcodeCompatibility:::entropy_result(unlist(out_comb$opt_comb))
 S_random=DNABarcodeCompatibility:::entropy_result(unlist(out_comb$random_comb))
 
 print(paste(rep_number, round(elapsed,0), nrow(combination_m), barcode_number, thrs_size_comb, chemistry, nb_lane), quote=F)
-data.frame(rep_number=rep_number, time=round(elapsed,0), nb_comp_comb=nrow(combination_m), barcode_set_size=barcode_number, barcaode_subset_size=thrs_size_comb, chemistry=chemistry, nb_lane=nb_lane)
+# data.frame(rep_number=rep_number, time=round(elapsed,0), nb_comp_comb=nrow(combination_m), barcode_set_size=barcode_number, barcaode_subset_size=thrs_size_comb, chemistry=chemistry, nb_lane=nb_lane)
 
 
 ## Save barcode occurrence from random pick, with input simulation parameters
@@ -111,7 +113,8 @@ df <- dplyr::mutate(as.data.frame(table(unlist(out_comb$random_comb))),
                     thrs_size_comb=thrs_size_comb,
                     barcode_number=barcode_number,
                     chemistry=chemistry, 
-                    nb_lane=nb_lane)
+                    nb_lane=nb_lane,
+                    mplex_level=mplex_level)
 write.table(df, file = outputfile1 , quote = F, row.names = F, col.names = F, append = T)
 
 
@@ -121,13 +124,14 @@ df <- dplyr::mutate(as.data.frame(table(unlist(out_comb$opt_comb))),
                     thrs_size_comb=thrs_size_comb,
                     barcode_number=barcode_number,
                     chemistry=chemistry, 
-                    nb_lane=nb_lane)
+                    nb_lane=nb_lane,
+                    mplex_level=mplex_level)
 write.table(df, file = outputfile2 , quote = F, row.names = F, col.names = F, append = T)
 
 
 ## Save simulation parameters and elasped time
 
 df <- data.frame(time=round(elapsed,3), nb_comp_combinations=nrow(combination_m), rep_number=rep_number, barcode_number=barcode_number, 
-                 thrs_size_comb=thrs_size_comb, S_max, S_init, S_random, S_opt, chemistry=chemistry, nb_lane=nb_lane)
+                 thrs_size_comb=thrs_size_comb, S_max, S_init, S_random, S_opt, chemistry=chemistry, nb_lane=nb_lane, mplex_level=mplex_level)
 write.table(df, file = outputfile3 , quote = F, row.names = F, col.names = F, append = T)
 
