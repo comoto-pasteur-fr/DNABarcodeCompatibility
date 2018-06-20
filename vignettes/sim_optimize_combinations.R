@@ -19,6 +19,13 @@ if((length(argv) < 2) | (length(argv) > 11)){
   mplex_level=as.integer(argv[11])
 }
 
+library("tidyr")
+library("purrr")
+library("stringr")
+library("DNABarcodeCompatibility")
+
+
+
 # max_iteration=0
 # rep_number=1
 # chemistry=4
