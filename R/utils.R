@@ -694,15 +694,17 @@ entropy_max = function (index_number,sample_number){
 recursive_entropy = function(combination_m, nb_lane, method="greedy_exchange"){
   
   if (!method %in% c("greedy_exchange", "greedy_descent")) {
-    DNABarcodeCompatibility:::display_message(paste0("recursive_entropy(): the selected method '",method,"' does not exist. Please select 'greedy_exchange' or 'greedy_descent'"))
+    display_message(paste0("recursive_entropy(): the selected method '",method,"' does not exist. Please select 'greedy_exchange' or 'greedy_descent'"))
+    return(combination_m)
   }
   
   if (method=="greedy_descent") {
+    # Celine's implementation
     while(nrow(combination_m)> nb_lane){
       ind = combn(nrow(combination_m), nrow(combination_m)-1)
       a = vector(length = nrow(combination_m))
       for(i in 1:nrow(combination_m)){
-        a[i]=DNABarcodeCompatibility:::entropy_result(combination_m[ind[,i],])
+        a[i]=entropy_result(combination_m[ind[,i],])
       }
       x = which.max(a)
       z = which(a == a[x])
@@ -718,14 +720,14 @@ recursive_entropy = function(combination_m, nb_lane, method="greedy_exchange"){
     c0=combination_m[sample(1:nrow(combination_m), nb_lane),]
     N=nrow(combination_m) 
     c=c0; ctest=c
-    Sc=DNABarcodeCompatibility:::entropy_result(c); test=1;
+    Sc=entropy_result(c); test=1;
     while(test) {
       test=0; Stest=Sc;
       n=1; i=1;
       while ( (n<=ncomb) && (i<=N) && (test==0) ) {
         ctp=c; 
         ctp[n,]=clist[i,];
-        Stp=DNABarcodeCompatibility:::entropy_result(ctp);
+        Stp=entropy_result(ctp);
         if(Stp>Sc) {test=1; Stest=Stp; ctest=ctp}
         if (i<N) {i=i+1} else {i=1; n=n+1}
       }
