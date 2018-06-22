@@ -22,6 +22,10 @@ Imports:
     DNABarcodes,
     rJava,
     stringr
+Depdends:
+    purrr
+    stringr
+    tidyr
 Suggests: knitr,
     rmarkdown,
     testthat
