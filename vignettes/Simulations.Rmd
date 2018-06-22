@@ -434,13 +434,14 @@ max_iteration = 0
 nb_lane=c(4,6,8)
 algorithm= c("greedy_exchange", "greedy_descent")
 
-# R=100
-# L = c(18)
-# N = 4
-# C = c(4)
-# thrs_size_comb=c(130)
-# max_iteration = 0
-# nb_lane=c(4)
+R=20
+L = c(18)
+N = 4
+C = c(4)
+thrs_size_comb=c(130)
+max_iteration = 0
+nb_lane=c(4)
+algorithm= c("greedy_exchange", "greedy_descent")
 
 
 print("CONDITIONS:")
@@ -491,7 +492,7 @@ write.table(data.frame(time=numeric(0), nb_comp_combinations=integer(0), rep_num
 # Detect CPU number
 nb_cpu=parallel::detectCores()
 
-if (F) {
+if (T) {
   system.time({
     for (i in L) {
       # Generate a large set of compatible combinations
@@ -524,13 +525,13 @@ if (F) {
     }
     
     sim1_barcodeStat_random <- read.table(file=outputfile1, header = T, sep = " ", stringsAsFactors = FALSE)
-    save(sim1_barcodeStat_random, file = paste0(SCRIPT_DIR,"sim1_barcodeStat_random"))
+    save(sim1_barcodeStat_random, file = paste0(SCRIPT_DIR,"XXXsim1_barcodeStat_random"))
     
     sim1_barcodeStat_opt <- read.table(file=outputfile2, header = T, sep = " ", stringsAsFactors = FALSE)
-    save(sim1_barcodeStat_opt, file = paste0(SCRIPT_DIR,"sim1_barcodeStat_opt"))
+    save(sim1_barcodeStat_opt, file = paste0(SCRIPT_DIR,"XXXsim1_barcodeStat_opt"))
     
     sim1_probaSmax <- read.table(file=outputfile3, header = T, sep = " ", stringsAsFactors = FALSE)
-    save(sim1_probaSmax, file = paste0(SCRIPT_DIR,"sim1_probaSmax"))
+    save(sim1_probaSmax, file = paste0(SCRIPT_DIR,"XXXsim1_probaSmax"))
   })
 }
 
