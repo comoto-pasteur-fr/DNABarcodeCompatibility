@@ -715,6 +715,7 @@ recursive_entropy = function(combination_m, nb_lane, method="greedy_exchange"){
   
   if (method=="greedy_exchange") {
     # Jacques' implementation from his Matlab code
+    print("Applying Greedy Exchange")
     clist=combination_m
     ncomb=nb_lane
     c0=combination_m[sample(1:nrow(combination_m), nb_lane),]
