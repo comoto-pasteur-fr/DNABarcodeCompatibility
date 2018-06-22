@@ -16,8 +16,10 @@ editor_options:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 options(width=120)
+# options(digits=3)
 
 SCRIPT_DIR=file.path(Sys.getenv("HOME"),"DNABarcodeCompatibility/vignettes/")
+if (!file.exists(SCRIPT_DIR)) stop("Script directory not properly set up !")
 library("dplyr")
 library("ggplot2")
 ```
@@ -80,26 +82,30 @@ write.table(data.frame(rep_number=integer(0), time=numeric(0), nb_total_combinat
 # Detect CPU number
 nb_cpu=parallel::detectCores()
 
-# # Run simulation using GNU parallel (Windows users need cygwin + Gnu parallel; MacOs: brew install parallel; Linux: apt-get install parallel)
-# print(paste("Running", R*length(L)*length(N)*length(C) ,"simulations..."))
-# system.time({
-#   system(paste0("parallel -j",nb_cpu," Rscript ",SCRIPT_DIR,"sim_get_all_combinations.R {1} {2} {3} {4} {5} {6} ::: ",paste(1:R, collapse=" ")," ::: ",paste(N, collapse=" ")," ::: ",paste(L, collapse=" ")," ::: ",paste(C, collapse=" "), " ::: ", paste(outputfile1, collapse=""), " ::: ", paste(outputfile2, collapse="")))
-# })
+if (F) {
+  # Run simulation using GNU parallel (Windows users need cygwin + Gnu parallel; MacOs: brew install parallel; Linux: apt-get install parallel)
+  print(paste("Running", R*length(L)*length(N)*length(C) ,"simulations..."))
+  system.time({
+    system(paste0("parallel -j",nb_cpu," Rscript ",SCRIPT_DIR,"sim_get_all_combinations.R {1} {2} {3} {4} {5} {6} ::: ",paste(1:R, collapse=" ")," ::: ",paste(N, collapse=" ")," ::: ",paste(L, collapse=" ")," ::: ",paste(C, collapse=" "), " ::: ", paste(outputfile1, collapse=""), " ::: ", paste(outputfile2, collapse="")))
+  })
+  
+  barcodeFreq <- read.table(file=outputfile1, header = T, sep = " ", stringsAsFactors = FALSE)
+  save(barcodeFreq, file = paste0(SCRIPT_DIR,"barcodeFreq"))
+
+  results <- read.table(file=outputfile2, header = T, sep = " ", stringsAsFactors = FALSE)
+  save(results, file = paste0(SCRIPT_DIR,"results"))
+}
+
 
 # Import results
-# barcodeFreq <- read.table(file=outputfile1, header = T, sep = " ", stringsAsFactors = FALSE)
-# save(barcodeFreq, file = paste0(SCRIPT_DIR,"barcodeFreq"))
 barcodeFreq <- local(get(load(paste0(SCRIPT_DIR,"barcodeFreq"))))
-
-# results <- read.table(file=outputfile2, header = T, sep = " ", stringsAsFactors = FALSE)
-# save(results, file = paste0(SCRIPT_DIR,"results"))
 results <- local(get(load(paste0(SCRIPT_DIR,"results"))))
 
 ```
 
 
 
-### Execution time as a function of the total number of combinations
+### Execution time of an exhaustive search as a function of the total number of combinations
 
 The execution time of an exhaustive search increases as a power of the total number of combinations. It is slighty faster for the 4-channel chemistry. 
 For the ease of use, we fix at around 2 seconds the maximum time of execution. On a standard computer, this corresponds to an exhaustive search among about 2000 combinations for the 4-channel chemistry.
@@ -128,7 +134,7 @@ ggplot(aes( x = nb_total_combinations, y = time.avg))+
 ```
 
 
-### Execution time as a function of the barcode-set size
+### Execution time of an exhaustive search as a function of the barcode-set size
 
 The total number of combinations can be expressed as a binomial coefficient that is indexed by n barcodes in the barcode dataset and a mutliplex level k, where both n and k are positive integers.
 We now plot the execution time as function of the barcode-set size for various multiplex levels. This reveals that the execution time is less than 2 seconds for a multiplex level of 2 with the 48-barcode Illumina small RNA TruSep kit.
@@ -136,9 +142,6 @@ Therefore, in these conditions, the program will perform an exhaustive search of
 
 
 ```{r echo = FALSE, fig.width=11}
-
-
-
 results %>% group_by(mplex_level, barcode_number, chemistry) %>%
   filter(chemistry > 1) %>%
   summarise(time.avg=mean(time), time.sd=sd(time), nb_total_combinations=nb_total_combinations[1], nb_comp_combinations.avg=mean(nb_comp_combinations)) %>%
@@ -423,20 +426,21 @@ We define a set of parameters that are relevant in the context of RNAseq:
 
 ```{r echo = FALSE}
 R=100
-L = c(12,18,24)
+L = c(12,18,24,30)
 N = 3:5
-C = c(4)
-thrs_size_comb=c(seq(10,50,5),seq(60,150, 10), seq(200,350,50))
+C = c(2,4)
+thrs_size_comb=c(seq(10,50,5),seq(60,100, 10))
 max_iteration = 0
-nb_lane=c(4,6)
+nb_lane=c(4,6,8)
+algorithm= c("greedy_exchange", "greedy_descent")
 
-R=10
-L = c(18)
-N = 4
-C = c(4)
-thrs_size_comb=c(60, 80)
-max_iteration = 0
-nb_lane=c(4)
+# R=100
+# L = c(18)
+# N = 4
+# C = c(4)
+# thrs_size_comb=c(130)
+# max_iteration = 0
+# nb_lane=c(4)
 
 
 print("CONDITIONS:")
@@ -460,6 +464,9 @@ nb_lane
 print("Total number of combinations:")
 choose(L,N)
 
+print("Optimizer algorithms")
+algorithm
+
 print(paste("Number of conditions:",R*length(L)*length(N)*length(C)*length(thrs_size_comb)*length(nb_lane)))
 
 ```
@@ -467,69 +474,82 @@ print(paste("Number of conditions:",R*length(L)*length(N)*length(C)*length(thrs_
 ## Run simulations for step2a
 
 
-```{r echo = FALSE, cache=F, eval=F}
+```{r echo = FALSE, cache=F}
 
 # Initialize output file1 (barcode occurrence from random pic)
-write.table(data.frame(barcodeID=character(0), occurrence=integer(0), rep_number=integer(0), thrs_size_comb=integer(0), barcode_number=integer(0), chemistry=integer(0), nb_lane=integer(0), mplex_level=integer(0)),
+write.table(data.frame(barcodeID=character(0), occurrence=integer(0), rep_number=integer(0), thrs_size_comb=integer(0), barcode_number=integer(0), chemistry=integer(0), nb_lane=integer(0), mplex_level=integer(0), algorithm=character(0)),
             outputfile1 <- tempfile(), row.names = FALSE, col.names = T, quote=FALSE)
 
 # Initialize output file2 (barcode occurrence from optimized set)
-write.table(data.frame(barcodeID=character(0), occurrence=integer(0), rep_number=integer(0), thrs_size_comb=integer(0), barcode_number=integer(0), chemistry=integer(0), nb_lane=integer(0), mplex_level=integer(0)),
+write.table(data.frame(barcodeID=character(0), occurrence=integer(0), rep_number=integer(0), thrs_size_comb=integer(0), barcode_number=integer(0), chemistry=integer(0), nb_lane=integer(0), mplex_level=integer(0), algorithm=character(0)),
             outputfile2 <- tempfile(), row.names = FALSE, col.names = T, quote=FALSE)
 
 # Initialize output file3 (calcul of proba to get an optimal solution)
-write.table(data.frame(time=numeric(0), nb_comp_combinations=integer(0), rep_number=integer(0), barcode_number=integer(0), thrs_size_comb=integer(0), S_max=numeric(0), S_init=numeric(0), S_random=numeric(0), S_opt=numeric(0), chemistry=integer(0), nb_lane=integer(0), mplex_level=integer(0)),
+write.table(data.frame(time=numeric(0), nb_comp_combinations=integer(0), rep_number=integer(0), barcode_number=integer(0), thrs_size_comb=integer(0), S_max=numeric(0), S_init=numeric(0), S_random=numeric(0), S_opt=numeric(0), chemistry=integer(0), nb_lane=integer(0), mplex_level=integer(0), algorithm=character(0)),
             outputfile3 <- tempfile(), row.names = FALSE, col.names = T, quote=FALSE)
 
 # Detect CPU number
 nb_cpu=parallel::detectCores()
 
-system.time({
-  for (i in L) {
-    for (j in N) {
-      for (k in C) {
-        # Generate a large set of compatible combinations
-        index <- dplyr::sample_n(DNABarcodeCompatibility::IlluminaIndexes, nrow(DNABarcodeCompatibility::IlluminaIndexes), replace = FALSE)
-        
-        # Initialize input file with a matrix of all combinations
-        combination_m <- DNABarcodeCompatibility::get_all_combinations(index_df = index[1:i,], mplex_level = j, chemistry = k)
-        inputfile <- tempfile()
-        save(combination_m, file=inputfile)
-        # save(combination_m, file="combination_m_4ch")
-        
-        # Run simulation using GNU parallel (Windows users need cygwin + Gnu parallel; MacOs: brew install parallel; Linux: apt-get install parallel)
-        
-        system(paste0("parallel -j",nb_cpu," Rscript ",SCRIPT_DIR,"sim_optimize_combinations.R {1} {2} {3} {4} {5} {6} {7} {8} {9} {10} {11} ::: ",paste(1:R, collapse=" ")," ::: ",paste(thrs_size_comb, collapse=" ")," ::: " , paste(max_iteration, collapse=" "), " ::: ",paste(inputfile, collapse=""), " ::: ", paste(nb_lane, collapse=""), " ::: ", paste(i, collapse=""), " ::: ", paste(k, collapse=""), " ::: ", paste(outputfile1, collapse=""), " ::: ", paste(outputfile2, collapse=""), " ::: ", paste(outputfile3, collapse=""), " ::: ", paste(j, collapse="")))
-        
+if (F) {
+  system.time({
+    for (i in L) {
+      # Generate a large set of compatible combinations
+      index <- dplyr::sample_n(DNABarcodeCompatibility::IlluminaIndexes, nrow(DNABarcodeCompatibility::IlluminaIndexes), replace = FALSE)
+      for (j in N) {
+        for (k in C) {
+          # Initialize input file with a matrix of all combinations
+          combination_m <- DNABarcodeCompatibility::get_all_combinations(index_df = index[1:i,], mplex_level = j, chemistry = k)
+          
+          inc=0
+          while (nrow(combination_m) < max(nb_lane) && inc<10) {
+            print("nrow(combination_m) might be too small")
+            print("other trial...")
+            index <- dplyr::sample_n(DNABarcodeCompatibility::IlluminaIndexes, nrow(DNABarcodeCompatibility::IlluminaIndexes), replace = FALSE)
+            combination_m <- DNABarcodeCompatibility::get_all_combinations(index_df = index[1:i,], mplex_level = j, chemistry = k)
+            inc=inc+1
+            print(inc)
+          }
+          if (nrow(combination_m)<max(nb_lane)) {warning("nrow(combination_m) might be too small")}
+          
+          inputfile <- tempfile()
+          save(combination_m, file=inputfile)
+          # save(combination_m, file="combination_m_4ch")
+          
+          # Run simulation using GNU parallel (Windows users need cygwin + Gnu parallel; MacOs: brew install parallel; Linux: apt-get install parallel)
+          system(paste0("parallel -j",nb_cpu," Rscript ",SCRIPT_DIR,"sim_optimize_combinations.R {1} {2} {3} {4} {5} {6} {7} {8} {9} {10} {11} {12} ::: ",paste(1:R, collapse=" ")," ::: ",paste(thrs_size_comb, collapse=" ")," ::: " , paste(max_iteration, collapse=" "), " ::: ",paste(inputfile, collapse=""), " ::: ", paste(nb_lane, collapse=" "), " ::: ", paste(i, collapse=""), " ::: ", paste(k, collapse=""), " ::: ", paste(outputfile1, collapse=""), " ::: ", paste(outputfile2, collapse=""), " ::: ", paste(outputfile3, collapse=""), " ::: ", paste(j, collapse=""), " ::: ", paste(algorithm, collapse=" ")))
+          
+        }
       }
     }
-  }
-})
+    
+    sim1_barcodeStat_random <- read.table(file=outputfile1, header = T, sep = " ", stringsAsFactors = FALSE)
+    save(sim1_barcodeStat_random, file = paste0(SCRIPT_DIR,"sim1_barcodeStat_random"))
+    
+    sim1_barcodeStat_opt <- read.table(file=outputfile2, header = T, sep = " ", stringsAsFactors = FALSE)
+    save(sim1_barcodeStat_opt, file = paste0(SCRIPT_DIR,"sim1_barcodeStat_opt"))
+    
+    sim1_probaSmax <- read.table(file=outputfile3, header = T, sep = " ", stringsAsFactors = FALSE)
+    save(sim1_probaSmax, file = paste0(SCRIPT_DIR,"sim1_probaSmax"))
+  })
+}
+
 
 # Import results
-
-barcodeStat_random <- read.table(file=outputfile1, header = T, sep = " ", stringsAsFactors = FALSE)
-save(barcodeStat_random, file = paste0(SCRIPT_DIR,"sim1_barcodeStat_random"))
-# barcodeStat_random <- local(get(load(paste0(SCRIPT_DIR,"sim1_barcodeStat_random"))))
-
-barcodeStat_opt <- read.table(file=outputfile2, header = T, sep = " ", stringsAsFactors = FALSE)
-save(barcodeStat_opt, file = paste0(SCRIPT_DIR,"sim1_barcodeStat_opt"))
-# barcodeStat_opt <- local(get(load(paste0(SCRIPT_DIR,"sim1_barcodeStat_opt"))))
-
-probaSmax <- read.table(file=outputfile3, header = T, sep = " ", stringsAsFactors = FALSE)
-save(probaSmax, file = paste0(SCRIPT_DIR,"sim1_probaSmax"))
-# probaSmax <- local(get(load(paste0(SCRIPT_DIR,"sim1_probaSmax"))))
+sim1_barcodeStat_random <- local(get(load(paste0(SCRIPT_DIR,"sim1_barcodeStat_random"))))
+sim1_barcodeStat_opt <- local(get(load(paste0(SCRIPT_DIR,"sim1_barcodeStat_opt"))))
+sim1_probaSmax <- local(get(load(paste0(SCRIPT_DIR,"sim1_probaSmax"))))
 
 
 ```
 
 ### Statistic summary
 
-```{r echo = FALSE, fig.width=11}
+```{r echo = FALSE, fig.width=11, eval=F}
 for (i in thrs_size_comb){
   # for (j in barcode_number) {
-    stat <- probaSmax %>% filter(thrs_size_comb==i) %>%
-      select(-c(rep_number,barcode_number,thrs_size_comb,chemistry,nb_lane)) %>%
+    stat <- sim1_probaSmax %>% filter(thrs_size_comb==i) %>%
+      select(-c(rep_number,barcode_number,thrs_size_comb,chemistry,nb_lane, mplex_level)) %>%
       summary()
     print(i)
     print(stat)
@@ -539,46 +559,117 @@ for (i in thrs_size_comb){
 
 ### Probability to get an optimal set of barcode combinations (entropy max) for a single greedy-descent run
 
-```{r echo = FALSE,  warning=FALSE}
+```{r echo = FALSE,  warning=FALSE, message=F, fig.width=11}
 
-probaSmax %>% mutate(isSmax=ifelse(S_opt==S_max, T, F)) %>%
-  group_by(barcode_number, chemistry, nb_lane, thrs_size_comb) %>%
+sim1_probaSmax %>% group_by(chemistry, barcode_number, mplex_level, nb_lane) %>%
+  filter(thrs_size_comb<nb_comp_combinations) %>%
+  mutate(isSmax=ifelse(abs(S_opt-S_max)<10^(-10), T, F)) %>%
+  group_by(chemistry, barcode_number, mplex_level, nb_lane, thrs_size_comb) %>%
   summarise(time.avg=mean(time), time.sd=sd(time), nb_comp_combinations=nb_comp_combinations[1], S_max=S_max[1], ProbaOfSmax=sum(isSmax)/length(rep_number)) %>%
-  mutate(thrs_size_comb=as.factor(thrs_size_comb)) %>%
   ungroup() %>% 
-ggplot(aes( x = thrs_size_comb, y = ProbaOfSmax)) +
-  geom_histogram(stat = "identity") +
-  scale_y_continuous(breaks=seq(0, 1, 0.2), limit=c(0, 1)) +
+  mutate(mplex_level=as.factor(mplex_level),
+         chemistry=paste0(chemistry,"-channel"),
+         nb_lane=paste(nb_lane,"lanes"),
+         barcode_number=paste("set of",barcode_number,"barcodes")) %>%
+ggplot(aes( x = thrs_size_comb, y = ProbaOfSmax, color=mplex_level)) +
+  geom_point() +
+  geom_smooth(se = F) +
+  scale_x_continuous(breaks=seq(0, 300, 50)) +
+  scale_y_continuous(breaks=seq(0, 1, 0.2), limit=c(0, 1.1)) +
+  facet_grid(chemistry+nb_lane~barcode_number) +
+  
   ggtitle(paste("Proba to get exactly Smax after a single run: calculated from", R, "runs")) +
   xlab("Size of the initial set of compatible barcodes") +
-  ylab("Probability to get an optimal combination [S_max]")
+  ylab("Probability to get an optimal combination")
+
+```
+
+### Probability to get the best optimized set of barcode combinations for a single greedy-descent run
+
+```{r echo = FALSE,  warning=FALSE, message=F, fig.width=11}
+
+sim1_probaSmax %>% group_by(chemistry, barcode_number, mplex_level, nb_lane) %>%
+  filter(thrs_size_comb<nb_comp_combinations) %>%
+  group_by(chemistry, barcode_number, mplex_level, nb_lane, thrs_size_comb) %>%
+  mutate(S_sup=max(S_opt),
+         isSsup=ifelse(abs(S_opt-S_sup)<10^(-10), T, F)) %>%
+  summarise(time.avg=mean(time), time.sd=sd(time), nb_comp_combinations=nb_comp_combinations[1], S_sup=S_sup[1], ProbaOfSsup=sum(isSsup)/length(rep_number)) %>%
+  ungroup() %>% 
+  mutate(mplex_level=as.factor(mplex_level),
+         chemistry=paste0(chemistry,"-channel"),
+         nb_lane=paste(nb_lane,"lanes"),
+         barcode_number=paste("set of",barcode_number,"barcodes")) %>%
+ggplot(aes( x = thrs_size_comb, y = ProbaOfSsup, color=mplex_level)) +
+  geom_point() +
+  geom_smooth(se = F) +
+  scale_x_continuous(breaks=seq(0, 300, 50)) +
+  scale_y_continuous(breaks=seq(0, 1, 0.2), limit=c(0, 1.1)) +
+  facet_grid(chemistry+nb_lane~barcode_number) +
+  
+  ggtitle(paste("Proba to get the best optimized set after a single run: calculated from", R, "runs")) +
+  xlab("Size of the initial set of compatible barcodes") +
+  ylab("Probability to get an optimal combination")
 
 ```
 
 ### Execution time of a single greedy-descent run for different sizes of compatible combination subsets
 
-```{r echo = FALSE,  warning=FALSE}
+```{r echo = FALSE,  warning=FALSE, message=F, fig.width=11}
 
-probaSmax %>% 
-  group_by(barcode_number, chemistry, nb_lane, thrs_size_comb) %>%
+sim1_probaSmax %>% group_by(chemistry, barcode_number, mplex_level, nb_lane) %>%
+  filter(thrs_size_comb<nb_comp_combinations) %>%
+  group_by(chemistry, barcode_number, mplex_level, nb_lane, thrs_size_comb) %>%
   summarise(time.avg=mean(time), time.sd=sd(time), nb_comp_combinations=nb_comp_combinations[1]) %>%
-  # mutate(thrs_size_comb=as.factor(thrs_size_comb)) %>%
   ungroup() %>% 
-ggplot(aes( x = thrs_size_comb, y = time.avg)) +
-  geom_point() +
+  mutate(mplex_level=as.factor(mplex_level),
+         chemistry=paste0(chemistry,"-channel"),
+         nb_lane=paste(nb_lane,"lanes"),
+          barcode_number=paste("set of",barcode_number,"barcodes")) %>%
+ggplot(aes( x = thrs_size_comb, y = time.avg, color=mplex_level)) +
+  geom_point() + geom_line() + geom_smooth() +
   geom_errorbar(aes(ymin=(time.avg-time.sd), ymax=(time.avg+time.sd)),
                 color="black") +
-  geom_smooth(method = "lm", se = FALSE)+
-  scale_x_log10(breaks=c(60, 70, 80, 90, 100, 120, 160, 320, 640)) +
-  scale_y_log10(breaks = c(1, 2,5, 10,30,90,200,1000,5000))+
+  # geom_smooth(method = "lm", se = FALSE)+
+  scale_x_continuous(breaks=c(10, 50, 100, 200, 300)) +
+  scale_y_continuous(breaks = c(1, 15,30,90,200, 250))+
   geom_hline(yintercept=30, linetype="dashed", color = "red")+
-  geom_hline(yintercept=10, linetype="dashed", color = "red")+
-  geom_hline(yintercept=2, linetype="dashed", color = "red")+
+  geom_hline(yintercept=15, linetype="dashed", color = "red")+
+  geom_hline(yintercept=1, linetype="dashed", color = "red")+
+  facet_grid(chemistry+nb_lane~barcode_number) +
   ggtitle(paste("Execution time of a single greedy-descent: averaged for", R, "runs")) +
   xlab("Size of the initial subset of compatible barcodes") +
   ylab("Execution time [s]")
 
 ```
+
+```{r echo = FALSE,  warning=FALSE, message=F, fig.width=11}
+
+sim1_probaSmax %>% group_by(chemistry, barcode_number, mplex_level, nb_lane) %>%
+  filter(thrs_size_comb<nb_comp_combinations) %>%
+  group_by(chemistry, barcode_number, mplex_level, nb_lane, thrs_size_comb) %>%
+  summarise(time.avg=mean(time), time.sd=sd(time), nb_comp_combinations=nb_comp_combinations[1]) %>%
+  ungroup() %>% 
+  mutate(mplex_level=as.factor(mplex_level),
+         chemistry=paste0(chemistry,"-channel"),
+         nb_lane=paste(nb_lane,"lanes"),
+          barcode_number=paste("set of",barcode_number,"barcodes")) %>%
+ggplot(aes( x = thrs_size_comb, y = time.avg, color=mplex_level)) +
+  geom_point() + #geom_line() + geom_smooth() +
+  geom_errorbar(aes(ymin=(time.avg-time.sd), ymax=(time.avg+time.sd)),
+                color="black") +
+  geom_smooth(method = "lm", se = T)+
+  scale_x_log10(breaks=c(10, 50, 80, 100, 200, 300)) +
+  scale_y_log10(breaks = c(1, 5,15,30,90,200, 250))+
+  geom_hline(yintercept=30, linetype="dashed", color = "red")+
+  geom_hline(yintercept=15, linetype="dashed", color = "red")+
+  geom_hline(yintercept=1, linetype="dashed", color = "red")+
+  facet_grid(chemistry+nb_lane~barcode_number) +
+  ggtitle(paste("Execution time of a single greedy-descent: averaged for", R, "runs")) +
+  xlab("Size of the initial subset of compatible barcodes") +
+  ylab("Execution time [s]")
+
+```
+
 
 ### Estimation of the maximum execution time of N iterations of the greedy-descent to obtain the max entropy in 90% of cases
 
@@ -586,24 +677,33 @@ ggplot(aes( x = thrs_size_comb, y = time.avg)) +
  The probability P of getting an optimal solution reads $P = 1-(1-q)^N$. For example, if we want to find an optimal solution for 90% of cases (P = 0.90), $N = log(0.1)/log(1-q)$.
  
 
-```{r echo = FALSE,  warning=FALSE}
+```{r echo = FALSE,  warning=FALSE, fig.width=11}
 # for 90% of cases
 P=0.90
 
-probaSmax %>% mutate(isSmax=ifelse(S_opt==S_max, T, F)) %>%
-  group_by(barcode_number, chemistry, nb_lane, thrs_size_comb) %>%
-  summarise(time.avg=mean(time), time.sd=sd(time), nb_comp_combinations=nb_comp_combinations[1], S_max=S_max[1], ProbaOfSmax=sum(isSmax)/length(rep_number)) %>%
+sim1_probaSmax %>% 
+  group_by(chemistry, barcode_number, mplex_level, nb_lane) %>%
+  filter(thrs_size_comb<nb_comp_combinations) %>% 
+  group_by(chemistry, barcode_number, mplex_level, nb_lane, thrs_size_comb) %>%
+  mutate(S_sup=max(S_opt),
+         isSsup=ifelse(abs(S_opt-S_sup)<10^(-10), T, F)) %>%
+  summarise(time.avg=mean(time), time.sd=sd(time), nb_comp_combinations=nb_comp_combinations[1], S_sup=S_sup[1], ProbaOfSsup=sum(isSsup)/length(rep_number)) %>%
   ungroup() %>%
-  mutate(N=ceiling(log(1-P)/log(1-ProbaOfSmax)),
-         exec_time=N*time.avg, 
-         N=as.factor(N)) %>%
-  ggplot(aes(x = thrs_size_comb, y = exec_time, color=N)) +
-  geom_point(shape=17, size = 4) +
-  scale_x_log10(breaks=c(60, 70, 80, 90, 100, 120, 160, 320, 640)) +
+  mutate(mplex_level=as.factor(mplex_level),
+         chemistry=paste0(chemistry,"-channel"),
+         nb_lane=paste(nb_lane,"lanes"),
+         barcode_number=paste("set of",barcode_number,"barcodes")) %>%
+  mutate(N=ceiling(log(1-P)/log(1-ProbaOfSsup)),
+         exec_time=(N+1)*time.avg) %>%
+  ggplot(aes(x = thrs_size_comb, y = exec_time, color=N, shape=mplex_level)) +
+  geom_point(size = 2) +
+  scale_colour_gradientn(colours = rainbow(5)) +
+  scale_x_log10(breaks=c(10, 15, 20, 40,60, 80,120, 200, 300)) +
   scale_y_log10(breaks = c(1, 2,5, 10,30,90,200,1000,5000,10000, 20000)) +
-  geom_hline(yintercept=30, linetype="dashed", color = "red")+
-  geom_hline(yintercept=10, linetype="dashed", color = "red")+
-  geom_hline(yintercept=2, linetype="dashed", color = "red")+
+  geom_hline(yintercept=30, linetype="dashed", color = "black")+
+  geom_hline(yintercept=10, linetype="dashed", color = "black")+
+  geom_hline(yintercept=2, linetype="dashed", color = "black")+
+  facet_grid(chemistry+nb_lane~barcode_number) +
   ggtitle(paste("Estimated execution time to find an optimal solution in",P*100,"% of cases")) +
   xlab("Size of the initial subset of compatible barcodes") +
   ylab("Maximum execution time [s]")
@@ -617,24 +717,33 @@ probaSmax %>% mutate(isSmax=ifelse(S_opt==S_max, T, F)) %>%
  The probability P of getting an optimal solution reads $P = 1-(1-q)^N$. For example, if we want to find an optimal solution for 99% of cases (P = 0.99), $N = log(0.01)/log(1-q)$.
  
 
-```{r echo = FALSE,  warning=FALSE}
+```{r echo = FALSE,  warning=FALSE, fig.width=11}
 # for 90% of cases
 P=0.99
 
-probaSmax %>% mutate(isSmax=ifelse(S_opt==S_max, T, F)) %>%
-  group_by(barcode_number, chemistry, nb_lane, thrs_size_comb) %>%
-  summarise(time.avg=mean(time), time.sd=sd(time), nb_comp_combinations=nb_comp_combinations[1], S_max=S_max[1], ProbaOfSmax=sum(isSmax)/length(rep_number)) %>%
+sim1_probaSmax %>% 
+  group_by(chemistry, barcode_number, mplex_level, nb_lane) %>%
+  filter(thrs_size_comb<nb_comp_combinations) %>% 
+  group_by(chemistry, barcode_number, mplex_level, nb_lane, thrs_size_comb) %>%
+  mutate(S_sup=max(S_opt),
+         isSsup=ifelse(abs(S_opt-S_sup)<10^(-10), T, F)) %>%
+  summarise(time.avg=mean(time), time.sd=sd(time), nb_comp_combinations=nb_comp_combinations[1], S_sup=S_sup[1], ProbaOfSsup=sum(isSsup)/length(rep_number)) %>%
   ungroup() %>%
-  mutate(N=ceiling(log(1-P)/log(1-ProbaOfSmax)),
-         exec_time=N*time.avg, 
-         N=as.factor(N)) %>%
-  ggplot(aes(x = thrs_size_comb, y = exec_time, color=N)) +
-  geom_point(shape=17, size = 4) +
-  scale_x_log10(breaks=c(60, 70, 80, 90, 100, 120, 160, 320, 640)) +
-  scale_y_log10(breaks = c(1, 2,5, 10,30,90,200,1000,5000,10000, 20000, 36000)) +
-  geom_hline(yintercept=30, linetype="dashed", color = "red")+
-  geom_hline(yintercept=10, linetype="dashed", color = "red")+
-  geom_hline(yintercept=2, linetype="dashed", color = "red")+
+  mutate(mplex_level=as.factor(mplex_level),
+         chemistry=paste0(chemistry,"-channel"),
+         nb_lane=paste(nb_lane,"lanes"),
+         barcode_number=paste("set of",barcode_number,"barcodes")) %>%
+  mutate(N=ceiling(log(1-P)/log(1-ProbaOfSsup)),
+         exec_time=(N+1)*time.avg) %>%
+  ggplot(aes(x = thrs_size_comb, y = exec_time, color=N, shape=mplex_level)) +
+  geom_point(size = 2) +
+  scale_colour_gradientn(colours = rainbow(5)) +
+  scale_x_log10(breaks=c(10, 15, 20, 40,60, 80,120, 200, 300)) +
+  scale_y_log10(breaks = c(1, 2,5, 10,30,90,200,1000,5000,10000, 20000)) +
+  geom_hline(yintercept=30, linetype="dashed", color = "black")+
+  geom_hline(yintercept=10, linetype="dashed", color = "black")+
+  geom_hline(yintercept=2, linetype="dashed", color = "black")+
+  facet_grid(chemistry+nb_lane~barcode_number) +
   ggtitle(paste("Estimated execution time to find an optimal solution in",P*100,"% of cases")) +
   xlab("Size of the initial subset of compatible barcodes") +
   ylab("Maximum execution time [s]")
@@ -647,49 +756,93 @@ probaSmax %>% mutate(isSmax=ifelse(S_opt==S_max, T, F)) %>%
 
 To visualize the efficacy of the greedy-descent algorithm, we compare the distribution of entropy values obtained from randomly generated sets of compatible barcodes with the distribution of entropy values obtained from optimized (by greedy-descent) sets of compatible barcodes. The graphs below show that the greedy-descent algorithm dramatically reduces the barcode redanduncy by favoring sets of compatible barcode combinations with a higher entropy.
 
-* For 60 randomly picked up compatible combinations
-```{r echo = FALSE,  warning=FALSE, message=FALSE, fig.width=11}
-if (60 %in% probaSmax$thrs_size_comb) {
-  probaSmax %>% mutate(isSmax=ifelse(S_opt==S_max, T, F)) %>%
-    filter(thrs_size_comb == 60) %>%
-    mutate(thrs_size_comb=as.factor(thrs_size_comb)) %>%
-    ggplot(aes(y = (..count..)/sum(..count..))) +
-    geom_histogram(aes(x = S_opt,fill="S_opt"), color= "black", alpha=0.5, boundary=0.25) +
-    geom_histogram(aes(x = S_random,fill="S_random"), color= "black", alpha=0.5, boundary=0.25) +
-    # geom_density(aes(fill="S_opt"), alpha=0.5, color= "black", adjust=1) +
-    # geom_density(aes(S_random, fill="S_random"), alpha=0.5, color= "black", adjust=0.1) +
-    geom_vline(aes(xintercept = S_max[1], color="S_max"), linetype="dashed") +
+* For N randomly picked up compatible combinations
+```{r echo = FALSE,  warning=FALSE, message=FALSE, fig.width=11, fig.height=11}
+sim1_probaSmax %>% group_by(chemistry, barcode_number, mplex_level, nb_lane) %>%
+  filter(thrs_size_comb<nb_comp_combinations) %>% ungroup() %>%
+  # filter(thrs_size_comb == 60) %>%
+  mutate(isSmax=ifelse(S_opt==S_max, T, F),
+         S_opt=round(S_opt, 3),
+         S_random=round(S_random, 3), 
+         mplex_level=as.factor(mplex_level),
+         chemistry=paste0(chemistry,"-channel"),
+         nb_lane=paste(nb_lane,"lanes"),
+         barcode_number=paste("set of",barcode_number,"barcodes")) -> dat
+
+dat %>%
+  group_by(chemistry, barcode_number, mplex_level, nb_lane, thrs_size_comb) %>%
+  do ({
+    chunk <- .
+    with(chunk, as.data.frame(table(S=S_random))) %>% 
+      mutate(Freq=Freq/sum(Freq),
+             S_max=chunk$S_max[1],
+             dataset="S_random")
+  }) %>% ungroup() %>% mutate(S=as.double(S)) -> S_random_freq 
+
+
+dat %>%
+  group_by(chemistry, barcode_number, mplex_level, nb_lane, thrs_size_comb) %>%
+  do ({
+    chunk <- .
+    with(chunk, as.data.frame(table(S=S_opt))) %>% 
+      mutate( Freq=Freq/sum(Freq), 
+              S_max=chunk$S_max[1], 
+              dataset="S_opt") 
+  }) %>% ungroup() %>% mutate(S=as.double(S)) -> S_opt_freq
+
+
+Sdat=bind_rows(S_random_freq, S_opt_freq)
+
+k=1
+gg <- list()
+
+for (i in unique(Sdat$thrs_size_comb)){
+  
+  Sdat %>% filter(thrs_size_comb == i) %>%
+    # mutate(thrs_size_comb=as.factor(thrs_size_comb)) %>%
+    ggplot(aes(x = S)) +
+    geom_histogram(aes(y=0.05*..density.., fill=dataset), position='identity', alpha=0.7, binwidth=0.05, boundary=0.05) +
+    geom_vline(aes(xintercept = S_max, color="S_max"), linetype="dashed") +
+    scale_x_continuous(breaks=round(seq(min(dat$S_random), max(dat$S_opt), (max(dat$S_opt)-min(dat$S_random))/5),2)) +
+    # scale_x_discrete(breaks=sort(sample(dat$S_random,5)))+
+    theme(axis.text.x=element_text(angle=90, hjust=1, vjust=1))+
+    facet_grid(chemistry+mplex_level+nb_lane~barcode_number) +
     scale_fill_manual("Entropy",
                       breaks = c("S_opt", "S_random"),
                       values = c("green", "red")) +
+    
     scale_color_manual("",
-                       breaks = c("S_max"),
-                       values = c("blue")) +
-    facet_wrap(~thrs_size_comb) +
+                       breaks = c("S_max", "S_opt", "S_random"),
+                       values = c("blue", "green", "red")) +
     xlab("Entropy values") +
     ylab("Frequency") +
-    ggtitle(paste("Frequency distributions of entropy values for", R, "runs")) 
+    ggtitle(paste("Distributions of entropy values for (",i ,"combs;", R, "runs)")) -> gg[[k]]
+  k=k+1
 }
+gg
+
 ```
 
 * For 70 randomly picked up compatible combinations
-```{r echo = FALSE,  warning=FALSE, message=FALSE, fig.width=11}
-if (70 %in% probaSmax$thrs_size_comb) {
-  probaSmax %>% mutate(isSmax=ifelse(S_opt==S_max, T, F)) %>%
-    filter(thrs_size_comb == 70) %>%
+```{r echo = FALSE,  warning=FALSE, message=FALSE, fig.width=11, eval=F}
+if (70 %in% sim1_probaSmax$thrs_size_comb) {
+  sim1_probaSmax %>% mutate(isSmax=ifelse(S_opt==S_max, T, F)) %>%
+    filter(thrs_size_comb == 70) -> dat
+  
+  dat %>%
     mutate(thrs_size_comb=as.factor(thrs_size_comb)) %>%
     ggplot(aes(y = (..count..)/sum(..count..))) +
-    geom_histogram(aes(x = S_opt,fill="S_opt"), color= "black", alpha=0.5, boundary=0.25) +
-    geom_histogram(aes(x = S_random,fill="S_random"), color= "black", alpha=0.5, boundary=0.25) +
-    # geom_density(aes(fill="S_opt"), alpha=0.5, color= "black", adjust=1) +
-    # geom_density(aes(S_random, fill="S_random"), alpha=0.5, color= "black", adjust=0.1) +
+    geom_histogram(aes(x = S_opt,fill="S_opt"), alpha=0.5, center=dat$S_max[1],  binwidth = 0.01) +
+    geom_histogram(aes(x = S_random,fill="S_random"), alpha=0.5, center=dat$S_max[1], binwidth = 0.01) +
+    # geom_density(aes(x = S_opt,fill="S_opt"), alpha=0.5, color= "black", adjust=0.1) +
+    # geom_density(aes(x = S_random,fill="S_random"), alpha=0.5, color= "black", adjust=0.1) +
     geom_vline(aes(xintercept = S_max[1], color="S_max"), linetype="dashed") +
     scale_fill_manual("Entropy",
                       breaks = c("S_opt", "S_random"),
                       values = c("green", "red")) +
     scale_color_manual("",
-                       breaks = c("S_max"),
-                       values = c("blue")) +
+                       breaks = c("S_max", "S_opt", "S_random"),
+                       values = c("blue", "green", "red")) +
     facet_wrap(~thrs_size_comb) +
     xlab("Entropy values") +
     ylab("Frequency") +
@@ -698,23 +851,25 @@ if (70 %in% probaSmax$thrs_size_comb) {
 ```
 
 * For 80 randomly picked up compatible combinations
-```{r echo = FALSE,  warning=FALSE, message=FALSE, fig.width=11}
-if (80 %in% probaSmax$thrs_size_comb) {
-  probaSmax %>% mutate(isSmax=ifelse(S_opt==S_max, T, F)) %>%
-    filter(thrs_size_comb == 80) %>%
+```{r echo = FALSE,  warning=FALSE, message=FALSE, fig.width=11, eval=F}
+if (80 %in% sim1_probaSmax$thrs_size_comb) {
+  sim1_probaSmax %>% mutate(isSmax=ifelse(S_opt==S_max, T, F)) %>%
+    filter(thrs_size_comb == 80) -> dat
+  
+  dat %>%
     mutate(thrs_size_comb=as.factor(thrs_size_comb)) %>%
     ggplot(aes(y = (..count..)/sum(..count..))) +
-    geom_histogram(aes(x = S_opt,fill="S_opt"), color= "black", alpha=0.5, boundary=0.25) +
-    geom_histogram(aes(x = S_random,fill="S_random"), color= "black", alpha=0.5, boundary=0.25) +
-    # geom_density(aes(fill="S_opt"), alpha=0.5, color= "black", adjust=1) +
-    # geom_density(aes(S_random, fill="S_random"), alpha=0.5, color= "black", adjust=0.1) +
+    geom_histogram(aes(x = S_opt,fill="S_opt"), alpha=0.5, center=dat$S_max[1],  binwidth = 0.01) +
+    geom_histogram(aes(x = S_random,fill="S_random"), alpha=0.5, center=dat$S_max[1], binwidth = 0.01) +
+    # geom_density(aes(x = S_opt,fill="S_opt"), alpha=0.5, color= "black", adjust=0.1) +
+    # geom_density(aes(x = S_random,fill="S_random"), alpha=0.5, color= "black", adjust=0.1) +
     geom_vline(aes(xintercept = S_max[1], color="S_max"), linetype="dashed") +
     scale_fill_manual("Entropy",
                       breaks = c("S_opt", "S_random"),
                       values = c("green", "red")) +
     scale_color_manual("",
-                       breaks = c("S_max"),
-                       values = c("blue")) +
+                       breaks = c("S_max", "S_opt", "S_random"),
+                       values = c("blue", "green", "red")) +
     facet_wrap(~thrs_size_comb) +
     xlab("Entropy values") +
     ylab("Frequency") +
@@ -723,23 +878,25 @@ if (80 %in% probaSmax$thrs_size_comb) {
 ```
 
 * For 90 randomly picked up compatible combinations
-```{r echo = FALSE,  warning=FALSE, message=FALSE, fig.width=11}
-if (90 %in% probaSmax$thrs_size_comb) {
-  probaSmax %>% mutate(isSmax=ifelse(S_opt==S_max, T, F)) %>%
-    filter(thrs_size_comb == 90) %>%
+```{r echo = FALSE,  warning=FALSE, message=FALSE, fig.width=11, eval=F}
+if (90 %in% sim1_probaSmax$thrs_size_comb) {
+  sim1_probaSmax %>% mutate(isSmax=ifelse(S_opt==S_max, T, F)) %>%
+    filter(thrs_size_comb == 90) -> dat
+  
+  dat %>%
     mutate(thrs_size_comb=as.factor(thrs_size_comb)) %>%
     ggplot(aes(y = (..count..)/sum(..count..))) +
-    geom_histogram(aes(x = S_opt,fill="S_opt"), color= "black", alpha=0.5, boundary=0.25) +
-    geom_histogram(aes(x = S_random,fill="S_random"), color= "black", alpha=0.5, boundary=0.25) +
-    # geom_density(aes(fill="S_opt"), alpha=0.5, color= "black", adjust=1) +
-    # geom_density(aes(S_random, fill="S_random"), alpha=0.5, color= "black", adjust=0.1) +
+    geom_histogram(aes(x = S_opt,fill="S_opt"), alpha=0.5, center=dat$S_max[1],  binwidth = 0.01) +
+    geom_histogram(aes(x = S_random,fill="S_random"), alpha=0.5, center=dat$S_max[1], binwidth = 0.01) +
+    # geom_density(aes(x = S_opt,fill="S_opt"), alpha=0.5, color= "black", adjust=0.1) +
+    # geom_density(aes(x = S_random,fill="S_random"), alpha=0.5, color= "black", adjust=0.1) +
     geom_vline(aes(xintercept = S_max[1], color="S_max"), linetype="dashed") +
     scale_fill_manual("Entropy",
                       breaks = c("S_opt", "S_random"),
                       values = c("green", "red")) +
     scale_color_manual("",
-                       breaks = c("S_max"),
-                       values = c("blue")) +
+                       breaks = c("S_max", "S_opt", "S_random"),
+                       values = c("blue", "green", "red")) +
     facet_wrap(~thrs_size_comb) +
     xlab("Entropy values") +
     ylab("Frequency") +
@@ -748,23 +905,25 @@ if (90 %in% probaSmax$thrs_size_comb) {
 ```
 
 * For 100 randomly picked up compatible combinations
-```{r echo = FALSE,  warning=FALSE, message=FALSE, fig.width=11}
-if (100 %in% probaSmax$thrs_size_comb) {
-  probaSmax %>% mutate(isSmax=ifelse(S_opt==S_max, T, F)) %>%
-    filter(thrs_size_comb == 100) %>%
+```{r echo = FALSE,  warning=FALSE, message=FALSE, fig.width=11, eval=F}
+if (100 %in% sim1_probaSmax$thrs_size_comb) {
+  sim1_probaSmax %>% mutate(isSmax=ifelse(S_opt==S_max, T, F)) %>%
+    filter(thrs_size_comb == 100) -> dat
+  
+  dat %>%
     mutate(thrs_size_comb=as.factor(thrs_size_comb)) %>%
     ggplot(aes(y = (..count..)/sum(..count..))) +
-    geom_histogram(aes(x = S_opt,fill="S_opt"), color= "black", alpha=0.5, boundary=0.25) +
-    geom_histogram(aes(x = S_random,fill="S_random"), color= "black", alpha=0.5, boundary=0.25) +
-    # geom_density(aes(fill="S_opt"), alpha=0.5, color= "black", adjust=1) +
-    # geom_density(aes(S_random, fill="S_random"), alpha=0.5, color= "black", adjust=0.1) +
+    geom_histogram(aes(x = S_opt,fill="S_opt"), alpha=0.5, center=dat$S_max[1],  binwidth = 0.01) +
+    geom_histogram(aes(x = S_random,fill="S_random"), alpha=0.5, center=dat$S_max[1], binwidth = 0.01) +
+    # geom_density(aes(x = S_opt,fill="S_opt"), alpha=0.5, color= "black", adjust=0.1) +
+    # geom_density(aes(x = S_random,fill="S_random"), alpha=0.5, color= "black", adjust=0.1) +
     geom_vline(aes(xintercept = S_max[1], color="S_max"), linetype="dashed") +
     scale_fill_manual("Entropy",
                       breaks = c("S_opt", "S_random"),
                       values = c("green", "red")) +
     scale_color_manual("",
-                       breaks = c("S_max"),
-                       values = c("blue")) +
+                       breaks = c("S_max", "S_opt", "S_random"),
+                       values = c("blue", "green", "red")) +
     facet_wrap(~thrs_size_comb) +
     xlab("Entropy values") +
     ylab("Frequency") +
@@ -773,23 +932,25 @@ if (100 %in% probaSmax$thrs_size_comb) {
 ```
 
 * For 120 randomly picked up compatible combinations
-```{r echo = FALSE,  warning=FALSE, message=FALSE, fig.width=11}
-if (120 %in% probaSmax$thrs_size_comb) {
-  probaSmax %>% mutate(isSmax=ifelse(S_opt==S_max, T, F)) %>%
-  filter(thrs_size_comb == 120) %>%
+```{r echo = FALSE,  warning=FALSE, message=FALSE, fig.width=11, eval=F}
+if (120 %in% sim1_probaSmax$thrs_size_comb) {
+  sim1_probaSmax %>% mutate(isSmax=ifelse(S_opt==S_max, T, F)) %>%
+  filter(thrs_size_comb == 120) -> dat
+  
+  dat %>%
   mutate(thrs_size_comb=as.factor(thrs_size_comb)) %>%
 ggplot(aes(y = (..count..)/sum(..count..))) +
-  geom_histogram(aes(x = S_opt,fill="S_opt"), color= "black", alpha=0.5, boundary=-5) +
-  geom_histogram(aes(x = S_random,fill="S_random"), color= "black", alpha=0.5, boundary=-5) +
-  # geom_density(aes(fill="S_opt"), alpha=0.5, color= "black", adjust=1) +
-  # geom_density(aes(S_random, fill="S_random"), alpha=0.5, color= "black", adjust=0.1) +
-  geom_vline(aes(xintercept = S_max[1], color="S_max"), linetype="dashed") +
-  scale_fill_manual("Entropy",
+  geom_histogram(aes(x = S_opt,fill="S_opt"), alpha=0.5, center=dat$S_max[1],  binwidth = 0.01) +
+    geom_histogram(aes(x = S_random,fill="S_random"), alpha=0.5, center=dat$S_max[1], binwidth = 0.01) +
+    # geom_density(aes(x = S_opt,fill="S_opt"), alpha=0.5, color= "black", adjust=0.1) +
+    # geom_density(aes(x = S_random,fill="S_random"), alpha=0.5, color= "black", adjust=0.1) +
+    geom_vline(aes(xintercept = S_max[1], color="S_max"), linetype="dashed") +
+    scale_fill_manual("Entropy",
                       breaks = c("S_opt", "S_random"),
                       values = c("green", "red")) +
-  scale_color_manual("",
-                      breaks = c("S_max"),
-                      values = c("blue")) +
+    scale_color_manual("",
+                       breaks = c("S_max", "S_opt", "S_random"),
+                       values = c("blue", "green", "red")) +
   facet_wrap(~thrs_size_comb) +
   xlab("Entropy values") +
   ylab("Frequency") +
@@ -799,23 +960,25 @@ ggplot(aes(y = (..count..)/sum(..count..))) +
 ```
 
 * For 160 randomly picked up compatible combinations
-```{r echo = FALSE,  warning=FALSE, message=FALSE, fig.width=11}
-if (160 %in% probaSmax$thrs_size_comb) {
-  probaSmax %>% mutate(isSmax=ifelse(S_opt==S_max, T, F)) %>%
-  filter(thrs_size_comb == 160) %>%
+```{r echo = FALSE,  warning=FALSE, message=FALSE, fig.width=11, eval=F}
+if (160 %in% sim1_probaSmax$thrs_size_comb) {
+  sim1_probaSmax %>% mutate(isSmax=ifelse(S_opt==S_max, T, F)) %>%
+  filter(thrs_size_comb == 160) -> dat
+  
+  dat %>%
   mutate(thrs_size_comb=as.factor(thrs_size_comb)) %>%
 ggplot(aes(y = (..count..)/sum(..count..))) +
-  geom_histogram(aes(x = S_opt,fill="S_opt"), color= "black", alpha=0.5, boundary=-5) +
-  geom_histogram(aes(x = S_random,fill="S_random"), color= "black", alpha=0.5, boundary=-5) +
-  # geom_density(aes(fill="S_opt"), alpha=0.5, color= "black", adjust=1) +
-  # geom_density(aes(S_random, fill="S_random"), alpha=0.5, color= "black", adjust=0.1) +
-  geom_vline(aes(xintercept = S_max[1], color="S_max"), linetype="dashed") +
-  scale_fill_manual("Entropy",
+  geom_histogram(aes(x = S_opt,fill="S_opt"), alpha=0.5, center=dat$S_max[1],  binwidth = 0.01) +
+    geom_histogram(aes(x = S_random,fill="S_random"), alpha=0.5, center=dat$S_max[1], binwidth = 0.01) +
+    # geom_density(aes(x = S_opt,fill="S_opt"), alpha=0.5, color= "black", adjust=0.1) +
+    # geom_density(aes(x = S_random,fill="S_random"), alpha=0.5, color= "black", adjust=0.1) +
+    geom_vline(aes(xintercept = S_max[1], color="S_max"), linetype="dashed") +
+    scale_fill_manual("Entropy",
                       breaks = c("S_opt", "S_random"),
                       values = c("green", "red")) +
-  scale_color_manual("",
-                      breaks = c("S_max"),
-                      values = c("blue")) +
+    scale_color_manual("",
+                       breaks = c("S_max", "S_opt", "S_random"),
+                       values = c("blue", "green", "red")) +
   facet_wrap(~thrs_size_comb) +
   xlab("Entropy values") +
   ylab("Frequency") +
@@ -825,23 +988,25 @@ ggplot(aes(y = (..count..)/sum(..count..))) +
 ```
 
 * For 320 randomly picked up compatible combinations
-```{r echo = FALSE,  warning=FALSE, message=FALSE, fig.width=11}
-if (320 %in% probaSmax$thrs_size_comb) {
-  probaSmax %>% mutate(isSmax=ifelse(S_opt==S_max, T, F)) %>%
-  filter(thrs_size_comb == 320) %>%
+```{r echo = FALSE,  warning=FALSE, message=FALSE, fig.width=11, eval=F}
+if (320 %in% sim1_probaSmax$thrs_size_comb) {
+  sim1_probaSmax %>% mutate(isSmax=ifelse(S_opt==S_max, T, F)) %>%
+  filter(thrs_size_comb == 320) -> dat
+  
+  dat %>%
   mutate(thrs_size_comb=as.factor(thrs_size_comb)) %>%
 ggplot(aes(y = (..count..)/sum(..count..))) +
-  geom_histogram(aes(x = S_opt,fill="S_opt"), color= "black", alpha=0.5, boundary=-5) +
-  geom_histogram(aes(x = S_random,fill="S_random"), color= "black", alpha=0.5, boundary=-5) +
-  # geom_density(aes(fill="S_opt"), alpha=0.5, color= "black", adjust=1) +
-  # geom_density(aes(S_random, fill="S_random"), alpha=0.5, color= "black", adjust=0.1) +
-  geom_vline(aes(xintercept = S_max[1], color="S_max"), linetype="dashed") +
-  scale_fill_manual("Entropy",
+ geom_histogram(aes(x = S_opt,fill="S_opt"), alpha=0.5, center=dat$S_max[1],  binwidth = 0.01) +
+    geom_histogram(aes(x = S_random,fill="S_random"), alpha=0.5, center=dat$S_max[1], binwidth = 0.01) +
+    # geom_density(aes(x = S_opt,fill="S_opt"), alpha=0.5, color= "black", adjust=0.1) +
+    # geom_density(aes(x = S_random,fill="S_random"), alpha=0.5, color= "black", adjust=0.1) +
+    geom_vline(aes(xintercept = S_max[1], color="S_max"), linetype="dashed") +
+    scale_fill_manual("Entropy",
                       breaks = c("S_opt", "S_random"),
                       values = c("green", "red")) +
-  scale_color_manual("",
-                      breaks = c("S_max"),
-                      values = c("blue")) +
+    scale_color_manual("",
+                       breaks = c("S_max", "S_opt", "S_random"),
+                       values = c("blue", "green", "red")) +
   facet_wrap(~thrs_size_comb) +
   xlab("Entropy values") +
   ylab("Frequency") +
@@ -852,23 +1017,25 @@ ggplot(aes(y = (..count..)/sum(..count..))) +
 
 
 * For 640 randomly picked up compatible combinations
-```{r echo = FALSE,  warning=FALSE, message=FALSE, fig.width=11}
-if (640 %in% probaSmax$thrs_size_comb) {
-  probaSmax %>% mutate(isSmax=ifelse(S_opt==S_max, T, F)) %>%
-    filter(thrs_size_comb == 640) %>%
+```{r echo = FALSE,  warning=FALSE, message=FALSE, fig.width=11, eval=F}
+if (640 %in% sim1_probaSmax$thrs_size_comb) {
+  sim1_probaSmax %>% mutate(isSmax=ifelse(S_opt==S_max, T, F)) %>%
+    filter(thrs_size_comb == 640) -> dat
+  
+  dat %>%
     mutate(thrs_size_comb=as.factor(thrs_size_comb)) %>%
     ggplot(aes(y = (..count..)/sum(..count..))) +
-    geom_histogram(aes(x = S_opt,fill="S_opt"), color= "black", alpha=0.5, center=0.29) +
-    geom_histogram(aes(x = S_random,fill="S_random"), color= "black", alpha=0.5, center=0.29) +
-    # geom_density(aes(fill="S_opt"), alpha=0.5, color= "black", adjust=1) +
-    # geom_density(aes(S_random, fill="S_random"), alpha=0.5, color= "black", adjust=0.1) +
+   geom_histogram(aes(x = S_opt,fill="S_opt"), alpha=0.5, center=dat$S_max[1],  binwidth = 0.01) +
+    geom_histogram(aes(x = S_random,fill="S_random"), alpha=0.5, center=dat$S_max[1], binwidth = 0.01) +
+    # geom_density(aes(x = S_opt,fill="S_opt"), alpha=0.5, color= "black", adjust=0.1) +
+    # geom_density(aes(x = S_random,fill="S_random"), alpha=0.5, color= "black", adjust=0.1) +
     geom_vline(aes(xintercept = S_max[1], color="S_max"), linetype="dashed") +
     scale_fill_manual("Entropy",
                       breaks = c("S_opt", "S_random"),
                       values = c("green", "red")) +
     scale_color_manual("",
-                       breaks = c("S_max"),
-                       values = c("blue")) +
+                       breaks = c("S_max", "S_opt", "S_random"),
+                       values = c("blue", "green", "red")) +
     facet_wrap(~thrs_size_comb) +
     xlab("Entropy values") +
     ylab("Frequency") +
@@ -934,91 +1101,179 @@ print(paste("Number of conditions:",R*length(L)*length(N)*length(C)*length(thrs_
 ```{r echo = FALSE, cache=T}
 
 # Reuse the dataset generated in the first series of simulations
-combination_m_4ch <- local(get(load("combination_m_4ch")))
+combination_m_4ch <- local(get(load(paste0(SCRIPT_DIR,"combination_m_4ch"))))
 
 inputfile <- tempfile()
 save(combination_m_4ch, file=inputfile)
 
 # Initialize output file1 (barcode occurrence from random pic)
-write.table(data.frame(barcodeID=character(0), occurrence=integer(0), rep_number=integer(0), thrs_size_comb=integer(0), barcode_number=integer(0), chemistry=integer(0), nb_lane=integer(0)),
+write.table(data.frame(barcodeID=character(0), occurrence=integer(0), rep_number=integer(0), thrs_size_comb=integer(0), barcode_number=integer(0), chemistry=integer(0), nb_lane=integer(0), mplex_level=integer(0)),
             outputfile1 <- tempfile(), row.names = FALSE, col.names = T, quote=FALSE)
 
 # Initialize output file2 (barcode occurrence from optimized set)
-write.table(data.frame(barcodeID=character(0), occurrence=integer(0), rep_number=integer(0), thrs_size_comb=integer(0), barcode_number=integer(0), chemistry=integer(0), nb_lane=integer(0)),
+write.table(data.frame(barcodeID=character(0), occurrence=integer(0), rep_number=integer(0), thrs_size_comb=integer(0), barcode_number=integer(0), chemistry=integer(0), nb_lane=integer(0), mplex_level=integer(0)),
             outputfile2 <- tempfile(), row.names = FALSE, col.names = T, quote=FALSE)
 
 # Initialize output file3 (calcul of proba to get an optimal solution)
-write.table(data.frame(time=numeric(0), nb_comp_combinations=integer(0), rep_number=integer(0), barcode_number=integer(0), thrs_size_comb=integer(0), S_max=numeric(0), S_init=numeric(0), S_random=numeric(0), S_opt=numeric(0), chemistry=integer(0), nb_lane=integer(0)),
+write.table(data.frame(time=numeric(0), nb_comp_combinations=integer(0), rep_number=integer(0), barcode_number=integer(0), thrs_size_comb=integer(0), S_max=numeric(0), S_init=numeric(0), S_random=numeric(0), S_opt=numeric(0), chemistry=integer(0), nb_lane=integer(0), mplex_level=integer(0)),
             outputfile3 <- tempfile(), row.names = FALSE, col.names = T, quote=FALSE)
 
 # Detect CPU number
 nb_cpu=parallel::detectCores()
 
-# Run simulation using GNU parallel (Windows users need cygwin + Gnu parallel; MacOs: brew install parallel; Linux: apt-get install parallel)
-# system.time({
-#   system(paste0("parallel -j",nb_cpu," Rscript ",SCRIPT_DIR,"sim_optimize_combinations.R {1} {2} {3} {4} {5} {6} {7} {8} {9} {10} ::: ",paste(1:R, collapse=" ")," ::: ",paste(thrs_size_comb, collapse=" ")," ::: " , paste(max_iteration, collapse=" "), " ::: ",paste(inputfile, collapse=""), " ::: ", paste(nb_lane, collapse=""), " ::: ", paste(L, collapse=""), " ::: ", paste(4, collapse=""), " ::: ", paste(outputfile1, collapse=""), " ::: ", paste(outputfile2, collapse=""), " ::: ", paste(outputfile3, collapse="")))
-# })
+if (F) {
+  # Run simulation using GNU parallel (Windows users need cygwin + Gnu parallel; MacOs: brew install parallel; Linux: apt-get install parallel)
+  system.time({
+  system(paste0("parallel -j",nb_cpu," Rscript ",SCRIPT_DIR,"sim_optimize_combinations.R {1} {2} {3} {4} {5} {6} {7} {8} {9} {10} {11} ::: ",paste(1:R, collapse=" ")," ::: ",paste(thrs_size_comb, collapse=" ")," ::: " , paste(max_iteration, collapse=" "), " ::: ",paste(inputfile, collapse=""), " ::: ", paste(nb_lane, collapse=" "), " ::: ", paste(18, collapse=" "), " ::: ", paste(4, collapse=" "), " ::: ", paste(outputfile1, collapse=""), " ::: ", paste(outputfile2, collapse=""), " ::: ", paste(outputfile3, collapse=""), " ::: ", paste(4, collapse=" ")))
+  })
+  
+  sime2_barcodeStat_random <- read.table(file=outputfile1, header = T, sep = " ", stringsAsFactors = FALSE)
+  save(sime2_barcodeStat_random, file = paste0(SCRIPT_DIR,"sim2_barcodeStat_random"))
+  
+  sim2_barcodeStat_opt <- read.table(file=outputfile2, header = T, sep = " ", stringsAsFactors = FALSE)
+  save(sim2_barcodeStat_opt, file = paste0(SCRIPT_DIR,"sim2_barcodeStat_opt"))
+  
+  sim2_probaSmax <- read.table(file=outputfile3, header = T, sep = " ", stringsAsFactors = FALSE)
+  save(sim2_probaSmax, file = paste0(SCRIPT_DIR,"sim2_probaSmax"))
+}
 
+
+if (F) {
+  system.time({
+    for (i in L) {
+      for (j in N) {
+        for (k in C) {
+          # Generate a large set of compatible combinations
+          index <- dplyr::sample_n(DNABarcodeCompatibility::IlluminaIndexes, nrow(DNABarcodeCompatibility::IlluminaIndexes), replace = FALSE)
+          
+          # Initialize input file with a matrix of all combinations
+          combination_m <- DNABarcodeCompatibility::get_all_combinations(index_df = index[1:i,], mplex_level = j, chemistry = k)
+          
+          # Run simulation using GNU parallel (Windows users need cygwin + Gnu parallel; MacOs: brew install parallel; Linux: apt-get install parallel)
+          system(paste0("parallel -j",nb_cpu," Rscript ",SCRIPT_DIR,"sim_optimize_combinations.R {1} {2} {3} {4} {5} {6} {7} {8} {9} {10} {11} ::: ",paste(1:R, collapse=" ")," ::: ",paste(thrs_size_comb, collapse=" ")," ::: " , paste(max_iteration, collapse=" "), " ::: ",paste(inputfile, collapse=""), " ::: ", paste(nb_lane, collapse=" "), " ::: ", paste(i, collapse=""), " ::: ", paste(k, collapse=""), " ::: ", paste(outputfile1, collapse=""), " ::: ", paste(outputfile2, collapse=""), " ::: ", paste(outputfile3, collapse=""), " ::: ", paste(j, collapse="")))
+        }
+      }
+    }
+    sime2_barcodeStat_random <- read.table(file=outputfile1, header = T, sep = " ", stringsAsFactors = FALSE)
+    save(sime2_barcodeStat_random, file = paste0(SCRIPT_DIR,"sim2_barcodeStat_random"))
+    
+    sim2_barcodeStat_opt <- read.table(file=outputfile2, header = T, sep = " ", stringsAsFactors = FALSE)
+    save(sim2_barcodeStat_opt, file = paste0(SCRIPT_DIR,"sim2_barcodeStat_opt"))
+    
+    sim2_probaSmax <- read.table(file=outputfile3, header = T, sep = " ", stringsAsFactors = FALSE)
+    save(sim2_probaSmax, file = paste0(SCRIPT_DIR,"sim2_probaSmax"))
+  }
+  )
+}       
+
+        
 # Import results
+sim2_barcodeStat_random <- local(get(load(paste0(SCRIPT_DIR,"sim2_barcodeStat_random"))))
+sim2_barcodeStat_opt <- local(get(load(paste0(SCRIPT_DIR,"sim2_barcodeStat_opt"))))
+sim2_probaSmax <- local(get(load(paste0(SCRIPT_DIR,"sim2_probaSmax"))))
 
-# sime2_barcodeStat_random <- read.table(file=outputfile1, header = T, sep = " ", stringsAsFactors = FALSE)
-# save(sime2_barcodeStat_random, file = paste0(SCRIPT_DIR,"sim2_barcodeStat_random"))
-barcodeStat_random <- local(get(load(paste0(SCRIPT_DIR,"sim2_barcodeStat_random"))))
+```
 
-# sim2_barcodeStat_opt <- read.table(file=outputfile2, header = T, sep = " ", stringsAsFactors = FALSE)
-# save(barcodeStat_opt, file = paste0(SCRIPT_DIR,"sim2_barcodeStat_opt"))
-barcodeStat_opt <- local(get(load(paste0(SCRIPT_DIR,"sim2_barcodeStat_opt"))))
+###  Distributions of entropy values without (S_random) and with (S_opt) the optimizer
 
-# sim2_probaSmax <- read.table(file=outputfile3, header = T, sep = " ", stringsAsFactors = FALSE)
-# save(probaSmax, file = paste0(SCRIPT_DIR,"sim2_probaSmax"))
-probaSmax <- local(get(load(paste0(SCRIPT_DIR,"sim2_probaSmax"))))
+* For randomly picked up 80 compatible combinations and up to 14 iterations of the greedy descent
+```{r echo = FALSE,  warning=FALSE, message=FALSE, fig.width=11}
+if (80 %in% sim2_probaSmax$thrs_size_comb) {
+  sim2_probaSmax %>% mutate(isSmax=ifelse(S_opt==S_max, T, F)) %>%
+    filter(thrs_size_comb == 80)-> dat
+  
+  dat %>%
+    mutate(thrs_size_comb=as.factor(thrs_size_comb)) %>%
+    ggplot(aes(y = (..count..)/sum(..count..))) +
+    geom_histogram(aes(x = S_opt,fill="S_opt"), alpha=0.5, center=dat$S_max[1],  binwidth = 0.01) +
+    geom_histogram(aes(x = S_random,fill="S_random"), alpha=0.5, center=dat$S_max[1], binwidth = 0.01) +
+    # geom_density(aes(x = S_opt,fill="S_opt"), alpha=0.5, color= "black", adjust=0.1) +
+    # geom_density(aes(x = S_random,fill="S_random"), alpha=0.5, color= "black", adjust=0.1) +
+    geom_vline(aes(xintercept = S_max[1], color="S_max"), linetype="dashed") +
+    scale_fill_manual("Entropy",
+                      breaks = c("S_opt", "S_random"),
+                      values = c("green", "red")) +
+    scale_color_manual("",
+                       breaks = c("S_max", "S_opt", "S_random"),
+                       values = c("blue", "green", "red")) +
+    scale_y_continuous(breaks = c(seq(0,1,0.25),0.9, 0.95))+
+    facet_wrap(~thrs_size_comb) +
+    xlab("Entropy values") +
+    ylab("Frequency") +
+    ggtitle(paste("Frequency distributions of entropy values for", R, "runs")) 
+}
+```
+
+### Comparison of barcode distributions between a randomly generated set and an optimized set of compatible combinations
+
+In this simulation, we have 16 libraries (multiplex level = 4; number of lanes = 4). To visualize the efficacy of the optimizer, we show the barcode distrubution before and after the optimization.
+
+* Set of compatible combinations that was randomly selected
+
+```{r echo = FALSE, warning=FALSE, fig.width=11}
+chem=4
+mpl=4
+bcnb=18
+repnb=26
+
+S_random <- (sim2_probaSmax %>% filter(chemistry == chem) %>% 
+   filter(mplex_level==mpl) %>%
+   filter(barcode_number==bcnb) %>%
+   filter(rep_number==repnb))$S_random
+
+S_max <- (sim2_probaSmax %>% filter(chemistry == chem) %>% 
+   filter(mplex_level==mpl) %>%
+   filter(barcode_number==bcnb) %>%
+   filter(rep_number==repnb))$S_max
+
+sim2_barcodeStat_random %>% filter(chemistry == chem) %>% 
+  filter(mplex_level==mpl) %>%
+  filter(barcode_number==bcnb) %>%
+  filter(rep_number==repnb) %>%
+  mutate(channel=paste0(chemistry, "-channel"),
+         mplex_level=paste("mutiplex level",mplex_level)) %>%
+  ggplot(aes(x=barcodeID,y=occurrence, fill=mplex_level))+
+  geom_histogram(stat = "identity", fill= "darkgrey")+
+  scale_y_continuous(breaks = 1:4, limits = c(0,4))+
+  theme(axis.text.x=element_text(angle=90, hjust=1, vjust=1))+
+  facet_grid(mplex_level~channel) +
+  xlab("BarcodeID")+
+  ylab("Barcode occurrences")+
+ggtitle(paste0("Barcode occurences from a random set of compatible combinations (S_random=",round(S_random,2),"; S_max=",round(S_max,2),")"))
 
 ```
 
 
-
-### Distribution of barcodes from randomly generated set of compatible combinations and from optimzed sets
-
-```{r echo = FALSE, warning=FALSE, fig.width=11}
-# barcodeStat_random %>% 
-#   mutate(barcodeID=Var1, occurrence=Freq) %>% # TO BE REMOVED 
-#   filter(thrs_size_comb==80) %>%
-#   group_by(barcode_number, chemistry, nb_lane, thrs_size_comb, rep_number) %>%
-#   mutate(barcode_freq=occurrence/sum(occurrence)) %>%
-#   group_by(barcode_number, chemistry, nb_lane, thrs_size_comb, barcodeID) %>%
-#   summarise(barcode_freq.avg=mean(barcode_freq),
-#             barcode_freq.sd=sd(barcode_freq)) %>% ungroup() %>%
-#   mutate(thrs_size_comb=as.factor(thrs_size_comb)) %>%
-#   ggplot(aes(x=barcodeID,y=barcode_freq.avg, fill=thrs_size_comb))+
-#   geom_histogram(stat = "identity", fill="darkgrey")+
-#   geom_errorbar(aes(ymin=(barcode_freq.avg-barcode_freq.sd), ymax=(barcode_freq.avg+barcode_freq.sd)),
-#                 size=0.7,color="black") +
-#   theme(axis.text.x=element_text(angle=90, hjust=1, vjust=1))+
-#   # scale_y_continuous(breaks=seq(0, 0.18, 0.04), limit=c(0, 0.18)) +
-#   facet_wrap(~thrs_size_comb) +
-#   xlab("BarcodeID")+
-#   ylab("Barcodes frequency")+
-# ggtitle(paste("Barcodes frequency among compatible barcode combinations (4-channel chemistry)"))
-```
+* Set of compatible barcodes that was optimized with the optimizer
 
 ```{r echo = FALSE, warning=FALSE, fig.width=11}
-# barcodeStat_opt %>% 
-#   mutate(barcodeID=Var1, occurrence=Freq) %>% # TO BE REMOVED 
-#   filter(thrs_size_comb==80) %>%
-#   group_by(barcode_number, chemistry, nb_lane, thrs_size_comb, rep_number) %>%
-#   mutate(barcode_freq=occurrence/sum(occurrence)) %>%
-#   group_by(barcode_number, chemistry, nb_lane, thrs_size_comb, barcodeID) %>%
-#   summarise(barcode_freq.avg=mean(barcode_freq),
-#             barcode_freq.sd=sd(barcode_freq)) %>% ungroup() %>%
-#   mutate(thrs_size_comb=as.factor(thrs_size_comb)) %>%
-#   ggplot(aes(x=barcodeID,y=barcode_freq.avg, fill=thrs_size_comb))+
-#   geom_histogram(stat = "identity", fill="darkgrey")+
-#   geom_errorbar(aes(ymin=(barcode_freq.avg-barcode_freq.sd), ymax=(barcode_freq.avg+barcode_freq.sd)),
-#                 size=0.7,color="black") +
-#   theme(axis.text.x=element_text(angle=90, hjust=1, vjust=1))+
-#   # scale_y_continuous(breaks=seq(0, 0.18, 0.04), limit=c(0, 0.18)) +
-#   facet_wrap(~thrs_size_comb) +
-#   xlab("BarcodeID")+
-#   ylab("Barcodes frequency")+
-# ggtitle(paste("Barcodes frequency among compatible barcode combinations (4-channel chemistry)"))
+chem=4
+mpl=4
+bcnb=18
+repnb=26
+
+S_opt <- (sim2_probaSmax %>% filter(chemistry == chem) %>% 
+   filter(mplex_level==mpl) %>%
+   filter(barcode_number==bcnb) %>%
+   filter(rep_number==repnb))$S_opt
+
+S_max <- (sim2_probaSmax %>% filter(chemistry == chem) %>% 
+   filter(mplex_level==mpl) %>%
+   filter(barcode_number==bcnb) %>%
+   filter(rep_number==repnb))$S_max
+
+sim2_barcodeStat_opt %>% filter(chemistry == chem) %>% 
+  filter(mplex_level==mpl) %>%
+  filter(barcode_number==bcnb) %>%
+  filter(rep_number==repnb) %>%
+  mutate(channel=paste0(chemistry, "-channel"),
+         mplex_level=paste("mutiplex level",mplex_level)) %>%
+  ggplot(aes(x=barcodeID,y=occurrence, fill=mplex_level))+
+  geom_histogram(stat = "identity", fill= "darkgrey")+
+  scale_y_continuous(breaks = 1:4, limits = c(0,4))+
+  theme(axis.text.x=element_text(angle=90, hjust=1, vjust=1))+
+  facet_grid(mplex_level~channel) +
+  xlab("BarcodeID") +
+  ylab("Barcode occurrences") +
+ggtitle(paste0("Barcode occurences from a random set of compatible combinations (S_opt=",round(S_opt,2),"; S_max=",round(S_max,2),")"))
 ```

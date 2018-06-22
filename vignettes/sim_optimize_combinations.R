@@ -30,7 +30,7 @@ if((length(argv) < 2) | (length(argv) > 11)){
 # mplex_level = 4
 
 ## Parametrize the optimize_combination function for the sake of the simulation
-optimize_combinations = function (combination_m, nb_lane, index_number, thrs_size_comb=80, max_iteration=10){
+optimize_combinations = function (combination_m, nb_lane, index_number, thrs_size_comb=80, max_iteration=10, algorithm="greedy_descent"){
   # browser()
   if (nrow(as.matrix(combination_m)) == 0){
     DNABarcodeCompatibility:::display_message("No combinations have been found")
@@ -43,40 +43,52 @@ optimize_combinations = function (combination_m, nb_lane, index_number, thrs_siz
         if(nb_lane < nrow(combination_m)){
           if (nrow(combination_m) > thrs_size_comb){ 
             init_combination_m = combination_m[sample(1:nrow(combination_m),thrs_size_comb),]
-            print(paste("Entropy of the entire subset:",round(DNABarcodeCompatibility:::entropy_result(init_combination_m), 3)))
             random_pick_combination_m = init_combination_m[sample(1:nrow(init_combination_m), size = nb_lane),]
+            a_combination = DNABarcodeCompatibility:::recursive_entropy(init_combination_m,nb_lane, method=algorithm)
+            print(paste("Entropy of the entire subset:",round(DNABarcodeCompatibility:::entropy_result(init_combination_m), 3)))
             print(paste("Entropy of a random pick:",round(DNABarcodeCompatibility:::entropy_result(random_pick_combination_m), 3)))
-            a_combination = DNABarcodeCompatibility:::recursive_entropy(init_combination_m,nb_lane)
             i = 0
             while ((i < max_iteration) && (DNABarcodeCompatibility:::entropy_result(a_combination) < max) ){
-              temp_combination = DNABarcodeCompatibility:::recursive_entropy(combination_m[sample(1:nrow(combination_m),thrs_size_comb),], nb_lane)
+              temp_combination = DNABarcodeCompatibility:::recursive_entropy(combination_m[sample(1:nrow(combination_m),thrs_size_comb),], nb_lane, method=algorithm)
               if (DNABarcodeCompatibility:::entropy_result(temp_combination) > DNABarcodeCompatibility:::entropy_result(a_combination) ){
                 a_combination = temp_combination
+              }
+              temp_random_combination=init_combination_m[sample(1:nrow(init_combination_m), size = nb_lane),]
+              if (DNABarcodeCompatibility:::entropy_result(temp_random_combination) > DNABarcodeCompatibility:::entropy_result(random_pick_combination_m) ){
+                random_pick_combination_m = temp_random_combination
               }
               i = i+1
             }
           } else {
-            init_combination_m = random_pick_combination_m = combination_m
+            init_combination_m = combination_m
+            random_pick_combination_m = init_combination_m[sample(1:nrow(init_combination_m), size = nb_lane),]
             print(paste("Entropy of the entire subset:",round(DNABarcodeCompatibility:::entropy_result(init_combination_m), 3)))
             print(paste("Entropy of a random pick:",round(DNABarcodeCompatibility:::entropy_result(random_pick_combination_m), 3)))
-            a_combination = DNABarcodeCompatibility:::recursive_entropy(combination_m,nb_lane)
+            a_combination = DNABarcodeCompatibility:::recursive_entropy(combination_m,nb_lane, method=algorithm)
             i = 0
             while ((i < max_iteration) && (DNABarcodeCompatibility:::entropy_result(a_combination) < max) ){
-              temp_combination = DNABarcodeCompatibility:::recursive_entropy(combination_m, nb_lane)
+              temp_combination = DNABarcodeCompatibility:::recursive_entropy(combination_m, nb_lane, method=algorithm)
               if (DNABarcodeCompatibility:::entropy_result(temp_combination) > DNABarcodeCompatibility:::entropy_result(a_combination) ){
                 a_combination = temp_combination
+              }
+              temp_random_combination=init_combination_m[sample(1:nrow(init_combination_m), size = nb_lane),]
+              if (DNABarcodeCompatibility:::entropy_result(temp_random_combination) > DNABarcodeCompatibility:::entropy_result(random_pick_combination_m) ){
+                random_pick_combination_m = temp_random_combination
               }
               i = i+1
             }
           }
         } else {
-          stop("nb_lane > nrow(combination_m): case not implemented for simulations")
+          # stop("nb_lane > nrow(combination_m): case not implemented for simulations")
           n = nb_lane - nrow(combination_m)
           combination_m = combination_m[sample(1:nrow(combination_m),nrow(combination_m)),,drop = F]
           part_combination = combination_m[sample(1:nrow(combination_m),n, replace = TRUE),]
           a_combination = rbind(combination_m, part_combination)
+          init_combination_m = random_pick_combination_m = a_combination
+          print(paste("Entropy of the entire subset:",round(DNABarcodeCompatibility:::entropy_result(init_combination_m), 3)))
+          print(paste("Entropy of a random pick:",round(DNABarcodeCompatibility:::entropy_result(random_pick_combination_m), 3)))
           i = 0
-          while ((i < max_iteration*3) && (DNABarcodeCompatibility:::entropy_result(a_combination) < max) && n > 0){
+          while ((i < 30) && (DNABarcodeCompatibility:::entropy_result(a_combination) < max) && n > 0){
             part_combination = combination_m[sample(1:nrow(combination_m),n, replace = TRUE),]
             temp_combination = rbind(combination_m, part_combination)
             if (DNABarcodeCompatibility:::entropy_result(temp_combination) > DNABarcodeCompatibility:::entropy_result(a_combination) ){
