@@ -427,21 +427,23 @@ We define a set of parameters that are relevant in the context of RNAseq:
 ```{r echo = FALSE}
 R=100
 L = c(12,18,24,30)
-N = 3:5
+N = 2:5
 C = c(2,4)
-thrs_size_comb=c(seq(10,50,5),seq(60,100, 10))
+thrs_size_comb_for_GD=c(seq(10,50,5),seq(60,100, 10))
+thrs_size_comb_for_GE=c(seq(10,50,5),seq(60,100, 10), seq(150,300,50), 400)
 max_iteration = 0
 nb_lane=c(4,6,8)
 algorithm= c("greedy_exchange", "greedy_descent")
 
-R=20
-L = c(18)
-N = 4
-C = c(4)
-thrs_size_comb=c(130)
-max_iteration = 0
-nb_lane=c(4)
-algorithm= c("greedy_exchange", "greedy_descent")
+# R=20
+# L = c(18)
+# N = 4
+# C = c(4)
+# thrs_size_comb_for_GD=c(60)
+# thrs_size_comb_for_GE=c(160)
+# max_iteration = 0
+# nb_lane=c(4)
+# algorithm= c("greedy_exchange", "greedy_descent")
 
 
 print("CONDITIONS:")
@@ -454,7 +456,10 @@ C
 print("Number of simulations per greedy-descent search:")
 R
 print("Size of compatible combinations set used for greedy-descent:")
-thrs_size_comb
+thrs_size_comb_for_GD
+
+print("Size of compatible combinations set used for greedy-exchanges:")
+thrs_size_comb_for_GE
 
 print("Number of iterations for the greedy-descent:")
 max_iteration
@@ -468,7 +473,7 @@ choose(L,N)
 print("Optimizer algorithms")
 algorithm
 
-print(paste("Number of conditions:",R*length(L)*length(N)*length(C)*length(thrs_size_comb)*length(nb_lane)))
+print(paste("Number of conditions:",R*length(L)*length(N)*length(C)*(length(thrs_size_comb_for_GD)+length(thrs_size_comb_for_GE))*length(nb_lane)))
 
 ```
 
@@ -492,46 +497,52 @@ write.table(data.frame(time=numeric(0), nb_comp_combinations=integer(0), rep_num
 # Detect CPU number
 nb_cpu=parallel::detectCores()
 
-if (T) {
+if (F) {
   system.time({
     for (i in L) {
       # Generate a large set of compatible combinations
       index <- dplyr::sample_n(DNABarcodeCompatibility::IlluminaIndexes, nrow(DNABarcodeCompatibility::IlluminaIndexes), replace = FALSE)
       for (j in N) {
         for (k in C) {
-          # Initialize input file with a matrix of all combinations
-          combination_m <- DNABarcodeCompatibility::get_all_combinations(index_df = index[1:i,], mplex_level = j, chemistry = k)
-          
-          inc=0
-          while (nrow(combination_m) < max(nb_lane) && inc<10) {
-            print("nrow(combination_m) might be too small")
-            print("other trial...")
-            index <- dplyr::sample_n(DNABarcodeCompatibility::IlluminaIndexes, nrow(DNABarcodeCompatibility::IlluminaIndexes), replace = FALSE)
+          for (algo in algorithm) {
+            
+            # Initialize input file with a matrix of all combinations
             combination_m <- DNABarcodeCompatibility::get_all_combinations(index_df = index[1:i,], mplex_level = j, chemistry = k)
-            inc=inc+1
-            print(inc)
+            
+            inc=0
+            while (nrow(combination_m) < max(nb_lane) && inc<10) {
+              print("nrow(combination_m) might be too small")
+              print("other trial...")
+              index <- dplyr::sample_n(DNABarcodeCompatibility::IlluminaIndexes, nrow(DNABarcodeCompatibility::IlluminaIndexes), replace = FALSE)
+              combination_m <- DNABarcodeCompatibility::get_all_combinations(index_df = index[1:i,], mplex_level = j, chemistry = k)
+              inc=inc+1
+              print(inc)
+            }
+            if (nrow(combination_m)<max(nb_lane)) {warning("nrow(combination_m) might be too small")}
+            
+            inputfile <- tempfile()
+            save(combination_m, file=inputfile)
+            # save(combination_m, file="combination_m_4ch")
+            
+            # Run simulation using GNU parallel (Windows users need cygwin + Gnu parallel; MacOs: brew install parallel; Linux: apt-get install parallel)
+            if (algo == "greedy_descent") {
+              system(paste0("parallel -j",nb_cpu," Rscript ",SCRIPT_DIR,"sim_optimize_combinations.R {1} {2} {3} {4} {5} {6} {7} {8} {9} {10} {11} {12} ::: ",paste(1:R, collapse=" ")," ::: ",paste(thrs_size_comb_for_GD, collapse=" ")," ::: " , paste(max_iteration, collapse=" "), " ::: ",paste(inputfile, collapse=""), " ::: ", paste(nb_lane, collapse=" "), " ::: ", paste(i, collapse=""), " ::: ", paste(k, collapse=""), " ::: ", paste(outputfile1, collapse=""), " ::: ", paste(outputfile2, collapse=""), " ::: ", paste(outputfile3, collapse=""), " ::: ", paste(j, collapse=""), " ::: ", paste(algo, collapse=" ")))
+            } else if (algo == "greedy_exchange") {
+              system(paste0("parallel -j",nb_cpu," Rscript ",SCRIPT_DIR,"sim_optimize_combinations.R {1} {2} {3} {4} {5} {6} {7} {8} {9} {10} {11} {12} ::: ",paste(1:R, collapse=" ")," ::: ",paste(thrs_size_comb_for_GE, collapse=" ")," ::: " , paste(max_iteration, collapse=" "), " ::: ",paste(inputfile, collapse=""), " ::: ", paste(nb_lane, collapse=" "), " ::: ", paste(i, collapse=""), " ::: ", paste(k, collapse=""), " ::: ", paste(outputfile1, collapse=""), " ::: ", paste(outputfile2, collapse=""), " ::: ", paste(outputfile3, collapse=""), " ::: ", paste(j, collapse=""), " ::: ", paste(algo, collapse=" ")))
+            }
           }
-          if (nrow(combination_m)<max(nb_lane)) {warning("nrow(combination_m) might be too small")}
-          
-          inputfile <- tempfile()
-          save(combination_m, file=inputfile)
-          # save(combination_m, file="combination_m_4ch")
-          
-          # Run simulation using GNU parallel (Windows users need cygwin + Gnu parallel; MacOs: brew install parallel; Linux: apt-get install parallel)
-          system(paste0("parallel -j",nb_cpu," Rscript ",SCRIPT_DIR,"sim_optimize_combinations.R {1} {2} {3} {4} {5} {6} {7} {8} {9} {10} {11} {12} ::: ",paste(1:R, collapse=" ")," ::: ",paste(thrs_size_comb, collapse=" ")," ::: " , paste(max_iteration, collapse=" "), " ::: ",paste(inputfile, collapse=""), " ::: ", paste(nb_lane, collapse=" "), " ::: ", paste(i, collapse=""), " ::: ", paste(k, collapse=""), " ::: ", paste(outputfile1, collapse=""), " ::: ", paste(outputfile2, collapse=""), " ::: ", paste(outputfile3, collapse=""), " ::: ", paste(j, collapse=""), " ::: ", paste(algorithm, collapse=" ")))
-          
         }
       }
     }
     
     sim1_barcodeStat_random <- read.table(file=outputfile1, header = T, sep = " ", stringsAsFactors = FALSE)
-    save(sim1_barcodeStat_random, file = paste0(SCRIPT_DIR,"XXXsim1_barcodeStat_random"))
+    save(sim1_barcodeStat_random, file = paste0(SCRIPT_DIR,"sim1_barcodeStat_random"))
     
     sim1_barcodeStat_opt <- read.table(file=outputfile2, header = T, sep = " ", stringsAsFactors = FALSE)
-    save(sim1_barcodeStat_opt, file = paste0(SCRIPT_DIR,"XXXsim1_barcodeStat_opt"))
+    save(sim1_barcodeStat_opt, file = paste0(SCRIPT_DIR,"sim1_barcodeStat_opt"))
     
     sim1_probaSmax <- read.table(file=outputfile3, header = T, sep = " ", stringsAsFactors = FALSE)
-    save(sim1_probaSmax, file = paste0(SCRIPT_DIR,"XXXsim1_probaSmax"))
+    save(sim1_probaSmax, file = paste0(SCRIPT_DIR,"sim1_probaSmax"))
   })
 }
 
