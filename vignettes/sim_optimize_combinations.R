@@ -18,7 +18,7 @@ if((length(argv) < 2) | (length(argv) > 13)){
   outputfile3=normalizePath(argv[10])
   outputfile4=normalizePath(argv[11])
   mplex_level=as.integer(argv[12])
-  algorithm=as.character(argv[12])
+  algorithm=as.character(argv[13])
 }
 
 
