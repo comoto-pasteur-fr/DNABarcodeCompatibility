@@ -3,7 +3,7 @@ options(width=120)
 ## Setup  I/O ####
 argv = commandArgs(TRUE)
 
-if((length(argv) < 2) | (length(argv) > 12)){
+if((length(argv) < 2) | (length(argv) > 13)){
   stop("Usage: time_simulation_s.R <rep_number> <thrs_size_comb> <max_iteration> <inputfile> <nb_lane> <barcode_number> <chemistry> <outputfile1> <outputfile2> <outputfile3>")
 }else{
   rep_number=as.integer(argv[1])
@@ -16,7 +16,8 @@ if((length(argv) < 2) | (length(argv) > 12)){
   outputfile1=normalizePath(argv[8])
   outputfile2=normalizePath(argv[9])
   outputfile3=normalizePath(argv[10])
-  mplex_level=as.integer(argv[11])
+  outputfile4=normalizePath(argv[11])
+  mplex_level=as.integer(argv[12])
   algorithm=as.character(argv[12])
 }
 
@@ -45,7 +46,7 @@ optimize_combinations = function (combination_m, nb_lane, index_number, thrs_siz
         if(nb_lane < nrow(combination_m)){
           if (nrow(combination_m) > thrs_size_comb){ 
             init_combination_m = combination_m[sample(1:nrow(combination_m),thrs_size_comb),]
-            random_pick_combination_m = init_combination_m[sample(1:nrow(init_combination_m), size = nb_lane),]
+            random_pick_combination_init_m = random_pick_combination_m = init_combination_m[sample(1:nrow(init_combination_m), size = nb_lane),]
             a_combination = DNABarcodeCompatibility:::recursive_entropy(init_combination_m,nb_lane, method=algorithm)
             print(paste("Entropy of the entire subset:",round(DNABarcodeCompatibility:::entropy_result(init_combination_m), 3)))
             print(paste("Entropy of a random pick:",round(DNABarcodeCompatibility:::entropy_result(random_pick_combination_m), 3)))
@@ -63,7 +64,7 @@ optimize_combinations = function (combination_m, nb_lane, index_number, thrs_siz
             }
           } else {
             init_combination_m = combination_m
-            random_pick_combination_m = init_combination_m[sample(1:nrow(init_combination_m), size = nb_lane),]
+            random_pick_combination_init_m = random_pick_combination_m = init_combination_m[sample(1:nrow(init_combination_m), size = nb_lane),]
             print(paste("Entropy of the entire subset:",round(DNABarcodeCompatibility:::entropy_result(init_combination_m), 3)))
             print(paste("Entropy of a random pick:",round(DNABarcodeCompatibility:::entropy_result(random_pick_combination_m), 3)))
             a_combination = DNABarcodeCompatibility:::recursive_entropy(combination_m,nb_lane, method=algorithm)
@@ -86,7 +87,7 @@ optimize_combinations = function (combination_m, nb_lane, index_number, thrs_siz
           combination_m = combination_m[sample(1:nrow(combination_m),nrow(combination_m)),,drop = F]
           part_combination = combination_m[sample(1:nrow(combination_m),n, replace = TRUE),]
           a_combination = rbind(combination_m, part_combination)
-          init_combination_m = random_pick_combination_m = a_combination
+          init_combination_m = random_pick_combination_init_m = random_pick_combination_m = a_combination
           print(paste("Entropy of the entire subset:",round(DNABarcodeCompatibility:::entropy_result(init_combination_m), 3)))
           print(paste("Entropy of a random pick:",round(DNABarcodeCompatibility:::entropy_result(random_pick_combination_m), 3)))
           i = 0
@@ -101,7 +102,7 @@ optimize_combinations = function (combination_m, nb_lane, index_number, thrs_siz
           a_combination = a_combination[sample(1:nrow(a_combination),nrow(a_combination)),]
         }
         print(paste("Entropy of the optimized set:", round(DNABarcodeCompatibility:::entropy_result(a_combination),3)))
-        return(list("init_comb"=init_combination_m, "opt_comb"=a_combination, "random_comb"=random_pick_combination_m))
+        return(list("init_comb"=init_combination_m, "opt_comb"=a_combination, "random_comb"=random_pick_combination_init_m, "opt_random_comb"=random_pick_combination_m))
       } else {
         display_message("Please enter a number as nb_lane")
       }
@@ -120,9 +121,10 @@ elapsed <- as.numeric(system.time({out_comb <- optimize_combinations(combination
 S_init=DNABarcodeCompatibility:::entropy_result(unlist(out_comb$init_comb))
 S_opt=DNABarcodeCompatibility:::entropy_result(unlist(out_comb$opt_comb))
 S_random=DNABarcodeCompatibility:::entropy_result(unlist(out_comb$random_comb))
+S_random_opt=DNABarcodeCompatibility:::entropy_result(unlist(out_comb$opt_random_comb))
 
 # print(paste(rep_number, round(elapsed,0), nrow(combination_m), barcode_number, thrs_size_comb, chemistry, nb_lane), quote=F)
-data.frame(rep_number=rep_number, time=round(elapsed,0), nb_comp_comb=nrow(combination_m), barcode_set_size=barcode_number, barcaode_subset_size=nrow(unlist(out_comb$init_comb)), chemistry=chemistry, nb_lane=nb_lane, mplex_level=mplex_level, algorithm=algorithm)
+data.frame(rep_number=rep_number, time=round(elapsed,0), nb_comp_comb=nrow(combination_m), barcode_set_size=barcode_number, barcode_subset_size=nrow(unlist(out_comb$init_comb)), chemistry=chemistry, nb_lane=nb_lane, mplex_level=mplex_level, algorithm=algorithm)
 
 
 ## Save barcode occurrence from random pick, with input simulation parameters
@@ -151,5 +153,16 @@ write.table(df, file = outputfile2 , quote = F, row.names = F, col.names = F, ap
 
 ## Save simulation parameters and elasped time
 df <- data.frame(time=round(elapsed,3), nb_comp_combinations=nrow(combination_m), rep_number=rep_number, barcode_number=barcode_number, 
-                 thrs_size_comb=nrow(unlist(out_comb$init_comb)), S_max, S_init, S_random, S_opt, chemistry=chemistry, nb_lane=nb_lane, mplex_level=mplex_level, algorithm=algorithm)
+                 thrs_size_comb=nrow(unlist(out_comb$init_comb)), S_max, S_init, S_random, S_opt, S_random_opt, chemistry=chemistry, nb_lane=nb_lane, mplex_level=mplex_level, algorithm=algorithm)
 write.table(df, file = outputfile3 , quote = F, row.names = F, col.names = F, append = T)
+
+## Save barcode occurrence from random pick + optimization, with input simulation parameters
+df <- dplyr::mutate(as.data.frame(table(unlist(out_comb$opt_random_comb))),
+                    rep_number=rep_number,
+                    thrs_size_comb=nrow(unlist(out_comb$init_comb)),
+                    barcode_number=barcode_number,
+                    chemistry=chemistry, 
+                    nb_lane=nb_lane,
+                    mplex_level=mplex_level, 
+                    algorithm=algorithm)
+write.table(df, file = outputfile4 , quote = F, row.names = F, col.names = F, append = T)
