@@ -9,7 +9,7 @@ output:
     number_sections: yes
     toc: yes
     toc_depth: 3
-  pdf_document:
+  BiocStyle::pdf_document:
     toc: yes
     toc_depth: '3'
 editor_options:
@@ -25,6 +25,10 @@ SCRIPT_DIR=file.path(Sys.getenv("HOME"),"DNABarcodeCompatibility/vignettes/")
 if (!file.exists(SCRIPT_DIR)) stop("Script directory not properly set up !")
 library("dplyr")
 library("ggplot2")
+```
+
+```{r style, echo = FALSE, results = 'asis', warnings=FALSE, messages=FALSE, eval=F}
+BiocStyle::markdown()
 ```
 
 # Introduction
@@ -94,6 +98,10 @@ write.table(data.frame(barcodeID=character(0), occurrence=integer(0), rep_number
 write.table(data.frame(rep_number=integer(0), time=numeric(0), nb_total_combinations=integer(0), nb_comp_combinations=integer(0), mplex_level=integer(0), barcode_number=integer(0), chemistry=integer(0)),
  outputfile2 <- tempfile(), row.names = FALSE, col.names = T, quote=FALSE)
 
+# Define Illumina TruSeq small RNA barcode set
+inputfile <- tempfile()
+save(DNABarcodeCompatibility::IlluminaIndexes, file=inputfile)
+
 # Detect CPU number
 nb_cpu=parallel::detectCores()
 
@@ -101,7 +109,7 @@ if (F) {
   # Run simulation using GNU parallel (Windows users need cygwin + Gnu parallel; MacOs: brew install parallel; Linux: apt-get install parallel)
   print(paste("Running", R*length(L)*length(N)*length(C) ,"simulations..."))
   system.time({
-    system(paste0("parallel -j",nb_cpu," Rscript ",SCRIPT_DIR,"sim_get_all_combinations.R {1} {2} {3} {4} {5} {6} ::: ",paste(1:R, collapse=" ")," ::: ",paste(N, collapse=" ")," ::: ",paste(L, collapse=" ")," ::: ",paste(C, collapse=" "), " ::: ", paste(outputfile1, collapse=""), " ::: ", paste(outputfile2, collapse="")))
+    system(paste0("parallel -j",nb_cpu," Rscript ",SCRIPT_DIR,"sim_get_all_combinations.R {1} {2} {3} {4} {5} {6} {7} ::: ",paste(1:R, collapse=" ")," ::: ",paste(N, collapse=" ")," ::: ",paste(L, collapse=" ")," ::: ",paste(C, collapse=" "), " ::: ", paste(outputfile1, collapse=""), " ::: ", paste(outputfile2, collapse=""), " ::: ", paste(inputfile, collapse="")))
   })
   
   barcodeFreq <- read.table(file=outputfile1, header = T, sep = " ", stringsAsFactors = FALSE)
@@ -127,7 +135,7 @@ For the ease of use, we fix to a few seconds the time of execution. On a standar
 Above 2000 combinations, the program will then perform a search of compatible barcodes from a randomly generated set of barcode combinations. Other important aspects also motivate this choice (see below).
 
 
-```{r echo = FALSE, fig.width=11}
+```{r echo = FALSE, fig.width=11, fig.wide=T}
 results %>% group_by(mplex_level, barcode_number, chemistry) %>%
   summarise(time.avg=mean(time), time.sd=sd(time), nb_total_combinations=nb_total_combinations[1], nb_comp_combinations.avg=mean(nb_comp_combinations)) %>%
   ungroup() %>% mutate(mplex_level=as.factor(mplex_level),
@@ -1576,3 +1584,264 @@ sim2_barcodeStat_opt %>% filter(chemistry == chem) %>%
   ylab("Barcode occurrences") +
 ggtitle(paste0("Barcode occurences from a random set of compatible combinations (S_opt=",round(S_opt,2),"; S_max=",round(S_max,2),")"))
 ```
+
+# Simulations on a randomly generated set of barcodes
+
+## Generating a barcode set with the `DNABarcodes` package from Tilo Buschmann
+
+We use the `DNABarcodes` package from Tilo Buschmann to generate a new set of 6-mer barcodes, which are robust against at least one substitution error (Hamming distance of 3). In addition, barcodes including stretches of 3 or more nucleotides (homopolymer of length >=3) are discarded as well as those that have an unbalanced ratio of bases G or C versus A or T. We then exclude barcodes that are present both in the Illumina TruSeq small RNA kits and in the newly generated set.
+
+```{r echo = TRUE, warning=FALSE}
+library("DNABarcodes")
+newBarcodesRaw <- create.dnabarcodes(n=6, dist=3, metric = "hamming", filter.triplets = F, filter.gc = T, filter.self_complementary = F)
+
+newBarcodes <- newBarcodesRaw[!(newBarcodesRaw %in% DNABarcodeCompatibility::IlluminaIndexes$sequence)]
+
+ranBarcodeSet <- data.frame(Id=paste0("B",sprintf("%02d",1:length(newBarcodes))), sequence=newBarcodes, GC_content=50, homopolymer=FALSE, stringsAsFactors = F)[1:48,]
+```
+
+## Set parameters for the simulation
+
+```{r echo = FALSE, cache=F, results=F}
+
+R=10
+L = c(12,18,24,30,36,42,48)
+N = 2:5
+C = c(1,2,4)
+
+# R=2
+# L = c(12,18)
+# N = 2:5
+# C = c(2,4)
+
+print("CONDITIONS:")
+print("Barcode set size:")
+L
+print("Multiplex levels:")
+N 
+print("Chemistry:")
+C
+print("Number of simulations per condition:")
+R
+print(paste("Total number of simulations:",R*length(L)*length(N)*length(C)))
+
+```
+
+Number of simulations per condition | Barcode-set size | Multiplex level | Chemistry |
+------------------------------------|------------------|-----------------|-----------|
+`r R`                               |`r L`             | `r N`           | `r C`     |
+
+
+Number of simulations | |
+----------------------|-|
+`r R*length(L)*length(N)*length(C)`| |
+
+
+## Run simulations for exhaustive searches
+```{r echo = FALSE, cache=F}
+
+# Initialize output file1 (barcode occurrences)
+write.table(data.frame(barcodeID=character(0), occurrence=integer(0), rep_number=integer(0), mplex_level=integer(0), barcode_number=integer(0), chemistry=integer(0)),
+ outputfile1 <- tempfile(), row.names = FALSE, col.names = T, quote=FALSE)
+
+# Initialize output file2 (execution time)
+write.table(data.frame(rep_number=integer(0), time=numeric(0), nb_total_combinations=integer(0), nb_comp_combinations=integer(0), mplex_level=integer(0), barcode_number=integer(0), chemistry=integer(0)),
+ outputfile2 <- tempfile(), row.names = FALSE, col.names = T, quote=FALSE)
+
+# Define Illumina TruSeq small RNA barcode set
+inputfile <- tempfile()
+save(ranBarcodeSet, file=inputfile)
+
+
+# Detect CPU number
+nb_cpu=parallel::detectCores()
+
+if (T) {
+  # Run simulation using GNU parallel (Windows users need cygwin + Gnu parallel; MacOs: brew install parallel; Linux: apt-get install parallel)
+  print(paste("Running", R*length(L)*length(N)*length(C) ,"simulations..."))
+  system.time({
+    system(paste0("parallel -j",nb_cpu," Rscript ",SCRIPT_DIR,"sim_get_all_combinations.R {1} {2} {3} {4} {5} {6} {7} ::: ",paste(1:R, collapse=" ")," ::: ",paste(N, collapse=" ")," ::: ",paste(L, collapse=" ")," ::: ",paste(C, collapse=" "), " ::: ", paste(outputfile1, collapse=""), " ::: ", paste(outputfile2, collapse=""), " ::: ", paste(inputfile, collapse="")))
+  })
+  
+  barcodeFreq2 <- read.table(file=outputfile1, header = T, sep = " ", stringsAsFactors = FALSE)
+  save(barcodeFreq2, file = paste0(SCRIPT_DIR,"barcodeFreq2"))
+
+  results2 <- read.table(file=outputfile2, header = T, sep = " ", stringsAsFactors = FALSE)
+  save(results2, file = paste0(SCRIPT_DIR,"results2"))
+}
+
+
+# Import results
+barcodeFreq2 <- local(get(load(paste0(SCRIPT_DIR,"barcodeFreq2"))))
+results2 <- local(get(load(paste0(SCRIPT_DIR,"results2"))))
+
+```
+
+### Probability to find compatible barcodes in the complete ensemble of combinations
+
+* The probability to find compatible combinations is more variable for small randomly-selected barcode sets 
+
+```{r echo = FALSE, warning=FALSE, fig.width=11}
+results2 %>% group_by(mplex_level, barcode_number, chemistry) %>%
+  filter(chemistry > 0) %>% filter(mplex_level==3) %>%
+  summarise(time.avg=mean(time), time.sd=sd(time), nb_total_combinations=nb_total_combinations[1], nb_comp_combinations.avg=mean(nb_comp_combinations), nb_comp_combinations.sd=sd(nb_comp_combinations)) %>%
+  ungroup() %>% mutate(mplex_level=as.factor(mplex_level),
+                       channel=paste0(chemistry, "-channel"),
+                       comp_comb_prop.avg= nb_comp_combinations.avg/nb_total_combinations,
+                       comp_comb_prop.sd= nb_comp_combinations.sd/nb_total_combinations,
+                       barcode_number=as.factor(barcode_number)) %>%
+  ggplot(aes(x=barcode_number,y=comp_comb_prop.avg, fill = mplex_level))+
+  geom_histogram(stat = "identity")+
+  geom_errorbar(aes(ymin=(comp_comb_prop.avg-comp_comb_prop.sd), ymax=(comp_comb_prop.avg+comp_comb_prop.sd)),
+                size=0.3,color="black") +
+  theme(axis.text.x=element_text(angle=45, hjust=1, vjust=1))+
+  facet_grid(~channel) +
+  scale_fill_manual(values = c("darkgrey")) + 
+  # scale_y_continuous(breaks=seq(0, 1, 0.2), limit=c(0, 1)) +
+  xlab("Barcode set size")+
+  ylab("Proportion of compatible combinations")+
+ggtitle(paste("Average proportion of compatible combinations ( average over", R,"simulations )"))
+
+
+```
+
+
+* The probability to find compatible combinations increases with the multiplex level
+
+
+```{r echo = FALSE, warning=FALSE, fig.width=11}
+results2 %>% group_by(mplex_level, barcode_number, chemistry) %>%
+  filter(chemistry > 0) %>%
+  summarise(nb_total_combinations=nb_total_combinations[1], nb_comp_combinations=mean(nb_comp_combinations), comp_comb_prop=nb_comp_combinations/nb_total_combinations) %>%
+  group_by(mplex_level, chemistry) %>% 
+  summarize(comp_comb_prop.avg= mean(comp_comb_prop),
+            comp_comb_prop.sd= sd(comp_comb_prop)) %>% ungroup() %>%
+  mutate(mplex_level=as.factor(mplex_level),
+         channel=paste0(chemistry, "-channel")) %>%
+  ggplot(aes(x=mplex_level,y=comp_comb_prop.avg, fill = mplex_level))+
+  geom_histogram(stat = "identity")+
+  geom_errorbar(aes(ymin=(comp_comb_prop.avg-comp_comb_prop.sd), ymax=(comp_comb_prop.avg+comp_comb_prop.sd)),
+  size=0.3,color="black") +
+  # theme(axis.text.x=element_text(angle=45, hjust=1, vjust=1))+
+  facet_grid(~channel) +
+  scale_y_continuous(breaks=seq(0, 1, 0.2), limit=c(0, 1)) +
+  xlab("Multiplex level")+
+  ylab("Proportion of compatible combinations")+
+  ggtitle(paste("Probability to find compatible combinations ( average over", R,"simulations and barcode-set size )"))
+
+
+```
+
+* Relationship between the number of compatibles combinations and the total number of combinations 
+
+For a multiplex level of 2, the number of compatible combinations is less than 100 for the combined Illumina TruSeq small RNA kits. Therefore, for a multiplex level of 2, an exhaustive search is preferable to retrieve all possible compatible combinations of barcodes for the optimization steps. We fix to 2024 the total number of combinations beyond which it's however quicker and sufficient to perform a random search of compatible combinations (see dashed line in the graph below). This number is motivated by two reasons. Below this threshold, an exhaustive search will be systematically performed for a multiplex level of 2 (less than 2024 combinations in total). Above this threshold, a random search will provide enough compatible combinations for futher optimization steps. Indeed, the above results indicate that the probability to get a compatible combination is at least 18% for multiplex levels >= 3. Briefly, the random search will randomly pick up an arbitrarily fixed number of 1000 combinations representing a pool of at least 180 compatible combinations, which is suitable for further optimization steps (see below). Thus, the `DNABarcodeCompatibility::experiment_design()` function of the package will use a threshold of 2024 combinations in total to switch between an exhaustive search and a random search of compatible combinations.
+
+
+
+```{r echo = FALSE, warning=FALSE, fig.width=11}
+results2 %>% group_by(mplex_level, barcode_number, chemistry) %>%
+  filter(chemistry > 0) %>%
+  summarise(nb_total_combinations=nb_total_combinations[1], nb_comp_combinations.avg=mean(nb_comp_combinations),
+            nb_comp_combinations.sd=sd(nb_comp_combinations)) %>%
+  ungroup() %>%
+  mutate(mplex_level=as.factor(mplex_level),
+         channel=paste0(chemistry, "-channel")) %>%
+  ggplot(aes(x=nb_total_combinations,y=nb_comp_combinations.avg, color = mplex_level, size=barcode_number))+
+  geom_point()+ geom_smooth(method= "lm", se=F) +
+  geom_vline(xintercept=2024, linetype="dashed", color = "red")+
+  scale_x_log10(breaks=c(10,100,2024,10^4,10^5, 10^6), labels = scales::comma) +
+  scale_y_log10(breaks=c(5,10,100,1000,10^4,10^5, 10^6), labels = scales::comma) +
+  scale_size_continuous(name = "Barcode-set size", breaks=unique(results2$barcode_number)) +
+  facet_grid(~channel) +
+  xlab("Total number of combinations [log scale]")+
+  ylab("Number of compatible combinations [log scale]")+
+  ggtitle(paste("Number of compatible combinations in the Illumina TruSeq small RNA kits"))
+
+
+```
+
+### Compatible barcode combinations: average barcode frequencies among input barcode sets
+
+The distribution of barcodes used to form compatible combinations may be highly heterogeneous at low multiplex levels. 
+We plot the distribution of barcodes averaged over the different barcode sets, for distinct chemistries and multiplex levels.
+Despite the averaging of the distibutions over different barcode sets of different sizes, the heterogeneity between barcode frequencies is clearly visible.
+
+* 4-channel chemistry
+
+```{r echo = FALSE, warning=FALSE, fig.width=11}
+if (4 %in% barcodeFreq2$chemistry) {
+  barcodeFreq2 %>% filter(chemistry == 4) %>% 
+    group_by(mplex_level, chemistry, barcode_number) %>%
+    mutate(sum_barcodes=sum(occurrence)) %>%
+    group_by(barcodeID, mplex_level, chemistry, barcode_number) %>%
+    summarise(freq=sum(occurrence)/sum_barcodes[1]) %>% 
+    group_by(barcodeID, mplex_level, chemistry) %>%
+    summarize(freq.avg=mean(freq), freq.sd=sd(freq)) %>% ungroup() %>%
+    mutate(channel=paste0(chemistry, "-channel"),
+           mplex_level=as.factor(mplex_level)) %>%
+    ggplot(aes(x=barcodeID,y=freq.avg, fill=mplex_level))+
+    geom_histogram(stat = "identity")+
+    geom_errorbar(aes(ymin=(freq.avg-freq.sd), ymax=(freq.avg+freq.sd)),
+                  size=0.7,color="black") +
+    theme(axis.text.x=element_text(angle=90, hjust=1, vjust=1))+
+    scale_y_continuous(breaks=seq(0, 0.18, 0.04), limit=c(0, 0.18)) +
+    facet_grid(mplex_level~channel) +
+    xlab("BarcodeID")+
+    ylab("Barcodes frequency")+
+    ggtitle(paste("Barcode frequency averaged over barcode sets (4-channel chemistry)"))
+}
+```
+
+* 2-channel chemistry
+
+```{r echo = FALSE, warning=FALSE, fig.width=11}
+if (2 %in% barcodeFreq2$chemistry) {
+  barcodeFreq2 %>% filter(chemistry == 2) %>% 
+    group_by(mplex_level, chemistry, barcode_number) %>%
+    mutate(sum_barcodes=sum(occurrence)) %>%
+    group_by(barcodeID, mplex_level, chemistry, barcode_number) %>%
+    summarise(freq=sum(occurrence)/sum_barcodes[1]) %>% 
+    group_by(barcodeID, mplex_level, chemistry) %>%
+    summarize(freq.avg=mean(freq), freq.sd=sd(freq)) %>% ungroup() %>%
+    mutate(channel=paste0(chemistry, "-channel"),
+           mplex_level=as.factor(mplex_level)) %>%
+    ggplot(aes(x=barcodeID,y=freq.avg, fill=mplex_level))+
+    geom_histogram(stat = "identity")+
+    geom_errorbar(aes(ymin=(freq.avg-freq.sd), ymax=(freq.avg+freq.sd)),
+                  size=0.7,color="black") +
+    theme(axis.text.x=element_text(angle=90, hjust=1, vjust=1))+
+    scale_y_continuous(breaks=seq(0, 0.18, 0.04), limit=c(0, 0.18)) +
+    facet_grid(mplex_level~channel) +
+    xlab("BarcodeID")+
+    ylab("Barcodes frequency")+
+    ggtitle(paste("Barcode frequency averaged over barcode sets (2-channel chemistry)"))
+}
+```
+
+* 1-channel chemistry
+
+```{r echo = FALSE, warning=FALSE, fig.width=11}
+if (1 %in% barcodeFreq2$chemistry) {
+  barcodeFreq2 %>% filter(chemistry == 1) %>% 
+    group_by(mplex_level, chemistry, barcode_number) %>%
+    mutate(sum_barcodes=sum(occurrence)) %>%
+    group_by(barcodeID, mplex_level, chemistry, barcode_number) %>%
+    summarise(freq=sum(occurrence)/sum_barcodes[1]) %>% 
+    group_by(barcodeID, mplex_level, chemistry) %>%
+    summarize(freq.avg=mean(freq), freq.sd=sd(freq)) %>% ungroup() %>%
+    mutate(channel=paste0(chemistry, "-channel"),
+           mplex_level=as.factor(mplex_level)) %>%
+    ggplot(aes(x=barcodeID,y=freq.avg, fill=mplex_level))+
+    geom_histogram(stat = "identity")+
+    geom_errorbar(aes(ymin=(freq.avg-freq.sd), ymax=(freq.avg+freq.sd)),
+                  size=0.7,color="black") +
+    theme(axis.text.x=element_text(angle=90, hjust=1, vjust=1))+
+    scale_y_continuous(breaks=seq(0, 0.18, 0.04), limit=c(0, 0.18)) +
+    facet_grid(mplex_level~channel) +
+    xlab("BarcodeID")+
+    ylab("Barcodes frequency")+
+    ggtitle(paste("Barcode frequency averaged over barcode sets (1-channel chemistry)"))
+}
+
+```
+
