@@ -9,7 +9,10 @@ output:
     number_sections: yes
     toc: yes
     toc_depth: 3
-editor_options: 
+  pdf_document:
+    toc: yes
+    toc_depth: '3'
+editor_options:
   chunk_output_type: console
 ---
 
@@ -31,6 +34,8 @@ DNABarcodeCompatibility works in 2 steps:
 * Step1: find compatible combinations of barcodes
 
 * Step2: optimize the set of compatible barcodes to reduce redundancy between barcodes
+    + Step2a: optimization by the greedy search method
+    + Step2b: optimization by N iterations of the greedy search method
 
 
 # Simulations relative to Step1 of the workflow: find compatible combinations of barcodes
@@ -586,6 +591,9 @@ if (F) {
     
     sim1_probaSmax <- read.table(file=outputfile3, header = T, sep = " ", stringsAsFactors = FALSE)
     save(sim1_probaSmax, file = paste0(SCRIPT_DIR,"sim1_probaSmax"))
+    
+    sim1_barcodeStat_random_opt <- read.table(file=outputfile4, header = T, sep = " ", stringsAsFactors = FALSE)
+    save(sim1_barcodeStat_random_opt, file = paste0(SCRIPT_DIR,"sim1_barcodeStat_random_opt"))
   })
 }
 
@@ -593,6 +601,7 @@ if (F) {
 # Import results
 sim1_barcodeStat_random <- local(get(load(paste0(SCRIPT_DIR,"sim1_barcodeStat_random"))))
 sim1_barcodeStat_opt <- local(get(load(paste0(SCRIPT_DIR,"sim1_barcodeStat_opt"))))
+# sim1_barcodeStat_random_opt <- local(get(load(paste0(SCRIPT_DIR,"sim1_barcodeStat_random_opt"))))
 sim1_probaSmax <- local(get(load(paste0(SCRIPT_DIR,"sim1_probaSmax"))))
 
 
@@ -612,7 +621,7 @@ for (i in thrs_size_comb){
 }
 ```
 
-### Probability to get an optimal set of barcode combinations (entropy max) for a single greedy search
+### Probability to get an optimal set of barcode combinations (max entropy) for a single greedy search
 
 ```{r echo = FALSE,  warning=FALSE, message=F, fig.width=11, fig.height=22}
 
@@ -641,7 +650,7 @@ ggplot(aes( x = thrs_size_comb, y = ProbaOfSmax, color=mplex_level)) +
 
 ### Probability to get the best optimized set of barcode combinations for a single greedy search
 
-In some cases, the probability to reach the theoretical maximum entropy $S_{max}$ might be null. Instead, we estimate the probability to get the highest value of the entropy $S_{opt}$ where $S_{opt} < S_{max}$. In these conditions, the barcode distribution won't be uniform, but still more optimized than by a random pick (see below).
+In some cases, the probability to reach the theoretical maximum entropy $S_{max}$ might be null. Instead, we estimate the probability to get the highest value of the entropy $S_{opt}$ where possibly $S_{opt} < S_{max}$. In these conditions, the barcode distribution won't be uniform, but still more optimized than by a random pick (see below).
 
 
 ```{r echo = FALSE,  warning=FALSE, message=F, fig.width=11, fig.height=22}
@@ -833,7 +842,7 @@ To visualize the efficacy of the greedy search algorithms, we compare the distri
 sim1_probaSmax %>% group_by(chemistry, barcode_number, mplex_level, nb_lane, algorithm) %>%
   filter(thrs_size_comb<nb_comp_combinations) %>% ungroup() %>%
   # filter(thrs_size_comb == 60) %>%
-  mutate(isSmax=ifelse(S_opt==S_max, T, F),
+  mutate(isSmax=ifelse(abs(S_opt-S_max)<10^-10, T, F),
          S_opt=round(S_opt, 3),
          S_random=round(S_random, 3), 
          mplex_level=paste0("mplex-",mplex_level),
@@ -848,7 +857,8 @@ dat %>%
     with(chunk, as.data.frame(table(S=S_random))) %>% 
       mutate(Freq=Freq/sum(Freq),
              S_max=chunk$S_max[1],
-             dataset="S_random")
+             dataset="S_random",
+             isSmax=any(chunk$isSmax))
   }) %>% ungroup() %>% mutate(S=as.double(S)) -> S_random_freq 
 
 
@@ -859,7 +869,8 @@ dat %>%
     with(chunk, as.data.frame(table(S=S_opt))) %>% 
       mutate( Freq=Freq/sum(Freq), 
               S_max=chunk$S_max[1], 
-              dataset="S_opt") 
+              dataset="S_opt",
+              isSmax=any(chunk$isSmax)) 
   }) %>% ungroup() %>% mutate(S=as.double(S)) -> S_opt_freq
 
 
@@ -874,7 +885,7 @@ for (i in c(10,30,80,100,400) ){
     # mutate(thrs_size_comb=as.factor(thrs_size_comb)) %>%
     ggplot(aes(x = S)) +
     geom_histogram(aes(y=0.05*..density.., fill=dataset), position='identity', alpha=0.7, binwidth=0.05, boundary=0.05) +
-    geom_vline(aes(xintercept = S_max, color="S_max"), linetype="dashed") +
+    geom_vline(aes(xintercept = S_max, color="S_max", linetype=isSmax)) +
     scale_x_continuous(breaks=round(seq(min(dat$S_random), max(dat$S_opt), (max(dat$S_opt)-min(dat$S_random))/5),2)) +
     # scale_x_discrete(breaks=sort(sample(dat$S_random,5)))+
     theme(axis.text.x=element_text(angle=90, hjust=1, vjust=1))+
@@ -925,7 +936,7 @@ if (640 %in% sim1_probaSmax$thrs_size_comb) {
 
 ## Step2b: set parameters for the simulations
 
-
+The results of the simulations in step1 suggest a few cases for which the optimization procedure would require more than 100 iterations to reach $S_{max}$. We find interesting to use these challenging conditions to test how good our greedy-exchange algorithm would perform compared to a basic optimization by iterative random picks. In the table below are summarized a few challenging conditions to be tested.
 
 ```{r echo = FALSE, results=F}
 R=100
@@ -1026,6 +1037,9 @@ if (F) {
   
   sim2_probaSmax <- read.table(file=outputfile3, header = T, sep = " ", stringsAsFactors = FALSE)
   save(sim2_probaSmax, file = paste0(SCRIPT_DIR,"sim2_probaSmax"))
+  
+  sim2_barcodeStat_random_opt <- read.table(file=outputfile4, header = T, sep = " ", stringsAsFactors = FALSE)
+  save(sim2_barcodeStat_random_opt, file = paste0(SCRIPT_DIR,"sim2_barcodeStat_random_opt"))
 }
 
 
@@ -1078,23 +1092,36 @@ if (F) {
     
     sim2_probaSmax <- read.table(file=outputfile3, header = T, sep = " ", stringsAsFactors = FALSE)
     save(sim2_probaSmax, file = paste0(SCRIPT_DIR,"sim2_probaSmax"))
+    
+    sim2_barcodeStat_random_opt <- read.table(file=outputfile4, header = T, sep = " ", stringsAsFactors = FALSE)
+    save(sim2_barcodeStat_random_opt, file = paste0(SCRIPT_DIR,"sim2_barcodeStat_random_opt"))
   })
 }  
 
         
 # Import results
 sim2_barcodeStat_random <- local(get(load(paste0(SCRIPT_DIR,"sim2_barcodeStat_random"))))
+sim2_barcodeStat_random_opt <- local(get(load(paste0(SCRIPT_DIR,"sim2_barcodeStat_random_opt"))))
 sim2_barcodeStat_opt <- local(get(load(paste0(SCRIPT_DIR,"sim2_barcodeStat_opt"))))
 sim2_probaSmax <- local(get(load(paste0(SCRIPT_DIR,"sim2_probaSmax"))))
 
 ```
 
-###  Distributions of entropy values after running the optimizer: greedy exchange (S_opt) and random pick (S_random)
+###  Distributions of entropy values after running the optimizer
 
-* For a set of `r thrs_size_comb_for_GE` compatible combinations and up to `r max_iteration` iterations for both S_opt and S_random
+We compare the distributions of entropy values obtained using 3 different strategies over at max `r max_iteration` iterations per trial. We performed `r R` trials for each strategy.
 
+1. **S_random**: no optimization; a subset of compatible combinations is randomly picked up only once (no iteration)
+2. **S_opt**: a subset of compatible combinations is optimized using the greedy-exchange algorithm (`r max_iteration` iterations at max)
+3. **S_random_opt**: a subset of compatible combinations is optimized by random pick using the same amount of iterations used with the greedy search.
 
-```{r echo = FALSE,  warning=FALSE, message=FALSE, fig.width=11}
+* Set of `r thrs_size_comb_for_GE` compatible combinations and up to `r max_iteration` iterations per trial
+
+In the graphs below, the blue line indicates the position of the theoretical value of the maximum entropy $S_{max}$. Solid lines indicates that $S_{max}$ has not been reached over `r max_iteration` iterations. Either the probability to find $S_{max}$ is too low to be reached in `r max_iteration` iterations, or  $S_{max}$ cannot be reached due to constraints in the barcode set. Furthermore, the dashed line indicates that $S_{max}$ has been reached.
+
+In any case, the greedy search algorithm performs better than a random search, and converges to the best entropy value.
+
+```{r echo = FALSE,  warning=FALSE, message=FALSE, fig.width=11, fig.height=11}
 sim2_probaSmax %>% group_by(chemistry, barcode_number, mplex_level, nb_lane, algorithm) %>%
   filter(thrs_size_comb<nb_comp_combinations) %>% ungroup() %>%
   # filter(thrs_size_comb == 60) %>%
@@ -1107,51 +1134,64 @@ sim2_probaSmax %>% group_by(chemistry, barcode_number, mplex_level, nb_lane, alg
          barcode_number=paste("set of",barcode_number,"barcodes")) -> dat
 
 dat %>%
-  group_by(chemistry, barcode_number, mplex_level, nb_lane, algorithm, thrs_size_comb, isSmax) %>%
+  group_by(chemistry, barcode_number, mplex_level, nb_lane, algorithm, thrs_size_comb) %>%
   do ({
     chunk <- .
     with(chunk, as.data.frame(table(S=S_random))) %>% 
       mutate(Freq=Freq/sum(Freq),
              S_max=chunk$S_max[1],
-             dataset="S_random")
+             dataset="S_random",
+             isSmax=any(chunk$isSmax))
   }) %>% ungroup() %>% mutate(S=as.double(S)) -> S_random_freq 
 
 
 dat %>%
-  group_by(chemistry, barcode_number, mplex_level, nb_lane, algorithm, thrs_size_comb, isSmax) %>%
+  group_by(chemistry, barcode_number, mplex_level, nb_lane, algorithm, thrs_size_comb) %>%
   do ({
     chunk <- .
     with(chunk, as.data.frame(table(S=S_opt))) %>% 
       mutate( Freq=Freq/sum(Freq), 
               S_max=chunk$S_max[1], 
-              dataset="S_opt") 
+              dataset="S_opt",
+              isSmax=any(chunk$isSmax)) 
   }) %>% ungroup() %>% mutate(S=as.double(S)) -> S_opt_freq
 
+dat %>%
+  group_by(chemistry, barcode_number, mplex_level, nb_lane, algorithm, thrs_size_comb) %>%
+  do ({
+    chunk <- .
+    with(chunk, as.data.frame(table(S=S_random_opt))) %>% 
+      mutate( Freq=Freq/sum(Freq), 
+              S_max=chunk$S_max[1], 
+              dataset="S_random_opt",
+              isSmax=any(chunk$isSmax)) 
+  }) %>% ungroup() %>% mutate(S=as.double(S)) -> S_random_opt_freq
 
-Sdat=bind_rows(S_random_freq, S_opt_freq)
 
-k=1
+Sdat=bind_rows(S_random_freq, S_opt_freq, S_random_opt_freq)
+
+
 gg <- list()
-
+k=1
 for (i in unique(thrs_size_comb_for_GE,thrs_size_comb_for_GD) ){
   
   Sdat %>% filter(thrs_size_comb == i) %>%
     # filter(isSmax) %>%
     # mutate(thrs_size_comb=as.factor(thrs_size_comb)) %>%
     ggplot(aes(x = S)) +
-    geom_histogram(aes(y=0.05*..density.., fill=dataset), position='identity', alpha=0.7, binwidth=0.050, boundary=0.05) +
+    geom_histogram(aes(y=0.05*..density.., fill=dataset), position='identity', alpha=0.6, binwidth=0.050, boundary=0.05) +
     geom_vline(aes(xintercept = S_max, color="S_max", linetype=isSmax)) + #, linetype="dashed"
     scale_x_continuous(breaks=round(seq(min(dat$S_random), max(dat$S_opt), (max(dat$S_opt)-min(dat$S_random))/5),2)) +
     # scale_x_discrete(breaks=sort(sample(dat$S_random,5)))+
     theme(axis.text.x=element_text(angle=90, hjust=1, vjust=1))+
     facet_grid(chemistry+mplex_level+nb_lane+algorithm~barcode_number) +
     scale_fill_manual("Entropy",
-                      breaks = c("S_opt", "S_random"),
-                      values = c("green", "red")) +
+                      breaks = c("S_opt", "S_random", "S_random_opt"),
+                      values = c("green", "red", "orange")) +
     
     scale_color_manual("",
-                       breaks = c("S_max", "S_opt", "S_random"),
-                       values = c("blue", "green", "red")) +
+                       breaks = c("S_max", "S_opt", "S_random", "S_random_opt"),
+                       values = c("blue", "green", "red", "orange")) +
     xlab("Entropy values") +
     ylab("Frequency") +
     ggtitle(paste("Distributions of entropy values for (",i ,"combs;", R, "runs, up to",max_iteration,"interations )")) -> gg[[k]]
@@ -1161,18 +1201,43 @@ gg
 
 ```
 
+* Average execution time per condition
+
+| Conditions | Set of 12 barcodes | Set of 30 barcodes |
+|------------|--------------------|--------------------|
+| mplex-4    | `r round(mean((sim2_probaSmax %>% filter(barcode_number==12) %>% filter(mplex_level==4))$time))` sec    |  `r round(mean((sim2_probaSmax %>% filter(barcode_number==30) %>% filter(mplex_level==4))$time))` sec |
+| mplex-5    |`r round(mean((sim2_probaSmax %>% filter(barcode_number==12) %>% filter(mplex_level==5))$time))` sec    |  `r round(mean((sim2_probaSmax %>% filter(barcode_number==30) %>% filter(mplex_level==5))$time))` sec |
 
 ### Comparison of barcode distributions between a randomly generated set and an optimized set of compatible combinations
 
-In this simulation, we have 16 libraries (multiplex level = 4; number of lanes = 4). To visualize the efficacy of the optimizer, we show the barcode distrubution before and after the optimization.
+#### Case where $S_{max}$ is reached
+
+* Barcode set:
+```{r echo = FALSE, warning=FALSE}
+barcodeset <- sort(unique((sim2_barcodeStat_random_opt %>% filter(barcode_number==30) %>% filter(mplex_level==4))$barcodeID))
+```
+
+| Barcode set | |
+|-------------|-|
+`r barcodeset`| |
+
 
 * Set of compatible combinations that was randomly selected
 
 ```{r echo = FALSE, warning=FALSE, fig.width=11}
 chem=4
 mpl=4
-bcnb=18
-repnb=26
+bcnb=30
+
+# Find one repetition number for which S_random is minimum
+repnb <- (sim2_probaSmax %>%
+            filter(chemistry==chem) %>%
+            filter(mplex_level==mpl) %>%
+            filter(barcode_number==bcnb) %>%
+            filter(S_random==min(S_random)))$rep_number[1]
+
+
+
 
 S_random <- (sim2_probaSmax %>% filter(chemistry == chem) %>% 
    filter(mplex_level==mpl) %>%
@@ -1202,14 +1267,100 @@ ggtitle(paste0("Barcode occurences from a random set of compatible combinations 
 ```
 
 
-* Set of compatible barcodes that was optimized with the optimizer
+* Set of compatible barcodes that was optimized with the iterative greedy-exchange search
+
+We use the same experimental conditions as above for a fair comparison.
+
+```{r echo = FALSE, warning=FALSE, fig.width=11}
+S_opt <- (sim2_probaSmax %>% filter(chemistry == chem) %>% 
+   filter(mplex_level==mpl) %>%
+   filter(barcode_number==bcnb) %>%
+   filter(rep_number==repnb))$S_opt
+
+S_max <- (sim2_probaSmax %>% filter(chemistry == chem) %>% 
+   filter(mplex_level==mpl) %>%
+   filter(barcode_number==bcnb) %>%
+   filter(rep_number==repnb))$S_max
+
+sim2_barcodeStat_opt %>% filter(chemistry == chem) %>% 
+  filter(mplex_level==mpl) %>%
+  filter(barcode_number==bcnb) %>%
+  filter(rep_number==repnb) %>%
+  mutate(channel=paste0(chemistry, "-channel"),
+         mplex_level=paste("mutiplex level",mplex_level)) %>%
+  ggplot(aes(x=barcodeID,y=occurrence, fill=mplex_level))+
+  geom_histogram(stat = "identity", fill= "darkgrey")+
+  scale_y_continuous(breaks = 1:4, limits = c(0,4))+
+  theme(axis.text.x=element_text(angle=90, hjust=1, vjust=1))+
+  facet_grid(mplex_level~channel) +
+  xlab("BarcodeID") +
+  ylab("Barcode occurrences") +
+ggtitle(paste0("Barcode occurences from a random set of compatible combinations (S_opt=",round(S_opt,2),"; S_max=",round(S_max,2),")"))
+```
+
+
+#### Case where $S_{max}$ is **not** reached
+
+* Barcode set:
+```{r echo = FALSE, warning=FALSE}
+barcodeset <- sort(unique((sim2_barcodeStat_random_opt %>% filter(barcode_number==30) %>% filter(mplex_level==5))$barcodeID))
+```
+
+| Barcode set | |
+|-------------|-|
+`r barcodeset`| |
+
+
+* Set of compatible combinations that was randomly selected
 
 ```{r echo = FALSE, warning=FALSE, fig.width=11}
 chem=4
-mpl=4
-bcnb=18
-repnb=26
+mpl=5
+bcnb=30
 
+# Find one repetition number for which S_random is minimum
+repnb <- (sim2_probaSmax %>%
+            filter(chemistry==chem) %>%
+            filter(mplex_level==mpl) %>%
+            filter(barcode_number==bcnb) %>%
+            filter(S_random==min(S_random)))$rep_number[1]
+
+
+
+
+S_random <- (sim2_probaSmax %>% filter(chemistry == chem) %>% 
+   filter(mplex_level==mpl) %>%
+   filter(barcode_number==bcnb) %>%
+   filter(rep_number==repnb))$S_random
+
+S_max <- (sim2_probaSmax %>% filter(chemistry == chem) %>% 
+   filter(mplex_level==mpl) %>%
+   filter(barcode_number==bcnb) %>%
+   filter(rep_number==repnb))$S_max
+
+sim2_barcodeStat_random %>% filter(chemistry == chem) %>% 
+  filter(mplex_level==mpl) %>%
+  filter(barcode_number==bcnb) %>%
+  filter(rep_number==repnb) %>%
+  mutate(channel=paste0(chemistry, "-channel"),
+         mplex_level=paste("mutiplex level",mplex_level)) %>%
+  ggplot(aes(x=barcodeID,y=occurrence, fill=mplex_level))+
+  geom_histogram(stat = "identity", fill= "darkgrey")+
+  scale_y_continuous(breaks = 1:4, limits = c(0,4))+
+  theme(axis.text.x=element_text(angle=90, hjust=1, vjust=1))+
+  facet_grid(mplex_level~channel) +
+  xlab("BarcodeID")+
+  ylab("Barcode occurrences")+
+ggtitle(paste0("Barcode occurences from a random set of compatible combinations (S_random=",round(S_random,2),"; S_max=",round(S_max,2),")"))
+
+```
+
+
+* Set of compatible barcodes that was optimized with the iterative greedy-exchange search
+
+We use the same experimental conditions as above for a fair comparison.
+
+```{r echo = FALSE, warning=FALSE, fig.width=11}
 S_opt <- (sim2_probaSmax %>% filter(chemistry == chem) %>% 
    filter(mplex_level==mpl) %>%
    filter(barcode_number==bcnb) %>%
