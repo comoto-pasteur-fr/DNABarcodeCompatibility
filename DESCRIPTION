@@ -14,19 +14,6 @@ License: GPL-2
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 6.0.1
-Imports:
-    dplyr,
-    tidyr,
-    numbers,
-    purrr,
-    DNABarcodes,
-    rJava,
-    stringr
-Depdends:
-    purrr
-    stringr
-    tidyr
-Suggests: knitr,
-    rmarkdown,
-    testthat
+Imports: dplyr, tidyr, numbers, purrr, rJava, stringr, purrr, stringr, tidyr, DNABarcodes
+Suggests: knitr, rmarkdown, testthat
 VignetteBuilder: knitr
