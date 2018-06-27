@@ -554,6 +554,11 @@ write.table(data.frame(time=numeric(0), nb_comp_combinations=integer(0), rep_num
 write.table(data.frame(barcodeID=character(0), occurrence=integer(0), rep_number=integer(0), thrs_size_comb=integer(0), barcode_number=integer(0), chemistry=integer(0), nb_lane=integer(0), mplex_level=integer(0), algorithm=character(0)),
             outputfile4 <- tempfile(), row.names = FALSE, col.names = T, quote=FALSE)
 
+
+# Define barcode set
+barcode_set = DNABarcodeCompatibility::IlluminaIndexes
+
+
 # Detect CPU number
 nb_cpu=parallel::detectCores()
 
@@ -561,7 +566,7 @@ if (F) {
   system.time({
     for (i in L) {
       # Generate a large set of compatible combinations
-      index <- dplyr::sample_n(DNABarcodeCompatibility::IlluminaIndexes, nrow(DNABarcodeCompatibility::IlluminaIndexes), replace = FALSE)
+      index <- dplyr::sample_n(barcode_set, nrow(barcode_set), replace = FALSE)
       for (j in N) {
         for (k in C) {
           for (algo in algorithm) {
@@ -573,7 +578,7 @@ if (F) {
             while (nrow(combination_m) < max(nb_lane) && inc<10) {
               print("nrow(combination_m) might be too small")
               print("other trial...")
-              index <- dplyr::sample_n(DNABarcodeCompatibility::IlluminaIndexes, nrow(DNABarcodeCompatibility::IlluminaIndexes), replace = FALSE)
+              index <- dplyr::sample_n(barcode_set, nrow(barcode_set), replace = FALSE)
               combination_m <- DNABarcodeCompatibility::get_all_combinations(index_df = index[1:i,], mplex_level = j, chemistry = k)
               inc=inc+1
               print(inc)
@@ -1041,6 +1046,10 @@ write.table(data.frame(time=numeric(0), nb_comp_combinations=integer(0), rep_num
 write.table(data.frame(barcodeID=character(0), occurrence=integer(0), rep_number=integer(0), thrs_size_comb=integer(0), barcode_number=integer(0), chemistry=integer(0), nb_lane=integer(0), mplex_level=integer(0), algorithm=character(0)),
             outputfile4 <- tempfile(), row.names = FALSE, col.names = T, quote=FALSE)
 
+# Define barcode set
+barcode_set = DNABarcodeCompatibility::IlluminaIndexes
+
+
 # Detect CPU number
 nb_cpu=parallel::detectCores()
 
@@ -1064,6 +1073,7 @@ if (F) {
 }
 
 
+
 # Detect CPU number
 nb_cpu=parallel::detectCores()
 
@@ -1071,7 +1081,7 @@ if (F) {
   system.time({
     for (i in L) {
       # Generate a large set of compatible combinations
-      index <- dplyr::sample_n(DNABarcodeCompatibility::IlluminaIndexes, nrow(DNABarcodeCompatibility::IlluminaIndexes), replace = FALSE)
+      index <- dplyr::sample_n(barcode_set, nrow(barcode_set), replace = FALSE)
       for (j in N) {
         for (k in C) {
           for (algo in algorithm) {
@@ -1083,7 +1093,7 @@ if (F) {
             while (nrow(combination_m) < max(nb_lane) && inc<10) {
               print("nrow(combination_m) might be too small")
               print("other trial...")
-              index <- dplyr::sample_n(DNABarcodeCompatibility::IlluminaIndexes, nrow(DNABarcodeCompatibility::IlluminaIndexes), replace = FALSE)
+              index <- dplyr::sample_n(barcode_set, nrow(barcode_set), replace = FALSE)
               combination_m <- DNABarcodeCompatibility::get_all_combinations(index_df = index[1:i,], mplex_level = j, chemistry = k)
               inc=inc+1
               print(inc)
@@ -1589,7 +1599,7 @@ ggtitle(paste0("Barcode occurences from a random set of compatible combinations 
 
 ## Generating a barcode set with the `DNABarcodes` package from Tilo Buschmann
 
-We use the `DNABarcodes` package from Tilo Buschmann to generate a new set of 6-mer barcodes, which are robust against at least one substitution error (Hamming distance of 3). In addition, barcodes including stretches of 3 or more nucleotides (homopolymer of length >=3) are discarded as well as those that have an unbalanced ratio of bases G or C versus A or T. We then exclude barcodes that are present both in the Illumina TruSeq small RNA kits and in the newly generated set.
+We use the `DNABarcodes` package from Tilo Buschmann to generate a new set of 6-mer barcodes, which are robust against at least one substitution error (Hamming distance of 3). In addition, barcodes including stretches of 4 or more nucleotides (homopolymer of length >3) are discarded as well as those that have an unbalanced ratio of bases G or C versus A or T. We then exclude barcodes that are present both in the Illumina TruSeq small RNA kits and in the newly generated set.
 
 ```{r echo = TRUE, warning=FALSE}
 library("DNABarcodes")
@@ -1597,7 +1607,9 @@ newBarcodesRaw <- create.dnabarcodes(n=6, dist=3, metric = "hamming", filter.tri
 
 newBarcodes <- newBarcodesRaw[!(newBarcodesRaw %in% DNABarcodeCompatibility::IlluminaIndexes$sequence)]
 
-ranBarcodeSet <- data.frame(Id=paste0("B",sprintf("%02d",1:length(newBarcodes))), sequence=newBarcodes, GC_content=50, homopolymer=FALSE, stringsAsFactors = F)[1:48,]
+newBarcodeSet <- data.frame(Id=paste0("B",sprintf("%02d",1:length(newBarcodes))), sequence=newBarcodes, GC_content=50, homopolymer=FALSE, stringsAsFactors = F)[1:48,]
+
+newBarcodeSet[,1:2]
 ```
 
 ## Set parameters for the simulation
@@ -1650,7 +1662,7 @@ write.table(data.frame(rep_number=integer(0), time=numeric(0), nb_total_combinat
 
 # Define Illumina TruSeq small RNA barcode set
 inputfile <- tempfile()
-save(ranBarcodeSet, file=inputfile)
+save(newBarcodeSet, file=inputfile)
 
 
 # Detect CPU number
@@ -1755,7 +1767,7 @@ results2 %>% group_by(mplex_level, barcode_number, chemistry) %>%
   facet_grid(~channel) +
   xlab("Total number of combinations [log scale]")+
   ylab("Number of compatible combinations [log scale]")+
-  ggtitle(paste("Number of compatible combinations in the Illumina TruSeq small RNA kits"))
+  ggtitle(paste("Number of compatible combinations"))
 
 
 ```
