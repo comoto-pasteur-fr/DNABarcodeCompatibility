@@ -49,7 +49,7 @@
 #' @export
 #' 
 
-optimize_combinations = function (combination_m, nb_lane, index_number, thrs_size_comb=120, max_iteration=200, method="greedy_exchange"){
+optimize_combinations = function (combination_m, nb_lane, index_number, thrs_size_comb=120, max_iteration=15, method="greedy_exchange"){
   # browser()
   if (nrow(as.matrix(combination_m)) == 0){
     display_message("No combinations have been found")
