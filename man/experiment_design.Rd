@@ -23,6 +23,12 @@ experiment_design(file1, sample_number, mplex_level, chemistry = 4,
 \item{metric}{The type of distance (hamming or seqlev).}
 
 \item{d}{The minimum value of the distance.}
+
+\item{thrs_size_comb}{The maximum size of the set of compatible combinations to be used for the greedy optimization.}
+
+\item{max_iteration}{The maximum number of iterations during the optimizing step.}
+
+\item{method}{The choice of the greedy search: 'greedy_exchange' or 'greedy_descent'.}
 }
 \value{
 A dataframe containing compatible DNA-barcode combinations organized by lanes of the flow cell.

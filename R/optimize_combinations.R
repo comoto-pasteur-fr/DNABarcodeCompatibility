@@ -10,6 +10,9 @@
 #' @param combination_m A matrix of compatible barcode combinations.
 #' @param nb_lane The number of lanes to be use for sequencing (i.e. the number of libraries divided by the multiplex level).
 #' @param index_number The total number of distinct DNA barcodes in the dataset.
+#' @param thrs_size_comb The maximum size of the set of compatible combinations to be used for the greedy optimization.
+#' @param max_iteration The maximum number of iterations during the optimizing step.
+#' @param method The choice of the greedy search: 'greedy_exchange' or 'greedy_descent'.
 #'
 #' @details 
 #' N/k compatible combinations are then selected using a Shannon entropy maximization approach.
@@ -49,7 +52,7 @@
 #' @export
 #' 
 
-optimize_combinations = function (combination_m, nb_lane, index_number, thrs_size_comb=120, max_iteration=15, method="greedy_exchange"){
+optimize_combinations = function (combination_m, nb_lane, index_number, thrs_size_comb=120, max_iteration=50, method="greedy_exchange"){
   # browser()
   if (nrow(as.matrix(combination_m)) == 0){
     display_message("No combinations have been found")
@@ -58,7 +61,7 @@ optimize_combinations = function (combination_m, nb_lane, index_number, thrs_siz
       if (is.numeric(nb_lane)){
         
         max = entropy_max(index_number, ncol(combination_m) * nb_lane)
-        print(paste("Theoretical max entropy:",round(max, 3)))
+        print(paste("Theoretical max entropy:",round(max, 5)))
         
         if(nb_lane < nrow(combination_m)){
           if (nrow(combination_m) > thrs_size_comb){ 
@@ -111,7 +114,7 @@ optimize_combinations = function (combination_m, nb_lane, index_number, thrs_siz
           a_combination = a_combination[sample(1:nrow(a_combination),nrow(a_combination)),]
         }
         
-        print(paste("Entropy of the optimized set:", round(entropy_result(a_combination),3)))
+        print(paste("Entropy of the optimized set:", round(entropy_result(a_combination),5)))
         return(a_combination)
         
       } else {

@@ -739,7 +739,7 @@ recursive_entropy = function(combination_m, nb_lane, method="greedy_exchange"){
 
  
 # gets the result
-get_result = function (index_df,sample_number, mplex_level, chemistry, metric = NULL, d = 3){
+get_result = function (index_df,sample_number, mplex_level, chemistry, metric = NULL, d = 3, thrs_size_comb=120, max_iteration=50, method="greedy_exchange"){
   # browser()
   combinations_m = get_combinations(index_df, mplex_level, chemistry)
   if(!is.null(metric)){
@@ -747,7 +747,7 @@ get_result = function (index_df,sample_number, mplex_level, chemistry, metric = 
   }
   nb_lane = sample_number %>% as.numeric() / mplex_level %>% as.numeric()
   index_number = nrow(index_df)
-  cb = optimize_combinations(combinations_m, nb_lane, index_number) %>% as.data.frame()
+  cb = optimize_combinations(combinations_m, nb_lane, index_number, thrs_size_comb, max_iteration, method) %>% as.data.frame()
   result = data.frame(Id = as.vector(cb %>% t() %>% as.vector),
                       Lane = (rep(1:nb_lane, length.out = sample_number, each = mplex_level)))
   result$Id = as.character(result$Id)
@@ -811,8 +811,8 @@ is_a_prime_number = function (sample_number){
 
     
  
-final_result = function(index_df, sample_number, mplex_level, chemistry, metric, d){
-  result1 = get_result(index_df, sample_number, mplex_level, chemistry, metric, d)
+final_result = function(index_df, sample_number, mplex_level, chemistry, metric, d, thrs_size_comb=120, max_iteration=50, method="greedy_exchange"){
+  result1 = get_result(index_df, sample_number, mplex_level, chemistry, metric, d, thrs_size_comb, max_iteration, method)
   result1 = data.frame(sample = 1: sample_number %>% as.character(),
                        Lane = result1$Lane %>% as.character(),
                        Id = result1$Id %>% as.character(),
@@ -823,9 +823,9 @@ final_result = function(index_df, sample_number, mplex_level, chemistry, metric,
 
     
  
-final_result_dual = function(index_df_1, index_df_2, sample_number, mplex_level, chemistry = 4, metric = NULL, d = 3){
-  result1 = get_result(index_df_1, sample_number, mplex_level, chemistry, metric, d)
-  result2 = get_result(index_df_2, sample_number, mplex_level, chemistry, metric, d)
+final_result_dual = function(index_df_1, index_df_2, sample_number, mplex_level, chemistry = 4, metric = NULL, d = 3, thrs_size_comb=120, max_iteration=50, method="greedy_exchange"){
+  result1 = get_result(index_df_1, sample_number, mplex_level, chemistry, metric, d, thrs_size_comb, max_iteration, method)
+  result2 = get_result(index_df_2, sample_number, mplex_level, chemistry, metric, d, thrs_size_comb, max_iteration, method)
   result2 = check_for_duplicate(result1, result2)
   
   result1 = left_join(result1, select(index_df_1, Id, sequence), by = "Id") 
