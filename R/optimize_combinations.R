@@ -5,7 +5,8 @@
 #' This function uses the Shannon Entropy to identify a set of compatible barcode combinations with least redundancy between DNA barcodes.
 #'
 #' @usage 
-#' optimize_combinations(combination_m, nb_lane, index_number, thrs_size_comb, max_iteration, method)
+#' optimize_combinations(combination_m, nb_lane, index_number,
+#'  thrs_size_comb, max_iteration, method)
 #'
 #' @param combination_m A matrix of compatible barcode combinations.
 #' @param nb_lane The number of lanes to be use for sequencing (i.e. the number of libraries divided by the multiplex level).
