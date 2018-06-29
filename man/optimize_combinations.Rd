@@ -4,7 +4,7 @@
 \alias{optimize_combinations}
 \title{Find a set of barcode combinations with least redundant barcodes}
 \usage{
-optimize_combinations(combination_m, nb_lane, index_number)
+optimize_combinations(combination_m, nb_lane, index_number, thrs_size_comb, max_iteration, method)
 }
 \arguments{
 \item{combination_m}{A matrix of compatible barcode combinations.}

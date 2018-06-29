@@ -5,7 +5,7 @@
 \title{Find a set of barcode combinations with least redundant barcodes for single and dual indexing}
 \usage{
 experiment_design(file1, sample_number, mplex_level, chemistry = 4,
- file2 = NULL, export = NULL, metric = NULL, d = 3)
+ file2 = NULL, export = NULL, metric = NULL, d = 3, thrs_size_comb, max_iteration, method)
 }
 \arguments{
 \item{file1}{The input data file that contains 2 columns separated by a space or a tabulation, namely the sequence identifiers and corresponding DNA sequence}

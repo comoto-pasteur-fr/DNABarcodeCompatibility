@@ -7,7 +7,7 @@
 #'
 #' @usage 
 #' experiment_design(file1, sample_number, mplex_level, chemistry = 4,
-#'  file2 = NULL, export = NULL, metric = NULL, d = 3)
+#'  file2 = NULL, export = NULL, metric = NULL, d = 3, thrs_size_comb, max_iteration, method)
 #'
 #' @param file1 The input data file that contains 2 columns separated by a space or a tabulation, namely the sequence identifiers and corresponding DNA sequence
 #' @param sample_number Number of libraries to be sequenced.
