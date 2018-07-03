@@ -1,0 +1,2226 @@
+---
+title: "Simulations"
+author: "Trébeau, Boutet de Monvel, et al., Etournay."
+date: "`r format(Sys.Date(), '%m/%d/%Y')`"
+output:
+  html_document:
+    fig_caption: yes
+    keep_md: yes
+    number_sections: yes
+    toc: yes
+    toc_depth: 5
+  BiocStyle::pdf_document:
+    toc: yes
+    toc_depth: '3'
+editor_options:
+  chunk_output_type: console
+---
+<style>
+body {
+text-align: justify}
+</style>
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+options(width=120)
+# options(digits=3)
+
+SCRIPT_DIR=file.path(Sys.getenv("HOME"),"DNABarcodeCompatibility/vignettes/")
+if (!file.exists(SCRIPT_DIR)) stop("Script directory not properly set up !")
+library("dplyr")
+library("ggplot2")
+library("DNABarcodeCompatibility")
+```
+
+```{r style, echo = FALSE, results = 'asis', warnings=FALSE, messages=FALSE, eval=F}
+BiocStyle::markdown()
+```
+
+# Introduction
+
+DNABarcodeCompatibility works in 2 steps:
+
+* Step1: finding compatible combinations of barcodes
+
+* Step2: optimizing the selection of compatible barcodes to minimize heterogeneity of barcode usage
+    + Step2a: optimization by a greedy search method without iteration
+    + Step2b: optimization by R repetitions of a greedy search method
+
+
+# Illumina barcode set from TruSeq small RNA kits
+## Finding compatible combinations of barcodes: simulations relative to Step1 of the workflow
+
+To find compatible combinations of DNA barcodes, one approach is to generate all possible combinations of DNA barcodes and perform an exhaustive search of compatible combinations.
+However, the total number of combinations may become prohibitively large for large barcode sets and large multiplexing numbers. Thus, an exhaustive search of compatible combinations among all possible combinations may not be possible and in fact is not usually useful for such large datasets. An alternative strategy is to choose a fixed number of randomly selected combinations for finding compatible combinations. To determine the conditions for which a random search is preferable over an exhaustive search, we consider the execution time of the program as a critical parameter. 
+
+
+## Analyzing barcode-set properties: set parameters for the simulations
+
+The execution time of the program depends on the size of the barcode dataset, the multiplex level and the Illumina chemistry used. We therefore test different values of these parameters to vizualise how they influence the execution time.
+
+```{r echo = FALSE, cache=F, results=F}
+
+R=10
+L = c(12,18,24,30,36,42,48)
+N = 2:5
+C = c(1,2,4)
+
+# R=2
+# L = c(12,18)
+# N = 2:5
+# C = c(2,4)
+
+print("CONDITIONS:")
+print("Barcode set size:")
+L
+print("Multiplex levels:")
+N 
+print("Chemistry:")
+C
+print("Number of simulations per condition:")
+R
+print(paste("Total number of simulations:",R*length(L)*length(N)*length(C)))
+
+```
+Table 2.1: parameters used in the simulations
+
+Number of simulations per condition | Barcode-set size | Multiplex level | Chemistry |
+------------------------------------|------------------|-----------------|-----------|
+`r R`                               |`r L`             | `r N`           | `r C`     |
+
+
+Number of simulations | |
+----------------------|-|
+`r R*length(L)*length(N)*length(C)`| |
+
+
+### Running simulations for exhaustive searches
+```{r echo = FALSE, cache=F}
+
+# Initialize output file1 (barcode occurrences)
+write.table(data.frame(barcodeID=character(0), occurrence=integer(0), rep_number=integer(0), mplex_level=integer(0), barcode_number=integer(0), chemistry=integer(0)),
+ outputfile1 <- tempfile(), row.names = FALSE, col.names = T, quote=FALSE)
+
+# Initialize output file2 (execution time)
+write.table(data.frame(rep_number=integer(0), time=numeric(0), nb_total_combinations=integer(0), nb_comp_combinations=integer(0), mplex_level=integer(0), barcode_number=integer(0), chemistry=integer(0)),
+ outputfile2 <- tempfile(), row.names = FALSE, col.names = T, quote=FALSE)
+
+# Define Illumina TruSeq small RNA barcode set
+inputfile <- tempfile()
+df <- DNABarcodeCompatibility::IlluminaIndexes
+save(df, file=inputfile)
+
+# Detect CPU number
+nb_cpu=parallel::detectCores()
+
+if (F) {
+  # Run simulation using GNU parallel (Windows users need cygwin + Gnu parallel; MacOs: brew install parallel; Linux: apt-get install parallel)
+  print(paste("Running", R*length(L)*length(N)*length(C) ,"simulations..."))
+  system.time({
+    system(paste0("parallel -j",nb_cpu," Rscript ",SCRIPT_DIR,"sim_get_all_combinations.R {1} {2} {3} {4} {5} {6} {7} ::: ",paste(1:R, collapse=" ")," ::: ",paste(N, collapse=" ")," ::: ",paste(L, collapse=" ")," ::: ",paste(C, collapse=" "), " ::: ", paste(outputfile1, collapse=""), " ::: ", paste(outputfile2, collapse=""), " ::: ", paste(inputfile, collapse="")))
+  })
+  
+  barcodeFreq <- read.table(file=outputfile1, header = T, sep = " ", stringsAsFactors = FALSE)
+  save(barcodeFreq, file = paste0(SCRIPT_DIR,"barcodeFreq"))
+
+  results <- read.table(file=outputfile2, header = T, sep = " ", stringsAsFactors = FALSE)
+  save(results, file = paste0(SCRIPT_DIR,"results"))
+}
+
+
+# Import results
+barcodeFreq <- local(get(load(paste0(SCRIPT_DIR,"barcodeFreq"))))
+results <- local(get(load(paste0(SCRIPT_DIR,"results"))))
+
+```
+
+
+
+### Execution time of an exhaustive search as a function of the total number of combinations
+
+The execution time of an exhaustive search increases linearly with the total number ${n \choose k}$ of combinations. The constant of proportionality corresponds to the average computation time required to check compatibility of a given combination. This time is slighty faster for the 4-channel chemistry. 
+For the ease of use, we fix to a few seconds the time of execution. On a standard computer, this corresponds to an exhaustive search among 2000 combinations for the 4-channel chemistry.
+Above 2000 combinations, the program will perform a search of compatible barcodes from a randomly generated set of barcode combinations. Other important aspects also motivate this choice (see below).
+
+
+```{r echo = FALSE, fig.width=11, fig.wide=T}
+results %>% group_by(mplex_level, barcode_number, chemistry) %>%
+  summarise(time.avg=mean(time), time.sd=sd(time), nb_total_combinations=nb_total_combinations[1], nb_comp_combinations.avg=mean(nb_comp_combinations)) %>%
+  ungroup() %>% mutate(mplex_level=as.factor(mplex_level),
+                       channel=paste0(chemistry, "-channel")) %>%
+ggplot(aes( x = nb_total_combinations, y = time.avg))+
+  geom_point()+
+  geom_errorbar(aes(ymin=(time.avg-time.sd), ymax=(time.avg+time.sd)),
+                size=0.7,color="black") +
+  scale_x_log10(breaks= c(10, 10^2, 10^3, 10^4, 10^5, 10^6, 10^7), labels=scales::scientific) +
+  scale_y_log10(breaks = c(1, 2, 5, 10,30,90,200, 1200, 3600, 5000))+
+  geom_hline(yintercept=30, linetype="dashed", color = "red")+
+  geom_hline(yintercept=10, linetype="dashed", color = "red")+
+  geom_hline(yintercept=2, linetype="dashed", color = "red")+
+  geom_smooth(method = "lm", se = FALSE)+
+  facet_grid(~channel) +
+  ggtitle(paste("Execution time for increasing number of combinations ( average over", R,"simulations )"))+
+  xlab("Total number of combinations")+
+  ylab("Execution time [s]")
+```
+
+
+### Execution time of an exhaustive search as a function of the barcode-set size
+
+The total number of combinations (compatible or not) is given by the binomial coefficient ${n \choose k}$ where $n$ is the number of barcodes in the dataset, referred to as the barcode-set size, and $k$ is the mutliplex level (where $n$ and $k$ being positive integers).
+We now plot the execution time as function of the barcode-set size for various multiplex levels. This reveals that the execution time is less than 2 seconds for a multiplex level of 2 with the 48-barcode Illumina small RNA TruSep kits.
+Therefore, in these conditions, it is advantageous to perform an exhaustive search of compatible combinations for a multiplex level of 2. For a multiplex level of 4 or higher, the program will typically perform a search of compatible barcodes from a randomly generated set of barcode combinations.
+
+
+```{r echo = FALSE, fig.width=11}
+results %>% group_by(mplex_level, barcode_number, chemistry) %>%
+  # filter(chemistry > 1) %>%
+  summarise(time.avg=mean(time), time.sd=sd(time), nb_total_combinations=nb_total_combinations[1], nb_comp_combinations.avg=mean(nb_comp_combinations)) %>%
+  ungroup() %>% mutate(mplex_level=as.factor(mplex_level),
+                       channel=paste0(chemistry, "-channel")) %>%
+ggplot(aes( x = barcode_number, y = time.avg, color = mplex_level))+
+  geom_point()+
+  geom_errorbar(aes(ymin=(time.avg-time.sd), ymax=(time.avg+time.sd)),
+                size=0.3,color="black") +
+  scale_x_log10(breaks=L) +
+  scale_y_log10(breaks = c(1, 2,5, 10,30,90,200,1000,5000))+
+  geom_hline(yintercept=30, linetype="dashed", color = "red")+
+  geom_hline(yintercept=10, linetype="dashed", color = "red")+
+  geom_hline(yintercept=2, linetype="dashed", color = "red")+
+  geom_smooth(method = "lm", se = FALSE)+
+  facet_grid(~channel) +
+  ggtitle(paste("Execution time by multiplex levels ( average over", R,"simulations )"))+
+  xlab("Barcode set size")+
+  ylab("Execution time [s]")
+
+
+```
+
+
+### Probability to find compatible barcodes in the total ensemble of combinations
+
+* The fraction of compatible combinations among the total set of ${n \choose k}$ possible combinations show high variability for small randomly-selected barcode sets 
+
+Note that the probability that a randomly chosen combination of $k$ barcodes among $n$, which are themselves chosen randomly among the 48 barcodes of the Illumina set, is independent of $n$, consistent with the observations. This probability is moreover fairly independent on the chemistry for this particular barcode set.
+
+```{r echo = FALSE, warning=FALSE, fig.width=11}
+results %>% group_by(mplex_level, barcode_number, chemistry) %>%
+  filter(chemistry > 0) %>% filter(mplex_level==3) %>%
+  summarise(time.avg=mean(time), time.sd=sd(time), nb_total_combinations=nb_total_combinations[1], nb_comp_combinations.avg=mean(nb_comp_combinations), nb_comp_combinations.sd=sd(nb_comp_combinations)) %>%
+  ungroup() %>% mutate(mplex_level=as.factor(mplex_level),
+                       channel=paste0(chemistry, "-channel"),
+                       comp_comb_prop.avg= nb_comp_combinations.avg/nb_total_combinations,
+                       comp_comb_prop.sd= nb_comp_combinations.sd/nb_total_combinations,
+                       barcode_number=as.factor(barcode_number)) %>%
+  ggplot(aes(x=barcode_number,y=comp_comb_prop.avg, fill = mplex_level))+
+  geom_histogram(stat = "identity")+
+  geom_errorbar(aes(ymin=(comp_comb_prop.avg-comp_comb_prop.sd), ymax=(comp_comb_prop.avg+comp_comb_prop.sd)),
+                size=0.3,color="black") +
+  theme(axis.text.x=element_text(angle=45, hjust=1, vjust=1))+
+  facet_grid(~channel) +
+  scale_fill_manual(values = c("darkgrey")) + 
+  # scale_y_continuous(breaks=seq(0, 1, 0.2), limit=c(0, 1)) +
+  xlab("Barcode set size")+
+  ylab("Proportion of compatible combinations")+
+ggtitle(paste("Average fraction of compatible combinations ( average over", R,"simulations )"))
+
+
+```
+
+
+* The probability to find compatible combinations increases with the multiplex level
+
+
+```{r echo = FALSE, warning=FALSE, fig.width=11}
+results %>% group_by(mplex_level, barcode_number, chemistry) %>%
+  filter(chemistry > 0) %>%
+  summarise(nb_total_combinations=nb_total_combinations[1], nb_comp_combinations=mean(nb_comp_combinations), comp_comb_prop=nb_comp_combinations/nb_total_combinations) %>%
+  group_by(mplex_level, chemistry) %>% 
+  summarize(comp_comb_prop.avg= mean(comp_comb_prop),
+            comp_comb_prop.sd= sd(comp_comb_prop)) %>% ungroup() %>%
+  mutate(mplex_level=as.factor(mplex_level),
+         channel=paste0(chemistry, "-channel")) %>%
+  ggplot(aes(x=mplex_level,y=comp_comb_prop.avg, fill = mplex_level))+
+  geom_histogram(stat = "identity")+
+  geom_errorbar(aes(ymin=(comp_comb_prop.avg-comp_comb_prop.sd), ymax=(comp_comb_prop.avg+comp_comb_prop.sd)),
+  size=0.3,color="black") +
+  # theme(axis.text.x=element_text(angle=45, hjust=1, vjust=1))+
+  facet_grid(~channel) +
+  scale_y_continuous(breaks=seq(0, 1, 0.2), limit=c(0, 1)) +
+  xlab("Multiplex level")+
+  ylab("Proportion of compatible combinations")+
+  ggtitle(paste("Probability to find compatible combinations ( average over", R,"simulations and barcode-set size )"))
+
+
+```
+
+* Relationship between the number of compatibles combinations and the total number of combinations 
+
+For a multiplex level of 2, the number of compatible combinations is less than 100 for the combined Illumina TruSeq small RNA kits. Therefore, for a multiplex level of 2, an exhaustive search is preferable to retrieve all possible compatible combinations of barcodes for the optimization steps. We fix to 2024 the total number of combinations beyond which a random search of compatible combinations is performed much faster (see dashed line in the graph below). This number is motivated by two reasons. Below this threshold, an exhaustive search will be systematically performed for a multiplex level of 2 (less than 2024 combinations in total). Above this threshold, a random search will provide enough compatible combinations for futher optimization steps. Indeed, the above results indicate that the probability to get a compatible combination is at least 18% for multiplex levels >= 3. Briefly, the random search will randomly pick up an arbitrarily fixed number of 1000 combinations representing a pool of at least 180 compatible combinations, which is enough for the further optimization steps to be efficient (see below). Thus, the `DNABarcodeCompatibility::experiment_design()` function of the package will use a threshold of 2024 combinations in total to switch between an exhaustive search and a random search of compatible combinations.
+
+
+
+```{r echo = FALSE, warning=FALSE, fig.width=11}
+results %>% group_by(mplex_level, barcode_number, chemistry) %>%
+  filter(chemistry > 0) %>%
+  summarise(nb_total_combinations=nb_total_combinations[1], nb_comp_combinations.avg=mean(nb_comp_combinations),
+            nb_comp_combinations.sd=sd(nb_comp_combinations)) %>%
+  ungroup() %>%
+  mutate(mplex_level=as.factor(mplex_level),
+         channel=paste0(chemistry, "-channel")) %>%
+  ggplot(aes(x=nb_total_combinations,y=nb_comp_combinations.avg, color = mplex_level, size=barcode_number))+
+  geom_point()+ geom_smooth(method= "lm", se=F) +
+  geom_vline(xintercept=2024, linetype="dashed", color = "red")+
+  scale_x_log10(breaks=c(10,100,2024,10^4,10^5, 10^6), labels = scales::comma) +
+  scale_y_log10(breaks=c(5,10,100,1000,10^4,10^5, 10^6), labels = scales::comma) +
+  scale_size_continuous(name = "Barcode-set size", breaks=unique(results$barcode_number)) +
+  facet_grid(~channel) +
+  xlab("Total number of combinations [log scale]")+
+  ylab("Number of compatible combinations [log scale]")+
+  ggtitle(paste("Number of compatible combinations in the Illumina TruSeq small RNA kits"))
+
+
+```
+
+### Compatible barcode combinations: average barcode frequencies among input barcode sets
+
+The frequencies of the various barcodes appearing in the compatible combinations generated above may be highly heterogeneous for small multiplex levels. 
+We plot here the distribution of barcodes averaged over the different barcode sets, for distinct chemistries and multiplex levels.
+Despite the averaging of the distibutions over different barcode sets of different sizes, the heterogeneity between barcode frequencies is clearly apparent.
+
+* 4-channel chemistry
+
+```{r echo = FALSE, warning=FALSE, fig.width=11}
+if (4 %in% barcodeFreq$chemistry) {
+  barcodeFreq %>% filter(chemistry == 4) %>% 
+    group_by(mplex_level, chemistry, barcode_number) %>%
+    mutate(sum_barcodes=sum(occurrence)) %>%
+    group_by(barcodeID, mplex_level, chemistry, barcode_number) %>%
+    summarise(freq=sum(occurrence)/sum_barcodes[1]) %>% 
+    group_by(barcodeID, mplex_level, chemistry) %>%
+    summarize(freq.avg=mean(freq), freq.sd=sd(freq)) %>% ungroup() %>%
+    mutate(channel=paste0(chemistry, "-channel"),
+           mplex_level=as.factor(mplex_level)) %>%
+    ggplot(aes(x=barcodeID,y=freq.avg, fill=mplex_level))+
+    geom_histogram(stat = "identity")+
+    geom_errorbar(aes(ymin=(freq.avg-freq.sd), ymax=(freq.avg+freq.sd)),
+                  size=0.7,color="black") +
+    theme(axis.text.x=element_text(angle=90, hjust=1, vjust=1))+
+    scale_y_continuous(breaks=seq(0, 0.18, 0.04), limit=c(0, 0.18)) +
+    facet_grid(mplex_level~channel) +
+    xlab("BarcodeID")+
+    ylab("Barcodes frequency")+
+    ggtitle(paste("Barcode frequency averaged over barcode sets (4-channel chemistry)"))
+}
+```
+
+* 2-channel chemistry
+
+```{r echo = FALSE, warning=FALSE, fig.width=11}
+if (2 %in% barcodeFreq$chemistry) {
+  barcodeFreq %>% filter(chemistry == 2) %>% 
+    group_by(mplex_level, chemistry, barcode_number) %>%
+    mutate(sum_barcodes=sum(occurrence)) %>%
+    group_by(barcodeID, mplex_level, chemistry, barcode_number) %>%
+    summarise(freq=sum(occurrence)/sum_barcodes[1]) %>% 
+    group_by(barcodeID, mplex_level, chemistry) %>%
+    summarize(freq.avg=mean(freq), freq.sd=sd(freq)) %>% ungroup() %>%
+    mutate(channel=paste0(chemistry, "-channel"),
+           mplex_level=as.factor(mplex_level)) %>%
+    ggplot(aes(x=barcodeID,y=freq.avg, fill=mplex_level))+
+    geom_histogram(stat = "identity")+
+    geom_errorbar(aes(ymin=(freq.avg-freq.sd), ymax=(freq.avg+freq.sd)),
+                  size=0.7,color="black") +
+    theme(axis.text.x=element_text(angle=90, hjust=1, vjust=1))+
+    scale_y_continuous(breaks=seq(0, 0.18, 0.04), limit=c(0, 0.18)) +
+    facet_grid(mplex_level~channel) +
+    xlab("BarcodeID")+
+    ylab("Barcodes frequency")+
+    ggtitle(paste("Barcode frequency averaged over barcode sets (2-channel chemistry)"))
+}
+```
+
+* 1-channel chemistry
+
+```{r echo = FALSE, warning=FALSE, fig.width=11}
+if (1 %in% barcodeFreq$chemistry) {
+  barcodeFreq %>% filter(chemistry == 1) %>% 
+    group_by(mplex_level, chemistry, barcode_number) %>%
+    mutate(sum_barcodes=sum(occurrence)) %>%
+    group_by(barcodeID, mplex_level, chemistry, barcode_number) %>%
+    summarise(freq=sum(occurrence)/sum_barcodes[1]) %>% 
+    group_by(barcodeID, mplex_level, chemistry) %>%
+    summarize(freq.avg=mean(freq), freq.sd=sd(freq)) %>% ungroup() %>%
+    mutate(channel=paste0(chemistry, "-channel"),
+           mplex_level=as.factor(mplex_level)) %>%
+    ggplot(aes(x=barcodeID,y=freq.avg, fill=mplex_level))+
+    geom_histogram(stat = "identity")+
+    geom_errorbar(aes(ymin=(freq.avg-freq.sd), ymax=(freq.avg+freq.sd)),
+                  size=0.7,color="black") +
+    theme(axis.text.x=element_text(angle=90, hjust=1, vjust=1))+
+    scale_y_continuous(breaks=seq(0, 0.18, 0.04), limit=c(0, 0.18)) +
+    facet_grid(mplex_level~channel) +
+    xlab("BarcodeID")+
+    ylab("Barcodes frequency")+
+    ggtitle(paste("Barcode frequency averaged over barcode sets (1-channel chemistry)"))
+}
+
+```
+
+### Compatible barcode combinations: single examples
+
+Individual sets of 12 barcodes were randomly generated from the four Illumina TruSeq small RNA kits comprising 48 barcodes in total. We see that barcode frequencies can be very heterogeneous even for multiplex levels of 4 or 5. Therefore, without further optimization, consumable usage may be strongly biased among preparation kits.
+
+* 4-channel chemistry, multiplex level 4, barcode-set size 12
+
+```{r echo = FALSE, warning=FALSE, fig.width=8}
+chem=4
+mpl=4
+bcnb=12
+repnb=3
+
+nb_comp_combinations <- (results %>% filter(chemistry == chem) %>% 
+   filter(mplex_level==mpl) %>%
+   filter(barcode_number==bcnb) %>%
+   filter(rep_number==repnb))$nb_comp_combinations
+
+barcodeFreq %>% filter(chemistry == chem) %>% 
+  filter(mplex_level==mpl) %>%
+  filter(barcode_number==bcnb) %>%
+  filter(rep_number==repnb) %>%
+  mutate(channel=paste0(chemistry, "-channel"),
+         mplex_level=paste("mutiplex level",mplex_level)) %>%
+  ggplot(aes(x=barcodeID,y=occurrence, fill=mplex_level))+
+  geom_histogram(stat = "identity", fill= "darkgrey")+
+  theme(axis.text.x=element_text(angle=90, hjust=1, vjust=1))+
+  facet_grid(mplex_level~channel) +
+  xlab("BarcodeID")+
+  ylab("Barcode occurrences")+
+ggtitle(paste("Barcode occurences among",nb_comp_combinations,"compatible barcode combinations (",chem,"- channel )"))
+```
+
+* 4-channel chemistry, multiplex level 5, barcode-set size 12
+
+```{r echo = FALSE, warning=FALSE, fig.width=8}
+chem=4
+mpl=5
+bcnb=12
+repnb=3
+
+nb_comp_combinations <- (results %>% filter(chemistry == chem) %>% 
+   filter(mplex_level==mpl) %>%
+   filter(barcode_number==bcnb) %>%
+   filter(rep_number==repnb))$nb_comp_combinations
+
+barcodeFreq %>% filter(chemistry == chem) %>% 
+  filter(mplex_level==mpl) %>%
+  filter(barcode_number==bcnb) %>%
+  filter(rep_number==repnb) %>%
+  mutate(channel=paste0(chemistry, "-channel"),
+         mplex_level=paste("mutiplex level",mplex_level)) %>%
+  ggplot(aes(x=barcodeID,y=occurrence, fill=mplex_level))+
+  geom_histogram(stat = "identity", fill= "darkgrey")+
+  theme(axis.text.x=element_text(angle=90, hjust=1, vjust=1))+
+  facet_grid(mplex_level~channel) +
+  xlab("BarcodeID")+
+  ylab("Barcode occurences")+
+ggtitle(paste("Barcode occurences among",nb_comp_combinations,"compatible barcode combinations (",chem,"- channel )"))
+```
+
+
+* 2-channel chemistry, multiplex level 4, barcode-set size 12
+
+```{r echo = FALSE, warning=FALSE, fig.width=8}
+chem=2
+mpl=4
+bcnb=12
+repnb=3
+
+nb_comp_combinations <- (results %>% filter(chemistry == chem) %>% 
+   filter(mplex_level==mpl) %>%
+   filter(barcode_number==bcnb) %>%
+   filter(rep_number==repnb))$nb_comp_combinations
+
+barcodeFreq %>% filter(chemistry == chem) %>% 
+  filter(mplex_level==mpl) %>%
+  filter(barcode_number==bcnb) %>%
+  filter(rep_number==repnb) %>%
+  mutate(channel=paste0(chemistry, "-channel"),
+         mplex_level=paste("mutiplex level",mplex_level)) %>%
+  ggplot(aes(x=barcodeID,y=occurrence, fill=mplex_level))+
+  geom_histogram(stat = "identity", fill= "darkgrey")+
+  theme(axis.text.x=element_text(angle=90, hjust=1, vjust=1))+
+  facet_grid(mplex_level~channel) +
+  xlab("BarcodeID")+
+  ylab("Barcode occurences")+
+ggtitle(paste("Barcode occurences among",nb_comp_combinations,"compatible barcode combinations (",chem,"- channel )"))
+```
+
+
+
+## Optimizing combinations: set parameters for simulations relative to Step2 of the workflow
+
+* Step2: optimize the set of compatible barcodes to minimize the heterogeneity of barcode frequencies
+
+The goal here is to estimate the probability to get an optimal solution, in the sense of a maximum entropy solution, and to test how the optimizer improves the solution compared with a random pick. 
+
+We compare the greedy search algorithms implemented in the DNABarcodeCompatibility R-package: the greedy descent and the greedy exchange algorithms (described in supplementary file S2). We use different subsets of randomly-generated compatible combinations, and for each of those we perform 100 simulations with both algorithms, in order to estimate the probability $P_{1}$ to get an optimal solution. This optimal solution consists of a selection of compatible barcode combinations in which the barcode distribution is close to uniform. The number of barcode appearing in the optimal solution is the product of the multiplex level by the number of lanes, which defines the number of libraries to be sequenced.
+
+Based on this probability $P_{1}$, we devise an optimizer function that performs $R$ trials of the greedy search. The probability to get an optimal solution after $R$ iterations reads $P_{R} = 1-(1-P_{1})^R$. For example, if we want to find an optimal solution at least 95% of cases $(P_{R} = 0.95)$, we need a number of iterations $R \geq log(1-P_{R})/log(1-P_{1})$.  
+
+
+* We therefore run two series of simulations:
+
+**Step2a:** find the probability $P_{1}$ of to get an optimal combination given the subset size, and estimate $R$ for $P_{R} \geq 0.95$, in order to refine the optimization in a reasonable computation time.
+
+
+**Step2b:** check the efficacy of the optimizer function on a few challenging examples
+
+
+### Step2a: table of parameters for the simulations
+
+
+```{r echo = FALSE, results=F}
+R=100
+L = c(12,18,24,30)
+N = 2:5
+C = c(2,4)
+thrs_size_comb_for_GD=c(seq(10,50,5),seq(60,100, 10))
+thrs_size_comb_for_GE=c(seq(10,50,5),seq(60,100, 10), seq(150,300,50), 400)
+max_iteration = 0
+nb_lane=c(4,6,8)
+algorithm= c("greedy_exchange", "greedy_descent")
+
+# R=20
+# L = c(18)
+# N = 4
+# C = c(4)
+# thrs_size_comb_for_GD=c(60)
+# thrs_size_comb_for_GE=c(160)
+# max_iteration = 0
+# nb_lane=c(4)
+# algorithm= c("greedy_exchange", "greedy_descent")
+
+
+print("CONDITIONS:")
+print("Barcode set size:")
+N
+print("Multiplex levels:")
+L 
+print("Chemistry:")
+C
+print("Number of simulations per greedy-descent search:")
+R
+print("Size of compatible combinations set used for greedy-descent:")
+thrs_size_comb_for_GD
+
+print("Size of compatible combinations set used for greedy-exchanges:")
+thrs_size_comb_for_GE
+
+print("Number of iterations for the greedy-descent:")
+max_iteration
+
+print("Number of lanes:")
+nb_lane
+
+print("Total number of combinations:")
+choose(L,N)
+
+print("Optimizer algorithms")
+algorithm
+
+print(paste("Number of conditions:",R*length(L)*length(N)*length(C)*(length(thrs_size_comb_for_GD)+length(thrs_size_comb_for_GE))*length(nb_lane)))
+
+```
+Table 2.3.1
+
+Number of simulations per condition | Barcode-set size | Multiplex level | Chemistry | Lane number | Algorithm | Compatible combinations (GD) | Compatible combinations (GE) |
+------------------------------------|------------------|-----------------|-----------|----------------|--------------|---------------------------|---------------------------|
+`r R`                               |`r L`             | `r N`           | `r C`     | `r nb_lane`    | `r algorithm`| `r thrs_size_comb_for_GD` | `r thrs_size_comb_for_GE` |
+
+
+Number of simulations | |
+----------------------|-|
+`r R*length(L)*length(N)*length(C)*(length(thrs_size_comb_for_GD)+length(thrs_size_comb_for_GE))*length(nb_lane)`| |
+
+
+#### Running simulations for step2a (without iteration)
+
+
+```{r echo = FALSE, cache=F}
+
+# Initialize output file1 (barcode occurrence from random pic)
+write.table(data.frame(barcodeID=character(0), occurrence=integer(0), rep_number=integer(0), thrs_size_comb=integer(0), barcode_number=integer(0), chemistry=integer(0), nb_lane=integer(0), mplex_level=integer(0), algorithm=character(0)),
+            outputfile1 <- tempfile(), row.names = FALSE, col.names = T, quote=FALSE)
+
+# Initialize output file2 (barcode occurrence from optimized set)
+write.table(data.frame(barcodeID=character(0), occurrence=integer(0), rep_number=integer(0), thrs_size_comb=integer(0), barcode_number=integer(0), chemistry=integer(0), nb_lane=integer(0), mplex_level=integer(0), algorithm=character(0)),
+            outputfile2 <- tempfile(), row.names = FALSE, col.names = T, quote=FALSE)
+
+# Initialize output file3 (calcul of proba to get an optimal solution)
+write.table(data.frame(time=numeric(0), nb_comp_combinations=integer(0), rep_number=integer(0), barcode_number=integer(0), thrs_size_comb=integer(0), S_max=numeric(0), S_init=numeric(0), S_random=numeric(0), S_opt=numeric(0), S_random_opt=numeric(0), chemistry=integer(0), nb_lane=integer(0), mplex_level=integer(0), algorithm=character(0)),
+            outputfile3 <- tempfile(), row.names = FALSE, col.names = T, quote=FALSE)
+
+# Initialize output file4 (barcode occurrence from optimized set based on random picks)
+write.table(data.frame(barcodeID=character(0), occurrence=integer(0), rep_number=integer(0), thrs_size_comb=integer(0), barcode_number=integer(0), chemistry=integer(0), nb_lane=integer(0), mplex_level=integer(0), algorithm=character(0)),
+            outputfile4 <- tempfile(), row.names = FALSE, col.names = T, quote=FALSE)
+
+
+# Define barcode set
+barcode_set = DNABarcodeCompatibility::IlluminaIndexes
+
+
+# Detect CPU number
+nb_cpu=parallel::detectCores()
+
+if (F) {
+  system.time({
+    for (i in L) {
+      # Generate a large set of compatible combinations
+      index <- dplyr::sample_n(barcode_set, nrow(barcode_set), replace = FALSE)
+      for (j in N) {
+        for (k in C) {
+          for (algo in algorithm) {
+            
+            # Initialize input file with a matrix of all combinations
+            combination_m <- DNABarcodeCompatibility::get_all_combinations(index_df = index[1:i,], mplex_level = j, chemistry = k)
+            
+            inc=0
+            while (nrow(combination_m) < max(nb_lane) && inc<10) {
+              print("nrow(combination_m) might be too small")
+              print("other trial...")
+              index <- dplyr::sample_n(barcode_set, nrow(barcode_set), replace = FALSE)
+              combination_m <- DNABarcodeCompatibility::get_all_combinations(index_df = index[1:i,], mplex_level = j, chemistry = k)
+              inc=inc+1
+              print(inc)
+            }
+            if (nrow(combination_m)<max(nb_lane)) {warning("nrow(combination_m) might be too small")}
+            
+            inputfile <- tempfile()
+            save(combination_m, file=inputfile)
+            # save(combination_m, file="combination_m_4ch")
+            
+            # Run simulation using GNU parallel (Windows users need cygwin + Gnu parallel; MacOs: brew install parallel; Linux: apt-get install parallel)
+            if (algo == "greedy_descent") {
+              system(paste0("parallel -j",nb_cpu," Rscript ",SCRIPT_DIR,"sim_optimize_combinations.R {1} {2} {3} {4} {5} {6} {7} {8} {9} {10} {11} {12} {13} ::: ",paste(1:R, collapse=" ")," ::: ",paste(thrs_size_comb_for_GD, collapse=" ")," ::: " , paste(max_iteration, collapse=" "), " ::: ",paste(inputfile, collapse=""), " ::: ", paste(nb_lane, collapse=" "), " ::: ", paste(i, collapse=""), " ::: ", paste(k, collapse=""), " ::: ", paste(outputfile1, collapse=""), " ::: ", paste(outputfile2, collapse=""), " ::: ", paste(outputfile3, collapse=""), " ::: ", paste(outputfile4, collapse=""), " ::: ", paste(j, collapse=""), " ::: ", paste(algo, collapse=" ")))
+            } else if (algo == "greedy_exchange") {
+              system(paste0("parallel -j",nb_cpu," Rscript ",SCRIPT_DIR,"sim_optimize_combinations.R {1} {2} {3} {4} {5} {6} {7} {8} {9} {10} {11} {12} {13} ::: ",paste(1:R, collapse=" ")," ::: ",paste(thrs_size_comb_for_GE, collapse=" ")," ::: " , paste(max_iteration, collapse=" "), " ::: ",paste(inputfile, collapse=""), " ::: ", paste(nb_lane, collapse=" "), " ::: ", paste(i, collapse=""), " ::: ", paste(k, collapse=""), " ::: ", paste(outputfile1, collapse=""), " ::: ", paste(outputfile2, collapse=""), " ::: ", paste(outputfile3, collapse=""), " ::: ", paste(outputfile4, collapse=""), " ::: ", paste(j, collapse=""), " ::: ", paste(algo, collapse=" ")))
+            }
+          }
+        }
+      }
+    }
+    
+    sim1_barcodeStat_random <- read.table(file=outputfile1, header = T, sep = " ", stringsAsFactors = FALSE)
+    save(sim1_barcodeStat_random, file = paste0(SCRIPT_DIR,"sim1_barcodeStat_random"))
+    
+    sim1_barcodeStat_opt <- read.table(file=outputfile2, header = T, sep = " ", stringsAsFactors = FALSE)
+    save(sim1_barcodeStat_opt, file = paste0(SCRIPT_DIR,"sim1_barcodeStat_opt"))
+    
+    sim1_probaSmax <- read.table(file=outputfile3, header = T, sep = " ", stringsAsFactors = FALSE)
+    save(sim1_probaSmax, file = paste0(SCRIPT_DIR,"sim1_probaSmax"))
+    
+    sim1_barcodeStat_random_opt <- read.table(file=outputfile4, header = T, sep = " ", stringsAsFactors = FALSE)
+    save(sim1_barcodeStat_random_opt, file = paste0(SCRIPT_DIR,"sim1_barcodeStat_random_opt"))
+  })
+}
+
+
+# Import results
+sim1_barcodeStat_random <- local(get(load(paste0(SCRIPT_DIR,"sim1_barcodeStat_random"))))
+sim1_barcodeStat_opt <- local(get(load(paste0(SCRIPT_DIR,"sim1_barcodeStat_opt"))))
+# sim1_barcodeStat_random_opt <- local(get(load(paste0(SCRIPT_DIR,"sim1_barcodeStat_random_opt"))))
+sim1_probaSmax <- local(get(load(paste0(SCRIPT_DIR,"sim1_probaSmax"))))
+```
+
+
+
+```{r echo = FALSE, fig.width=11, eval=F}
+for (i in thrs_size_comb){
+  # for (j in barcode_number) {
+    stat <- sim1_probaSmax %>% filter(thrs_size_comb==i) %>%
+      select(-c(rep_number,barcode_number,thrs_size_comb,chemistry,nb_lane, mplex_level)) %>%
+      summary()
+    print(i)
+    print(stat)
+  # }
+}
+```
+#### Execution time of a single greedy search run for different sizes of compatible combination subsets
+
+We perform `r R` repetitions of the greedy search for the conditions (described in table 2.3.1 above). When the set of compatible combinations is large, the computation time, required to run these greedy algorithms on the full set of compatible combinations generated in step1, may become prohibitively large. To reduce the computation time, we apply the greedy search on a randomly generated subset of compatible combinations of a size comprized between `r min(L)` and `r max(L)`. Here, we want to know how the size of the subset influences the computation time for each of the greedy search algorithm.
+
+We averaged the execution time over `r R` replicates of different combinations of conditions of chemistry, barcode-set size, number of lanes, and multiplex level. Part of the variability observed for the execution time comes from the diversity of conditions that may substantially influence the execution time.
+
+The graph below indicates that the running time of the greedy-descent algorithm is quadratic as a function of the barcode-set size, which is expected, since the number of operations required to complete this algorithm on a set of $N_{comp}$ compatible combinations is $\mathcal{O}(N_{comp}^2)$. In contrats, the computation time of the greedy-exchange algorithm is linear ($\mathcal{O}(N_{comp})$).
+
+```{r echo = FALSE,  warning=FALSE, message=F}
+# In linear coordinates
+sim1_probaSmax %>% group_by(chemistry, barcode_number, mplex_level, nb_lane, algorithm) %>%
+  filter(thrs_size_comb<nb_comp_combinations) %>%
+  group_by(algorithm, thrs_size_comb) %>%
+  summarise(time.avg=mean(time), time.sd=sd(time), nb_comp_combinations=nb_comp_combinations[1]) %>%
+  ungroup() %>% 
+ggplot(aes( x = thrs_size_comb, y = time.avg, color=algorithm)) +
+  geom_point() + geom_line() + geom_smooth() +
+  geom_errorbar(aes(ymin=(time.avg-time.sd), ymax=(time.avg+time.sd)),
+                color="black") +
+   scale_color_manual("Algorithm",
+                       breaks = c("greedy_descent", "greedy_exchange"),
+                       values = c("blue", "red")) +
+  # geom_smooth(method = "lm", se = FALSE)+
+  # scale_x_continuous(breaks=c(10, 50, 100, 200, 300, 400)) +
+  # scale_y_continuous(breaks = c(1, 15,30,90,200, 250))+
+  # geom_hline(yintercept=30, linetype="dashed", color = "red")+
+  # geom_hline(yintercept=15, linetype="dashed", color = "red")+
+  # geom_hline(yintercept=1, linetype="dashed", color = "red")+
+  # facet_wrap(~algorithm) +
+  ggtitle(paste("Execution time of a single greedy-descent: averaged for", R, "runs")) +
+  xlab("Size of the initial subset of compatible combinations") +
+  ylab("Execution time [s]")
+
+```
+
+```{r echo = FALSE,  warning=FALSE, message=F, fig.width=11, fig.height=22, eval=F}
+# In log-log coordinates
+sim1_probaSmax %>% group_by(chemistry, barcode_number, mplex_level, nb_lane, algorithm) %>%
+  filter(thrs_size_comb<nb_comp_combinations) %>%
+  group_by(chemistry, barcode_number, mplex_level, nb_lane, algorithm, thrs_size_comb) %>%
+  summarise(time.avg=mean(time), time.sd=sd(time), nb_comp_combinations=nb_comp_combinations[1]) %>%
+  ungroup() %>% 
+  mutate(mplex_level=as.factor(mplex_level),
+         chemistry=paste0(chemistry,"-channel"),
+         nb_lane=paste(nb_lane,"lanes"),
+          barcode_number=paste("set of",barcode_number,"barcodes")) %>%
+ggplot(aes( x = thrs_size_comb, y = time.avg, color=mplex_level)) +
+  geom_point() + #geom_line() + geom_smooth() +
+  geom_errorbar(aes(ymin=(time.avg-time.sd), ymax=(time.avg+time.sd)),
+                color="black") +
+  geom_smooth(method = "lm", se = T)+
+  scale_x_log10(breaks=c(10, 50, 80, 100, 200, 300)) +
+  scale_y_log10(breaks = c(1, 5,15,30,90,200, 250))+
+  geom_hline(yintercept=30, linetype="dashed", color = "red")+
+  geom_hline(yintercept=15, linetype="dashed", color = "red")+
+  geom_hline(yintercept=1, linetype="dashed", color = "red")+
+  facet_grid(chemistry+nb_lane+algorithm~barcode_number) +
+  ggtitle(paste("Execution time of a single greedy-descent: averaged for", R, "runs")) +
+  xlab("Size of the initial subset of compatible combinations") +
+  ylab("Execution time [s]")
+
+```
+
+
+#### Probability to get an optimal set of barcode combinations (max entropy) for a single greedy search
+
+We perform `r R` repetitions of the greedy search for the conditions (see table 2.3.1 above) to estimate the probability to reach the theoretical maximum entropy $S_{max}$ in each condition. Here, we test how the size of the subset influences the probability to reach $S_{max}$.
+
+To our surprise, results are very heterogeneous among conditions. However, one common trend is that larger subsets of compatible combinations (> 50 compatible combinations) give better results.
+In some cases, $S_{max}$ is not reached, which means that either the probability $P_{1}$ is below 1% or there is not any set of compatible combination that can found. Note that both cases are possible. However, in all cases, the greedy algorithms allow us to substantially reduce, if not completely remove the heterogeneity in the frequencies of barcode usage (see below).
+
+```{r echo = FALSE,  warning=FALSE, message=F, fig.width=11, fig.height=22}
+
+sim1_probaSmax %>% group_by(chemistry, barcode_number, mplex_level, nb_lane, algorithm) %>%
+  filter(thrs_size_comb<nb_comp_combinations) %>%
+  mutate(isSmax=ifelse(abs(S_opt-S_max)<10^(-10), T, F)) %>%
+  group_by(chemistry, barcode_number, mplex_level, nb_lane, algorithm, thrs_size_comb) %>%
+  summarise(time.avg=mean(time), time.sd=sd(time), nb_comp_combinations=nb_comp_combinations[1], S_max=S_max[1], ProbaOfSmax=sum(isSmax)/length(rep_number)) %>%
+  ungroup() %>% 
+  mutate(mplex_level=as.factor(mplex_level),
+         chemistry=paste0(chemistry,"-channel"),
+         nb_lane=paste(nb_lane,"lanes"),
+         barcode_number=paste("set of",barcode_number,"barcodes")) %>%
+ggplot(aes( x = thrs_size_comb, y = ProbaOfSmax, color=mplex_level)) +
+  geom_point() +
+  geom_smooth(se = F) +
+  scale_x_continuous(breaks=seq(0, 400, 50)) +
+  scale_y_continuous(breaks=seq(0, 1, 0.2), limit=c(0, 1.1)) +
+  facet_grid(chemistry+nb_lane+algorithm~barcode_number) +
+  
+  ggtitle(paste("Proba to get exactly Smax after a single run: calculated from", R, "runs")) +
+  xlab("Size of the initial set of compatible combinations") +
+  ylab("Probability to get an optimal combination")
+
+```
+
+#### Probability to get the best optimized set of barcode combinations for a single greedy search
+
+In some cases, the probability to reach the theoretical maximum entropy $S_{max}$ might be $\leq 10^{-2}$ or even be zero. Here, to take account of such cases, we estimate the probability to get the highest value of the entropy $S_{opt}$ where possibly $S_{opt} < S_{max}$. In these conditions, the barcode distribution won't necessarily be uniform, but still much less heterogeneous than it would be for a selection obtained by a random pick (see below).
+
+
+```{r echo = FALSE,  warning=FALSE, message=F, fig.width=11, fig.height=22}
+
+sim1_probaSmax %>% group_by(chemistry, barcode_number, mplex_level, nb_lane, algorithm) %>%
+  filter(thrs_size_comb<nb_comp_combinations) %>%
+  group_by(chemistry, barcode_number, mplex_level, nb_lane, algorithm, thrs_size_comb) %>%
+  mutate(S_sup=max(S_opt),
+         isSsup=ifelse(abs(S_opt-S_sup)<10^(-10), T, F)) %>%
+  summarise(time.avg=mean(time), time.sd=sd(time), nb_comp_combinations=nb_comp_combinations[1], S_sup=S_sup[1], ProbaOfSsup=sum(isSsup)/length(rep_number)) %>%
+  ungroup() %>% 
+  mutate(mplex_level=as.factor(mplex_level),
+         chemistry=paste0(chemistry,"-channel"),
+         nb_lane=paste(nb_lane,"lanes"),
+         barcode_number=paste("set of",barcode_number,"barcodes")) %>%
+ggplot(aes( x = thrs_size_comb, y = ProbaOfSsup, color=mplex_level)) +
+  geom_point() +
+  geom_smooth(se = F) +
+  scale_x_continuous(breaks=seq(0, 400, 50)) +
+  scale_y_continuous(breaks=seq(0, 1, 0.2), limit=c(0, 1.1)) +
+  facet_grid(chemistry+nb_lane+algorithm~barcode_number) +
+  
+  ggtitle(paste("Proba to get the best optimized set after a single run: calculated from", R, "runs")) +
+  xlab("Size of the initial set of compatible combinations") +
+  ylab("Probability to get an optimal combination")
+
+```
+
+
+
+#### Estimation of the maximum execution time (R iterations) of a greedy search to obtain the maximum entropy selection in 95% of cases
+
+
+ The probability of getting an optimal solution after $R$ iterations reads $P_{R} = 1-(1-P_{1})^R$. For example, if we want to find an optimal solution at least 95% of cases $(P_{R} = 0.95)$, we need a number of iterations $R \geq log(1-P_{R})/log(1-P_{1})$.
+ 
+
+* Max execution time / iteration number as a function of the number of compatible barcodes used for the search, grouped by chemistry, algorithm, barcode-set size, and multiplex level
+
+The results shown in the graphs below are heterogeneous between conditions. However, common trends emerge. First, in general, the greedy-exchange search performs the optimization faster over R iterations than the greedy-descent search, except in a few cases (see next point) where the subset of compatible combinations is smaller than 30. Second, for compatible-combination subsets larger than 120 (only tested for the greedy-exchange), the optimization requires less iterations in general and performs faster. Based on these observations, it seems reasonable to fix the compatible-combination subset size to 120.
+
+```{r echo = FALSE,  warning=FALSE, fig.width=11, fig.height=22}
+# for 95% of cases
+P=0.95
+
+sim1_probaSmax %>% 
+  group_by(chemistry, barcode_number, mplex_level, nb_lane, algorithm) %>%
+  filter(thrs_size_comb<nb_comp_combinations) %>% 
+  group_by(chemistry, barcode_number, mplex_level, nb_lane, algorithm, thrs_size_comb) %>%
+  mutate(S_sup=max(S_opt),
+         isSsup=ifelse(abs(S_opt-S_sup)<10^(-10), T, F)) %>%
+  summarise(time.avg=mean(time), time.sd=sd(time), nb_comp_combinations=nb_comp_combinations[1], S_sup=S_sup[1], ProbaOfSsup=sum(isSsup)/length(rep_number)) %>%
+  ungroup() %>%
+  mutate(mplex_level=as.factor(mplex_level),
+         chemistry=paste0(chemistry,"-channel"),
+         nb_lane=paste(nb_lane,"lanes"),
+         barcode_number=paste("set of",barcode_number,"barcodes")) %>%
+  mutate(R=ceiling(log(1-P)/log(1-ProbaOfSsup)),
+         exec_time=(R+1)*time.avg) %>%
+  ggplot(aes(x = thrs_size_comb, y = exec_time, color=R, shape=mplex_level)) +
+  geom_point(size = 2) +
+  scale_colour_gradientn(colours = rainbow(5)) +
+  scale_x_log10(breaks=c(10, 15, 20, 40,60, 80,120, 200, 300)) +
+  scale_y_log10(breaks = c(1, 2,5, 10,30,90,200,1000,5000,10000, 20000)) +
+  geom_hline(yintercept=30, linetype="dashed", color = "black")+
+  geom_hline(yintercept=10, linetype="dashed", color = "black")+
+  geom_hline(yintercept=2, linetype="dashed", color = "black")+
+  facet_grid(chemistry+nb_lane+algorithm~barcode_number) +
+  ggtitle(paste("Estimated execution time to find an optimal solution in",P*100,"% of cases")) +
+  xlab("Size of the initial subset of compatible combinations") +
+  ylab("Maximum execution time [s]")
+
+
+```
+
+* Max execution time / iteration number as a function of the number of lanes $a$, grouped by algorithm, multiplex level, and number of compatible barcodes used for the search
+
+Data are now pooled regardless chemistry and barcode-set sizes. In the graphs below, the number displayed in the right grey panel represents the size the randomly chosen subset of compatible combinations. We confirm that the greedy-descent search performs faster for small subsets of compatible combinations. For subsets larger than 30 compatible combinations, it seems that 50 iterations would be a reasonable number for an efficient and fast optimization by the greedy-exchange search.
+
+```{r echo = FALSE,  warning=FALSE, fig.width=11, fig.height=11}
+# for 95% of cases
+P=0.95
+
+sim1_probaSmax %>% 
+  group_by(chemistry, barcode_number, mplex_level, nb_lane, algorithm) %>%
+  filter(thrs_size_comb<nb_comp_combinations) %>% 
+  group_by(chemistry, barcode_number, mplex_level, nb_lane, algorithm, thrs_size_comb) %>%
+  mutate(S_sup=max(S_opt),
+         isSsup=ifelse(abs(S_opt-S_sup)<10^(-10), T, F)) %>%
+  summarise(time.avg=mean(time), time.sd=sd(time), nb_comp_combinations=nb_comp_combinations[1], S_sup=S_sup[1], ProbaOfSsup=sum(isSsup)/length(rep_number)) %>%
+  mutate(isNbLibSupToNbbc=ifelse(mplex_level*nb_lane>barcode_number, T, F),
+         isNbCombInfToNbLane=ifelse(nb_comp_combinations<nb_lane, T, F)) %>%
+  ungroup() %>%
+  mutate(mplex_level=as.factor(mplex_level),
+         chemistry=paste0(chemistry,"-channel"),
+         nb_lane=paste(nb_lane,"lanes"),
+         barcode_number=paste("set of",barcode_number,"barcodes")) %>%
+  mutate(R=ceiling(log(1-P)/log(1-ProbaOfSsup)),
+         exec_time=(R+1)*time.avg) %>%
+  filter(thrs_size_comb %in% c(10, 30, 80, 100, 400)) -> dat
+
+
+dat %>%
+  ggplot(aes(x = as.factor(nb_lane), y = R, color=mplex_level)) + 
+  geom_boxplot() +
+  facet_grid(thrs_size_comb~algorithm) +
+  ggtitle(paste("Distribution of the number of iterations needed to find a best optimized solution in",P*100,"% of cases")) +
+  xlab("Number of lanes") +
+  ylab("Number of greedy-search iterations")
+
+
+dat %>% group_by(thrs_size_comb, nb_lane, mplex_level, barcode_number, chemistry) %>%
+  mutate(GD_ov_GE_time_ratio= exec_time[1]/exec_time[2]) %>% ungroup() %>% filter(thrs_size_comb<400) %>%
+  ggplot(aes(x = as.factor(nb_lane), y = GD_ov_GE_time_ratio, color=mplex_level)) +
+  geom_boxplot() +
+  scale_y_log10(breaks=c(0.1, 0.5, 1, 5, 10, 50, 100)) +
+  # scale_y_log10() +
+  # geom_hline(yintercept=30, linetype="dashed", color = "darkgrey")+
+  # geom_hline(yintercept=10, linetype="dashed", color = "darkgrey")+
+  geom_hline(yintercept=1, linetype="dashed", color = "darkgrey")+
+  # facet_grid(thrs_size_comb~algorithm) +
+  facet_grid(thrs_size_comb~.) +
+  ggtitle(paste("Relative time performance of the greedy algorithms to find a best optimized solution in",P*100,"% of cases")) +
+  xlab("Number of lanes") +
+  ylab("Time ratio of greedy-descent over greedy-exchange execution (log scale)")
+
+
+```
+
+#### Distributions of entropy values without (S_random) and with (S_opt) optimization
+
+To visualize the efficacy of the greedy search algorithms, we compare the distribution of entropy values obtained from randomly generated selections of compatible barcodes with the distribution of entropy values obtained from optimized selections of compatible barcodes. The graphs below show that both greedy algorithms are comparable and dramatically reduce the barcode frequencies' heterogeneity by favoring selections of compatible barcode combinations with a higher entropy. One multifacetted graph is shown per subset size. The blue line indicates the position of the theoretical value of the maximum entropy $S_{max}$. A dashed line indicates that $S_{max}$ has been reached, whereas a solid line indicates that $S_{max}$ has not been reached.
+
+```{r echo = FALSE,  warning=FALSE, message=FALSE, fig.width=11, fig.height=44}
+sim1_probaSmax %>% group_by(chemistry, barcode_number, mplex_level, nb_lane, algorithm) %>%
+  filter(thrs_size_comb<nb_comp_combinations) %>% ungroup() %>%
+  # filter(thrs_size_comb == 60) %>%
+  mutate(isSmax=ifelse(abs(S_opt-S_max)<10^-10, T, F),
+         S_opt=round(S_opt, 3),
+         S_random=round(S_random, 3), 
+         mplex_level=paste0("mplex-",mplex_level),
+         chemistry=paste0(chemistry,"-channel"),
+         nb_lane=paste(nb_lane,"lanes"),
+         barcode_number=paste("set of",barcode_number,"barcodes")) -> dat
+
+dat %>%
+  group_by(chemistry, barcode_number, mplex_level, nb_lane, algorithm, thrs_size_comb) %>%
+  do ({
+    chunk <- .
+    with(chunk, as.data.frame(table(S=S_random))) %>% 
+      mutate(Freq=Freq/sum(Freq),
+             S_max=chunk$S_max[1],
+             dataset="S_random",
+             isSmax=any(chunk$isSmax))
+  }) %>% ungroup() %>% mutate(S=as.double(S)) -> S_random_freq 
+
+
+dat %>%
+  group_by(chemistry, barcode_number, mplex_level, nb_lane, algorithm, thrs_size_comb) %>%
+  do ({
+    chunk <- .
+    with(chunk, as.data.frame(table(S=S_opt))) %>% 
+      mutate( Freq=Freq/sum(Freq), 
+              S_max=chunk$S_max[1], 
+              dataset="S_opt",
+              isSmax=any(chunk$isSmax)) 
+  }) %>% ungroup() %>% mutate(S=as.double(S)) -> S_opt_freq
+
+
+Sdat=bind_rows(S_random_freq, S_opt_freq)
+
+k=1
+gg <- list()
+
+for (i in c(10,30,80,100,400) ){
+  
+  Sdat %>% filter(thrs_size_comb == i) %>%
+    # mutate(thrs_size_comb=as.factor(thrs_size_comb)) %>%
+    ggplot(aes(x = S)) +
+    geom_histogram(aes(y=0.05*..density.., fill=dataset), position='identity', alpha=0.7, binwidth=0.05, boundary=0.05) +
+    geom_vline(aes(xintercept = S_max, color="S_max", linetype=isSmax)) +
+    scale_x_continuous(breaks=round(seq(min(dat$S_random), max(dat$S_opt), (max(dat$S_opt)-min(dat$S_random))/5),2)) +
+    # scale_x_discrete(breaks=sort(sample(dat$S_random,5)))+
+    theme(axis.text.x=element_text(angle=90, hjust=1, vjust=1))+
+    facet_grid(chemistry+mplex_level+nb_lane+algorithm~barcode_number) +
+    scale_fill_manual("Entropy",
+                      breaks = c("S_opt", "S_random"),
+                      values = c("green", "red")) +
+    
+    scale_color_manual("",
+                       breaks = c("S_max", "S_opt", "S_random"),
+                       values = c("blue", "green", "red")) +
+    xlab("Entropy values") +
+    ylab("Frequency") +
+    ggtitle(paste("Distributions of entropy values for (",i ,"combs;", R, "runs)")) -> gg[[k]]
+  k=k+1
+}
+gg
+
+```
+
+
+```{r echo = FALSE,  warning=FALSE, message=FALSE, fig.width=11, eval=F}
+if (640 %in% sim1_probaSmax$thrs_size_comb) {
+  sim1_probaSmax %>% mutate(isSmax=ifelse(S_opt==S_max, T, F)) %>%
+    filter(thrs_size_comb == 640) -> dat
+  
+  dat %>%
+    mutate(thrs_size_comb=as.factor(thrs_size_comb)) %>%
+    ggplot(aes(y = (..count..)/sum(..count..))) +
+   geom_histogram(aes(x = S_opt,fill="S_opt"), alpha=0.5, center=dat$S_max[1],  binwidth = 0.01) +
+    geom_histogram(aes(x = S_random,fill="S_random"), alpha=0.5, center=dat$S_max[1], binwidth = 0.01) +
+    # geom_density(aes(x = S_opt,fill="S_opt"), alpha=0.5, color= "black", adjust=0.1) +
+    # geom_density(aes(x = S_random,fill="S_random"), alpha=0.5, color= "black", adjust=0.1) +
+    geom_vline(aes(xintercept = S_max[1], color="S_max"), linetype="dashed") +
+    scale_fill_manual("Entropy",
+                      breaks = c("S_opt", "S_random"),
+                      values = c("green", "red")) +
+    scale_color_manual("",
+                       breaks = c("S_max", "S_opt", "S_random"),
+                       values = c("blue", "green", "red")) +
+    facet_wrap(~thrs_size_comb) +
+    xlab("Entropy values") +
+    ylab("Frequency") +
+    ggtitle(paste("Frequency distributions of entropy values for", R, "runs")) 
+}
+```
+
+
+### Step2b: table of parameters used for the simulations
+
+The results of the simulations in step2a suggest a few cases for which the optimization procedure would require more than 100 iterations to reach $S_{max}$. It is instructive to use these challenging conditions to test how good our greedy-exchange algorithm would perform compared to a basic optimization by iterative random picks. In the table below are summarized a few challenging conditions to be tested.
+
+```{r echo = FALSE, results=F}
+R=100
+L = c(12, 30)
+N = 4:5
+C = c(4)
+thrs_size_comb_for_GE=c(120)
+thrs_size_comb_for_GD=""
+max_iteration = 200
+nb_lane=c(6)
+algorithm="greedy_exchange"
+
+# R=1
+# L = c(18)
+# N = 4
+# C = c(4)
+# thrs_size_comb=c(80)
+# max_iteration = 14
+# nb_lane=c(4)
+
+
+print("CONDITIONS:")
+print("Barcode set size:")
+N
+print("Multiplex levels:")
+L 
+print("Chemistry:")
+C
+print("Number of simulations per greedy-descent search:")
+R
+print("Size of compatible combinations set used for greedy-descent:")
+thrs_size_comb_for_GE
+
+print("Number of iterations for the greedy-descent:")
+max_iteration
+
+print("Number of lanes:")
+nb_lane
+
+print("Total number of combinations:")
+choose(L,N)
+
+print(paste("Number of conditions:",R*length(L)*length(N)*length(C)*length(thrs_size_comb_for_GE)*length(nb_lane)))
+
+```
+
+
+Number of simulations per condition | Barcode-set size | Multiplex level | Chemistry | Lane number | Algorithm | Compatible combinations (GD) | Compatible combinations (GE) | Max iterations R |
+------------------------------------|------------------|-----------------|-----------|----------------|--------------|---------------------------|---------------------------|----------------|
+`r R`                               |`r L`             | `r N`           | `r C`     | `r nb_lane`    | `r algorithm`| `r thrs_size_comb_for_GD` | `r thrs_size_comb_for_GE` | `r max_iteration` |
+
+
+Number of simulations | |
+----------------------|-|
+`r R*length(L)*length(N)*length(C)*length(thrs_size_comb_for_GE)*length(nb_lane)`| |
+
+
+#### Running simulations for step2b with iterations
+
+```{r echo = FALSE, cache=T}
+
+# Reuse the dataset generated in the first series of simulations
+combination_m_4ch <- local(get(load(paste0(SCRIPT_DIR,"combination_m_4ch"))))
+
+inputfile <- tempfile()
+save(combination_m_4ch, file=inputfile)
+
+# Initialize output file1 (barcode occurrence from random pic)
+write.table(data.frame(barcodeID=character(0), occurrence=integer(0), rep_number=integer(0), thrs_size_comb=integer(0), barcode_number=integer(0), chemistry=integer(0), nb_lane=integer(0), mplex_level=integer(0), algorithm=character(0)),
+            outputfile1 <- tempfile(), row.names = FALSE, col.names = T, quote=FALSE)
+
+# Initialize output file2 (barcode occurrence from optimized set)
+write.table(data.frame(barcodeID=character(0), occurrence=integer(0), rep_number=integer(0), thrs_size_comb=integer(0), barcode_number=integer(0), chemistry=integer(0), nb_lane=integer(0), mplex_level=integer(0), algorithm=character(0)),
+            outputfile2 <- tempfile(), row.names = FALSE, col.names = T, quote=FALSE)
+
+# Initialize output file3 (calcul of proba to get an optimal solution)
+write.table(data.frame(time=numeric(0), nb_comp_combinations=integer(0), rep_number=integer(0), barcode_number=integer(0), thrs_size_comb=integer(0), S_max=numeric(0), S_init=numeric(0), S_random=numeric(0), S_opt=numeric(0), S_random_opt=numeric(0), chemistry=integer(0), nb_lane=integer(0), mplex_level=integer(0), algorithm=character(0)),
+            outputfile3 <- tempfile(), row.names = FALSE, col.names = T, quote=FALSE)
+
+# Initialize output file4 (barcode occurrence from optimized set based on random picks)
+write.table(data.frame(barcodeID=character(0), occurrence=integer(0), rep_number=integer(0), thrs_size_comb=integer(0), barcode_number=integer(0), chemistry=integer(0), nb_lane=integer(0), mplex_level=integer(0), algorithm=character(0)),
+            outputfile4 <- tempfile(), row.names = FALSE, col.names = T, quote=FALSE)
+
+# Define barcode set
+barcode_set = DNABarcodeCompatibility::IlluminaIndexes
+
+
+# Detect CPU number
+nb_cpu=parallel::detectCores()
+
+if (F) {
+  # Run simulation using GNU parallel (Windows users need cygwin + Gnu parallel; MacOs: brew install parallel; Linux: apt-get install parallel)
+  system.time({
+ system(paste0("parallel -j",nb_cpu," Rscript ",SCRIPT_DIR,"sim_optimize_combinations.R {1} {2} {3} {4} {5} {6} {7} {8} {9} {10} {11} {12} {13} ::: ",paste(1:R, collapse=" ")," ::: ",paste(thrs_size_comb_for_GE, collapse=" ")," ::: " , paste(max_iteration, collapse=" "), " ::: ",paste(inputfile, collapse=""), " ::: ", paste(nb_lane, collapse=" "), " ::: ", paste(i, collapse=""), " ::: ", paste(k, collapse=""), " ::: ", paste(outputfile1, collapse=""), " ::: ", paste(outputfile2, collapse=""), " ::: ", paste(outputfile3, collapse=""), " ::: ", paste(outputfile4, collapse=""), " ::: ", paste(j, collapse=""), " ::: ", paste(algorithm, collapse=" ")))
+  })
+  
+  sime2_barcodeStat_random <- read.table(file=outputfile1, header = T, sep = " ", stringsAsFactors = FALSE)
+  save(sime2_barcodeStat_random, file = paste0(SCRIPT_DIR,"sim2_barcodeStat_random"))
+  
+  sim2_barcodeStat_opt <- read.table(file=outputfile2, header = T, sep = " ", stringsAsFactors = FALSE)
+  save(sim2_barcodeStat_opt, file = paste0(SCRIPT_DIR,"sim2_barcodeStat_opt"))
+  
+  sim2_probaSmax <- read.table(file=outputfile3, header = T, sep = " ", stringsAsFactors = FALSE)
+  save(sim2_probaSmax, file = paste0(SCRIPT_DIR,"sim2_probaSmax"))
+  
+  sim2_barcodeStat_random_opt <- read.table(file=outputfile4, header = T, sep = " ", stringsAsFactors = FALSE)
+  save(sim2_barcodeStat_random_opt, file = paste0(SCRIPT_DIR,"sim2_barcodeStat_random_opt"))
+}
+
+
+
+# Detect CPU number
+nb_cpu=parallel::detectCores()
+
+if (F) {
+  system.time({
+    for (i in L) {
+      # Generate a large set of compatible combinations
+      index <- dplyr::sample_n(barcode_set, nrow(barcode_set), replace = FALSE)
+      for (j in N) {
+        for (k in C) {
+          for (algo in algorithm) {
+            
+            # Initialize input file with a matrix of all combinations
+            combination_m <- DNABarcodeCompatibility::get_all_combinations(index_df = index[1:i,], mplex_level = j, chemistry = k)
+            
+            inc=0
+            while (nrow(combination_m) < max(nb_lane) && inc<10) {
+              print("nrow(combination_m) might be too small")
+              print("other trial...")
+              index <- dplyr::sample_n(barcode_set, nrow(barcode_set), replace = FALSE)
+              combination_m <- DNABarcodeCompatibility::get_all_combinations(index_df = index[1:i,], mplex_level = j, chemistry = k)
+              inc=inc+1
+              print(inc)
+            }
+            if (nrow(combination_m)<max(nb_lane)) {warning("nrow(combination_m) might be too small")}
+            
+            inputfile <- tempfile()
+            save(combination_m, file=inputfile)
+            # save(combination_m, file="combination_m_4ch")
+            
+            # Run simulation using GNU parallel (Windows users need cygwin + Gnu parallel; MacOs: brew install parallel; Linux: apt-get install parallel)
+            if (algo == "greedy_descent") {
+              system(paste0("parallel -j",nb_cpu," Rscript ",SCRIPT_DIR,"sim_optimize_combinations.R {1} {2} {3} {4} {5} {6} {7} {8} {9} {10} {11} {12} {13} ::: ",paste(1:R, collapse=" ")," ::: ",paste(thrs_size_comb_for_GD, collapse=" ")," ::: " , paste(max_iteration, collapse=" "), " ::: ",paste(inputfile, collapse=""), " ::: ", paste(nb_lane, collapse=" "), " ::: ", paste(i, collapse=""), " ::: ", paste(k, collapse=""), " ::: ", paste(outputfile1, collapse=""), " ::: ", paste(outputfile2, collapse=""), " ::: ", paste(outputfile3, collapse=""), " ::: ", paste(outputfile4, collapse=""), " ::: ", paste(j, collapse=""), " ::: ", paste(algo, collapse=" ")))
+            } else if (algo == "greedy_exchange") {
+              system(paste0("parallel -j",nb_cpu," Rscript ",SCRIPT_DIR,"sim_optimize_combinations.R {1} {2} {3} {4} {5} {6} {7} {8} {9} {10} {11} {12} {13} ::: ",paste(1:R, collapse=" ")," ::: ",paste(thrs_size_comb_for_GE, collapse=" ")," ::: " , paste(max_iteration, collapse=" "), " ::: ",paste(inputfile, collapse=""), " ::: ", paste(nb_lane, collapse=" "), " ::: ", paste(i, collapse=""), " ::: ", paste(k, collapse=""), " ::: ", paste(outputfile1, collapse=""), " ::: ", paste(outputfile2, collapse=""), " ::: ", paste(outputfile3, collapse=""), " ::: ", paste(outputfile4, collapse=""), " ::: ", paste(j, collapse=""), " ::: ", paste(algo, collapse=" ")))
+            }
+          }
+        }
+      }
+    }
+    
+    sim2_barcodeStat_random <- read.table(file=outputfile1, header = T, sep = " ", stringsAsFactors = FALSE)
+    save(sim2_barcodeStat_random, file = paste0(SCRIPT_DIR,"sim2_barcodeStat_random"))
+    
+    sim2_barcodeStat_opt <- read.table(file=outputfile2, header = T, sep = " ", stringsAsFactors = FALSE)
+    save(sim2_barcodeStat_opt, file = paste0(SCRIPT_DIR,"sim2_barcodeStat_opt"))
+    
+    sim2_probaSmax <- read.table(file=outputfile3, header = T, sep = " ", stringsAsFactors = FALSE)
+    save(sim2_probaSmax, file = paste0(SCRIPT_DIR,"sim2_probaSmax"))
+    
+    sim2_barcodeStat_random_opt <- read.table(file=outputfile4, header = T, sep = " ", stringsAsFactors = FALSE)
+    save(sim2_barcodeStat_random_opt, file = paste0(SCRIPT_DIR,"sim2_barcodeStat_random_opt"))
+  })
+}  
+
+        
+# Import results
+sim2_barcodeStat_random <- local(get(load(paste0(SCRIPT_DIR,"sim2_barcodeStat_random"))))
+sim2_barcodeStat_random_opt <- local(get(load(paste0(SCRIPT_DIR,"sim2_barcodeStat_random_opt"))))
+sim2_barcodeStat_opt <- local(get(load(paste0(SCRIPT_DIR,"sim2_barcodeStat_opt"))))
+sim2_probaSmax <- local(get(load(paste0(SCRIPT_DIR,"sim2_probaSmax"))))
+
+```
+
+####  Distributions of entropy values after running the optimizer
+
+We compare the distributions of entropy values obtained using 3 different strategies over a maximum of `r max_iteration` iterations per trial. We performed `r R` trials for each strategy. We calculate and compare the 3 resulting entropy values:
+
+1. **S_random**: no optimization; a subset of compatible combinations is randomly picked up only once (no iteration)
+2. **S_opt**: a subset of compatible combinations is optimized using the greedy-exchange algorithm, stopping when a selection of entropy $S_{max}$ is obtained, or when the iteration number reaches `r max_iteration`.
+3. **S_random_opt**: a subset of compatible combinations is optimized by random pick using the same amount of iterations used with the greedy search.
+
+* Set of `r thrs_size_comb_for_GE` compatible combinations and up to `r max_iteration` iterations per trial
+
+In the graphs below, the blue line indicates the position of the theoretical value of the maximum attainable entropy $S_{max}$. Solid lines indicate that $S_{max}$ has not been reached over `r max_iteration` iterations. Either the probability to find $S_{max}$ is too low to be reached in `r max_iteration` iterations, or  $S_{max}$ cannot be reached at all due to constraints in the barcode set. Furthermore, the dashed line indicates that $S_{max}$ has been reached.
+
+In all cases, the greedy search algorithm performs better than a random search, and reaches a value close to the best entropy value.
+
+```{r echo = FALSE,  warning=FALSE, message=FALSE, fig.width=11, fig.height=11}
+sim2_probaSmax %>% group_by(chemistry, barcode_number, mplex_level, nb_lane, algorithm) %>%
+  filter(thrs_size_comb<nb_comp_combinations) %>% ungroup() %>%
+  # filter(thrs_size_comb == 60) %>%
+  mutate(isSmax=ifelse(abs(S_opt-S_max)<10^-10, T, F),
+         S_opt=round(S_opt, 3),
+         S_random=round(S_random, 3), 
+         mplex_level=paste0("mplex-",mplex_level),
+         chemistry=paste0(chemistry,"-channel"),
+         nb_lane=paste(nb_lane,"lanes"),
+         barcode_number=paste("set of",barcode_number,"barcodes")) -> dat
+
+dat %>%
+  group_by(chemistry, barcode_number, mplex_level, nb_lane, algorithm, thrs_size_comb) %>%
+  do ({
+    chunk <- .
+    with(chunk, as.data.frame(table(S=S_random))) %>% 
+      mutate(Freq=Freq/sum(Freq),
+             S_max=chunk$S_max[1],
+             dataset="S_random",
+             isSmax=any(chunk$isSmax))
+  }) %>% ungroup() %>% mutate(S=as.double(S)) -> S_random_freq 
+
+
+dat %>%
+  group_by(chemistry, barcode_number, mplex_level, nb_lane, algorithm, thrs_size_comb) %>%
+  do ({
+    chunk <- .
+    with(chunk, as.data.frame(table(S=S_opt))) %>% 
+      mutate( Freq=Freq/sum(Freq), 
+              S_max=chunk$S_max[1], 
+              dataset="S_opt",
+              isSmax=any(chunk$isSmax)) 
+  }) %>% ungroup() %>% mutate(S=as.double(S)) -> S_opt_freq
+
+dat %>%
+  group_by(chemistry, barcode_number, mplex_level, nb_lane, algorithm, thrs_size_comb) %>%
+  do ({
+    chunk <- .
+    with(chunk, as.data.frame(table(S=S_random_opt))) %>% 
+      mutate( Freq=Freq/sum(Freq), 
+              S_max=chunk$S_max[1], 
+              dataset="S_random_opt",
+              isSmax=any(chunk$isSmax)) 
+  }) %>% ungroup() %>% mutate(S=as.double(S)) -> S_random_opt_freq
+
+
+Sdat=bind_rows(S_random_freq, S_opt_freq, S_random_opt_freq)
+
+
+gg <- list()
+k=1
+for (i in unique(thrs_size_comb_for_GE,thrs_size_comb_for_GD) ){
+  
+  Sdat %>% filter(thrs_size_comb == i) %>%
+    # filter(isSmax) %>%
+    # mutate(thrs_size_comb=as.factor(thrs_size_comb)) %>%
+    ggplot(aes(x = S)) +
+    geom_histogram(aes(y=0.05*..density.., fill=dataset), position='identity', alpha=0.6, binwidth=0.050, boundary=0.05) +
+    geom_vline(aes(xintercept = S_max, color="S_max", linetype=isSmax)) + #, linetype="dashed"
+    scale_x_continuous(breaks=round(seq(min(dat$S_random), max(dat$S_opt), (max(dat$S_opt)-min(dat$S_random))/5),2)) +
+    # scale_x_discrete(breaks=sort(sample(dat$S_random,5)))+
+    theme(axis.text.x=element_text(angle=90, hjust=1, vjust=1))+
+    facet_grid(chemistry+mplex_level+nb_lane+algorithm~barcode_number) +
+    scale_fill_manual("Entropy",
+                      breaks = c("S_opt", "S_random", "S_random_opt"),
+                      values = c("green", "red", "orange")) +
+    
+    scale_color_manual("",
+                       breaks = c("S_max", "S_opt", "S_random", "S_random_opt"),
+                       values = c("blue", "green", "red", "orange")) +
+    xlab("Entropy values") +
+    ylab("Frequency") +
+    ggtitle(paste("Distributions of entropy values for (",i ,"combs;", R, "runs, up to",max_iteration,"interations )")) -> gg[[k]]
+  k=k+1
+}
+gg
+
+```
+
+* Average execution time per condition
+
+| Conditions | Set of 12 barcodes | Set of 30 barcodes |
+|------------|--------------------|--------------------|
+| mplex-4    | `r round(mean((sim2_probaSmax %>% filter(barcode_number==12) %>% filter(mplex_level==4))$time))` sec    |  `r round(mean((sim2_probaSmax %>% filter(barcode_number==30) %>% filter(mplex_level==4))$time))` sec |
+| mplex-5    |`r round(mean((sim2_probaSmax %>% filter(barcode_number==12) %>% filter(mplex_level==5))$time))` sec    |  `r round(mean((sim2_probaSmax %>% filter(barcode_number==30) %>% filter(mplex_level==5))$time))` sec |
+
+#### Comparison of barcode distributions between a randomly generated set and an optimized selection of compatible combinations
+
+##### Case A: 30 barcodes, $S_{max}$ is reached
+
+* Barcode set obtained:
+```{r echo = FALSE, warning=FALSE}
+barcodeset <- sort(unique((sim2_barcodeStat_random_opt %>% filter(barcode_number==30) %>% filter(mplex_level==4))$barcodeID))
+```
+
+| Barcode set  | |
+|--------------|-|
+|`r barcodeset`| |
+
+
+* Selection of compatible combinations that was randomly chosen
+
+```{r echo = FALSE, warning=FALSE, fig.width=11}
+chem=4
+mpl=4
+bcnb=30
+
+# Find one repetition number for which S_random is minimum
+repnb <- (sim2_probaSmax %>%
+            filter(chemistry==chem) %>%
+            filter(mplex_level==mpl) %>%
+            filter(barcode_number==bcnb) %>%
+            filter(S_random==min(S_random)))$rep_number[1]
+
+
+
+
+S_random <- (sim2_probaSmax %>% filter(chemistry == chem) %>% 
+   filter(mplex_level==mpl) %>%
+   filter(barcode_number==bcnb) %>%
+   filter(rep_number==repnb))$S_random
+
+S_max <- (sim2_probaSmax %>% filter(chemistry == chem) %>% 
+   filter(mplex_level==mpl) %>%
+   filter(barcode_number==bcnb) %>%
+   filter(rep_number==repnb))$S_max
+
+sim2_barcodeStat_random %>% filter(chemistry == chem) %>% 
+  filter(mplex_level==mpl) %>%
+  filter(barcode_number==bcnb) %>%
+  filter(rep_number==repnb) %>%
+  mutate(channel=paste0(chemistry, "-channel"),
+         mplex_level=paste("mutiplex level",mplex_level)) %>%
+  ggplot(aes(x=barcodeID,y=occurrence, fill=mplex_level))+
+  geom_histogram(stat = "identity", fill= "darkgrey")+
+  scale_y_continuous(breaks = 1:4, limits = c(0,4))+
+  theme(axis.text.x=element_text(angle=90, hjust=1, vjust=1))+
+  facet_grid(mplex_level~channel) +
+  xlab("BarcodeID")+
+  ylab("Barcode occurrences")+
+ggtitle(paste0("Barcode occurences from a random set of compatible combinations (S_random=",round(S_random,2),"; S_max=",round(S_max,2),")"))
+
+```
+
+
+* Set of compatible barcodes that was optimized with the iterative greedy-exchange search
+
+We use the same experimental conditions as above for a fair comparison. Here, the optimal selection has a uniform distribution of barcodes (of entropy $S_{max} = log(N)$ where $N$ is the number of libraries, and $N=a.k$ where $a$ is the number of lanes and $k$ the multiplex level), and is reached by the greedy algorithms.
+
+```{r echo = FALSE, warning=FALSE, fig.width=11}
+S_opt <- (sim2_probaSmax %>% filter(chemistry == chem) %>% 
+   filter(mplex_level==mpl) %>%
+   filter(barcode_number==bcnb) %>%
+   filter(rep_number==repnb))$S_opt
+
+S_max <- (sim2_probaSmax %>% filter(chemistry == chem) %>% 
+   filter(mplex_level==mpl) %>%
+   filter(barcode_number==bcnb) %>%
+   filter(rep_number==repnb))$S_max
+
+sim2_barcodeStat_opt %>% filter(chemistry == chem) %>% 
+  filter(mplex_level==mpl) %>%
+  filter(barcode_number==bcnb) %>%
+  filter(rep_number==repnb) %>%
+  mutate(channel=paste0(chemistry, "-channel"),
+         mplex_level=paste("mutiplex level",mplex_level)) %>%
+  ggplot(aes(x=barcodeID,y=occurrence, fill=mplex_level))+
+  geom_histogram(stat = "identity", fill= "darkgrey")+
+  scale_y_continuous(breaks = 1:4, limits = c(0,4))+
+  theme(axis.text.x=element_text(angle=90, hjust=1, vjust=1))+
+  facet_grid(mplex_level~channel) +
+  xlab("BarcodeID") +
+  ylab("Barcode occurrences") +
+ggtitle(paste0("Barcode occurences from a random set of compatible combinations (S_opt=",round(S_opt,2),"; S_max=",round(S_max,2),")"))
+```
+
+
+##### Case B: 30 barcodes, $S_{max}$ is **not** reached
+
+* Barcode set obtained:
+```{r echo = FALSE, warning=FALSE}
+barcodeset <- sort(unique((sim2_barcodeStat_random_opt %>% filter(barcode_number==30) %>% filter(mplex_level==5))$barcodeID))
+```
+
+| Barcode set  | |
+|--------------|-|
+|`r barcodeset`| |
+
+
+* Selection of compatible combinations that was randomly chosen
+
+```{r echo = FALSE, warning=FALSE, fig.width=11}
+chem=4
+mpl=5
+bcnb=30
+
+# Find one repetition number for which S_random is minimum
+repnb <- (sim2_probaSmax %>%
+            filter(chemistry==chem) %>%
+            filter(mplex_level==mpl) %>%
+            filter(barcode_number==bcnb) %>%
+            filter(S_random==min(S_random)))$rep_number[1]
+
+
+
+
+S_random <- (sim2_probaSmax %>% filter(chemistry == chem) %>% 
+   filter(mplex_level==mpl) %>%
+   filter(barcode_number==bcnb) %>%
+   filter(rep_number==repnb))$S_random
+
+S_max <- (sim2_probaSmax %>% filter(chemistry == chem) %>% 
+   filter(mplex_level==mpl) %>%
+   filter(barcode_number==bcnb) %>%
+   filter(rep_number==repnb))$S_max
+
+sim2_barcodeStat_random %>% filter(chemistry == chem) %>% 
+  filter(mplex_level==mpl) %>%
+  filter(barcode_number==bcnb) %>%
+  filter(rep_number==repnb) %>%
+  mutate(channel=paste0(chemistry, "-channel"),
+         mplex_level=paste("mutiplex level",mplex_level)) %>%
+  ggplot(aes(x=barcodeID,y=occurrence, fill=mplex_level))+
+  geom_histogram(stat = "identity", fill= "darkgrey")+
+  scale_y_continuous(breaks = 1:4, limits = c(0,4))+
+  theme(axis.text.x=element_text(angle=90, hjust=1, vjust=1))+
+  facet_grid(mplex_level~channel) +
+  xlab("BarcodeID")+
+  ylab("Barcode occurrences")+
+ggtitle(paste0("Barcode occurences from a random set of compatible combinations (S_random=",round(S_random,2),"; S_max=",round(S_max,2),")"))
+
+```
+
+
+* Set of compatible barcodes that was optimized with the iterative greedy-exchange search
+
+We use the same experimental conditions as above for a fair comparison.
+
+```{r echo = FALSE, warning=FALSE, fig.width=11}
+S_opt <- (sim2_probaSmax %>% filter(chemistry == chem) %>% 
+   filter(mplex_level==mpl) %>%
+   filter(barcode_number==bcnb) %>%
+   filter(rep_number==repnb))$S_opt
+
+S_max <- (sim2_probaSmax %>% filter(chemistry == chem) %>% 
+   filter(mplex_level==mpl) %>%
+   filter(barcode_number==bcnb) %>%
+   filter(rep_number==repnb))$S_max
+
+sim2_barcodeStat_opt %>% filter(chemistry == chem) %>% 
+  filter(mplex_level==mpl) %>%
+  filter(barcode_number==bcnb) %>%
+  filter(rep_number==repnb) %>%
+  mutate(channel=paste0(chemistry, "-channel"),
+         mplex_level=paste("mutiplex level",mplex_level)) %>%
+  ggplot(aes(x=barcodeID,y=occurrence, fill=mplex_level))+
+  geom_histogram(stat = "identity", fill= "darkgrey")+
+  scale_y_continuous(breaks = 1:4, limits = c(0,4))+
+  theme(axis.text.x=element_text(angle=90, hjust=1, vjust=1))+
+  facet_grid(mplex_level~channel) +
+  xlab("BarcodeID") +
+  ylab("Barcode occurrences") +
+ggtitle(paste0("Barcode occurences from a random set of compatible combinations (S_opt=",round(S_opt,2),"; S_max=",round(S_max,2),")"))
+```
+
+##### Case C: 12 barcodes, $S_{max}$ is reached
+
+* Barcode set obtained:
+```{r echo = FALSE, warning=FALSE}
+barcodeset <- sort(unique((sim2_barcodeStat_random_opt %>% filter(barcode_number==12) %>% filter(mplex_level==5))$barcodeID))
+```
+
+| Barcode set  | |
+|--------------|-|
+|`r barcodeset`| |
+
+
+* Selection of compatible combinations that was randomly chosen
+
+Here, a selection with uniform barcode distribution cannot be reached because $N=a.k$ is greater than, but nut divisible by the number of available barcodes $n$. However, the selection having the maximum possible entropy $S_{max}$ is reached.
+
+```{r echo = FALSE, warning=FALSE, fig.width=11}
+chem=4
+mpl=5
+bcnb=12
+
+# Find one repetition number for which S_random is minimum
+repnb <- (sim2_probaSmax %>%
+            filter(chemistry==chem) %>%
+            filter(mplex_level==mpl) %>%
+            filter(barcode_number==bcnb) %>%
+            filter(S_random==min(S_random)))$rep_number[1]
+
+
+
+
+S_random <- (sim2_probaSmax %>% filter(chemistry == chem) %>% 
+   filter(mplex_level==mpl) %>%
+   filter(barcode_number==bcnb) %>%
+   filter(rep_number==repnb))$S_random
+
+S_max <- (sim2_probaSmax %>% filter(chemistry == chem) %>% 
+   filter(mplex_level==mpl) %>%
+   filter(barcode_number==bcnb) %>%
+   filter(rep_number==repnb))$S_max
+
+sim2_barcodeStat_random %>% filter(chemistry == chem) %>% 
+  filter(mplex_level==mpl) %>%
+  filter(barcode_number==bcnb) %>%
+  filter(rep_number==repnb) %>%
+  mutate(channel=paste0(chemistry, "-channel"),
+         mplex_level=paste("mutiplex level",mplex_level)) %>%
+  ggplot(aes(x=barcodeID,y=occurrence, fill=mplex_level))+
+  geom_histogram(stat = "identity", fill= "darkgrey")+
+  scale_y_continuous(breaks = 1:4, limits = c(0,4))+
+  theme(axis.text.x=element_text(angle=90, hjust=1, vjust=1))+
+  facet_grid(mplex_level~channel) +
+  xlab("BarcodeID")+
+  ylab("Barcode occurrences")+
+ggtitle(paste0("Barcode occurences from a random set of compatible combinations (S_random=",round(S_random,2),"; S_max=",round(S_max,2),")"))
+
+```
+
+
+* Set of compatible barcodes that was optimized with the iterative greedy-exchange search
+
+We use the same experimental conditions as above for a fair comparison.
+
+```{r echo = FALSE, warning=FALSE, fig.width=11}
+S_opt <- (sim2_probaSmax %>% filter(chemistry == chem) %>% 
+   filter(mplex_level==mpl) %>%
+   filter(barcode_number==bcnb) %>%
+   filter(rep_number==repnb))$S_opt
+
+S_max <- (sim2_probaSmax %>% filter(chemistry == chem) %>% 
+   filter(mplex_level==mpl) %>%
+   filter(barcode_number==bcnb) %>%
+   filter(rep_number==repnb))$S_max
+
+sim2_barcodeStat_opt %>% filter(chemistry == chem) %>% 
+  filter(mplex_level==mpl) %>%
+  filter(barcode_number==bcnb) %>%
+  filter(rep_number==repnb) %>%
+  mutate(channel=paste0(chemistry, "-channel"),
+         mplex_level=paste("mutiplex level",mplex_level)) %>%
+  ggplot(aes(x=barcodeID,y=occurrence, fill=mplex_level))+
+  geom_histogram(stat = "identity", fill= "darkgrey")+
+  scale_y_continuous(breaks = 1:4, limits = c(0,4))+
+  theme(axis.text.x=element_text(angle=90, hjust=1, vjust=1))+
+  facet_grid(mplex_level~channel) +
+  xlab("BarcodeID") +
+  ylab("Barcode occurrences") +
+ggtitle(paste0("Barcode occurences from a random set of compatible combinations (S_opt=",round(S_opt,2),"; S_max=",round(S_max,2),")"))
+```
+
+
+##### Case D: 12 barcodes, $S_{max}$ is **not** reached
+
+* Barcode set obtained:
+```{r echo = FALSE, warning=FALSE}
+barcodeset <- sort(unique((sim2_barcodeStat_random_opt %>% filter(barcode_number==12) %>% filter(mplex_level==4))$barcodeID))
+```
+
+| Barcode set  | |
+|--------------|-|
+|`r barcodeset`| |
+
+
+
+* Selection of compatible combinations that was randomly chosen
+
+```{r echo = FALSE, warning=FALSE, fig.width=11}
+chem=4
+mpl=4
+bcnb=12
+
+# Find one repetition number for which S_random is minimum
+repnb <- (sim2_probaSmax %>%
+            filter(chemistry==chem) %>%
+            filter(mplex_level==mpl) %>%
+            filter(barcode_number==bcnb) %>%
+            filter(S_random==min(S_random)))$rep_number[1]
+
+
+
+
+S_random <- (sim2_probaSmax %>% filter(chemistry == chem) %>% 
+   filter(mplex_level==mpl) %>%
+   filter(barcode_number==bcnb) %>%
+   filter(rep_number==repnb))$S_random
+
+S_max <- (sim2_probaSmax %>% filter(chemistry == chem) %>% 
+   filter(mplex_level==mpl) %>%
+   filter(barcode_number==bcnb) %>%
+   filter(rep_number==repnb))$S_max
+
+sim2_barcodeStat_random %>% filter(chemistry == chem) %>% 
+  filter(mplex_level==mpl) %>%
+  filter(barcode_number==bcnb) %>%
+  filter(rep_number==repnb) %>%
+  mutate(channel=paste0(chemistry, "-channel"),
+         mplex_level=paste("mutiplex level",mplex_level)) %>%
+  ggplot(aes(x=barcodeID,y=occurrence, fill=mplex_level))+
+  geom_histogram(stat = "identity", fill= "darkgrey")+
+  # scale_y_continuous(breaks = 1:4, limits = c(0,4))+
+  theme(axis.text.x=element_text(angle=90, hjust=1, vjust=1))+
+  facet_grid(mplex_level~channel) +
+  xlab("BarcodeID")+
+  ylab("Barcode occurrences")+
+ggtitle(paste0("Barcode occurences from a random set of compatible combinations (S_random=",round(S_random,2),"; S_max=",round(S_max,2),")"))
+
+```
+
+
+* Set of compatible barcodes that was optimized with the iterative greedy-exchange search
+
+We use the same experimental conditions as above for a fair comparison.
+
+```{r echo = FALSE, warning=FALSE, fig.width=11}
+S_opt <- (sim2_probaSmax %>% filter(chemistry == chem) %>% 
+   filter(mplex_level==mpl) %>%
+   filter(barcode_number==bcnb) %>%
+   filter(rep_number==repnb))$S_opt
+
+S_max <- (sim2_probaSmax %>% filter(chemistry == chem) %>% 
+   filter(mplex_level==mpl) %>%
+   filter(barcode_number==bcnb) %>%
+   filter(rep_number==repnb))$S_max
+
+sim2_barcodeStat_opt %>% filter(chemistry == chem) %>% 
+  filter(mplex_level==mpl) %>%
+  filter(barcode_number==bcnb) %>%
+  filter(rep_number==repnb) %>%
+  mutate(channel=paste0(chemistry, "-channel"),
+         mplex_level=paste("mutiplex level",mplex_level)) %>%
+  ggplot(aes(x=barcodeID,y=occurrence, fill=mplex_level))+
+  geom_histogram(stat = "identity", fill= "darkgrey")+
+  scale_y_continuous(breaks = 1:4, limits = c(0,4))+
+  theme(axis.text.x=element_text(angle=90, hjust=1, vjust=1))+
+  facet_grid(mplex_level~channel) +
+  xlab("BarcodeID") +
+  ylab("Barcode occurrences") +
+ggtitle(paste0("Barcode occurences from a random set of compatible combinations (S_opt=",round(S_opt,2),"; S_max=",round(S_max,2),")"))
+```
+
+# Randomly-generated barcode set from the DNABarcodes package
+
+## Generating a barcode set with the `DNABarcodes` package from Tilo Buschmann
+
+We use the `DNABarcodes` package from Tilo Buschmann to generate a new set of 6-mer barcodes, which are robust against at least one substitution error (Hamming distance of 3). In addition, barcodes including stretches of 4 or more nucleotides (homopolymer of length >3) are discarded as well as those that have an unbalanced ratio of bases G or C versus A or T. We then exclude barcodes that are present both in the Illumina TruSeq small RNA kits and in the newly generated set.
+
+```{r echo = TRUE, warning=FALSE}
+library("DNABarcodes")
+newBarcodesRaw <- create.dnabarcodes(n=6, dist=3, metric = "hamming", filter.triplets = F, filter.gc = T, filter.self_complementary = F)
+
+newBarcodes <- newBarcodesRaw[!(newBarcodesRaw %in% DNABarcodeCompatibility::IlluminaIndexes$sequence)]
+
+newBarcodeSet <- data.frame(Id=paste0("B",sprintf("%02d",1:length(newBarcodes))), sequence=newBarcodes, GC_content=50, homopolymer=FALSE, stringsAsFactors = F)[1:48,]
+
+newBarcodeSet[,1:2]
+```
+
+## Analyzing barcode-set properties: set parameters for the simulations
+
+```{r echo = FALSE, cache=F, results=F}
+
+R=10
+L = c(12,18,24,30,36,42,48)
+N = 2:5
+C = c(1,2,4)
+
+# R=2
+# L = c(12,18)
+# N = 2:5
+# C = c(2,4)
+
+print("CONDITIONS:")
+print("Barcode set size:")
+L
+print("Multiplex levels:")
+N 
+print("Chemistry:")
+C
+print("Number of simulations per condition:")
+R
+print(paste("Total number of simulations:",R*length(L)*length(N)*length(C)))
+
+```
+
+Number of simulations per condition | Barcode-set size | Multiplex level | Chemistry |
+------------------------------------|------------------|-----------------|-----------|
+`r R`                               |`r L`             | `r N`           | `r C`     |
+
+
+Number of simulations | |
+----------------------|-|
+`r R*length(L)*length(N)*length(C)`| |
+
+
+### Running simulations for exhaustive searches
+```{r echo = FALSE, cache=F}
+
+# Initialize output file1 (barcode occurrences)
+write.table(data.frame(barcodeID=character(0), occurrence=integer(0), rep_number=integer(0), mplex_level=integer(0), barcode_number=integer(0), chemistry=integer(0)),
+ outputfile1 <- tempfile(), row.names = FALSE, col.names = T, quote=FALSE)
+
+# Initialize output file2 (execution time)
+write.table(data.frame(rep_number=integer(0), time=numeric(0), nb_total_combinations=integer(0), nb_comp_combinations=integer(0), mplex_level=integer(0), barcode_number=integer(0), chemistry=integer(0)),
+ outputfile2 <- tempfile(), row.names = FALSE, col.names = T, quote=FALSE)
+
+# Define Illumina TruSeq small RNA barcode set
+inputfile <- tempfile()
+save(newBarcodeSet, file=inputfile)
+
+
+# Detect CPU number
+nb_cpu=parallel::detectCores()
+
+if (F) {
+  # Run simulation using GNU parallel (Windows users need cygwin + Gnu parallel; MacOs: brew install parallel; Linux: apt-get install parallel)
+  print(paste("Running", R*length(L)*length(N)*length(C) ,"simulations..."))
+  system.time({
+    system(paste0("parallel -j",nb_cpu," Rscript ",SCRIPT_DIR,"sim_get_all_combinations.R {1} {2} {3} {4} {5} {6} {7} ::: ",paste(1:R, collapse=" ")," ::: ",paste(N, collapse=" ")," ::: ",paste(L, collapse=" ")," ::: ",paste(C, collapse=" "), " ::: ", paste(outputfile1, collapse=""), " ::: ", paste(outputfile2, collapse=""), " ::: ", paste(inputfile, collapse="")))
+  })
+  
+  barcodeFreq2 <- read.table(file=outputfile1, header = T, sep = " ", stringsAsFactors = FALSE)
+  save(barcodeFreq2, file = paste0(SCRIPT_DIR,"barcodeFreq2"))
+
+  results2 <- read.table(file=outputfile2, header = T, sep = " ", stringsAsFactors = FALSE)
+  save(results2, file = paste0(SCRIPT_DIR,"results2"))
+}
+
+
+# Import results
+barcodeFreq2 <- local(get(load(paste0(SCRIPT_DIR,"barcodeFreq2"))))
+results2 <- local(get(load(paste0(SCRIPT_DIR,"results2"))))
+
+```
+
+### Probability to find compatible barcodes in the total ensemble of combinations
+
+* The probability to find compatible combinations is more variable for small randomly-selected barcode sets 
+
+```{r echo = FALSE, warning=FALSE, fig.width=11}
+results2 %>% group_by(mplex_level, barcode_number, chemistry) %>%
+  filter(chemistry > 0) %>% filter(mplex_level==3) %>%
+  summarise(time.avg=mean(time), time.sd=sd(time), nb_total_combinations=nb_total_combinations[1], nb_comp_combinations.avg=mean(nb_comp_combinations), nb_comp_combinations.sd=sd(nb_comp_combinations)) %>%
+  ungroup() %>% mutate(mplex_level=as.factor(mplex_level),
+                       channel=paste0(chemistry, "-channel"),
+                       comp_comb_prop.avg= nb_comp_combinations.avg/nb_total_combinations,
+                       comp_comb_prop.sd= nb_comp_combinations.sd/nb_total_combinations,
+                       barcode_number=as.factor(barcode_number)) %>%
+  ggplot(aes(x=barcode_number,y=comp_comb_prop.avg, fill = mplex_level))+
+  geom_histogram(stat = "identity")+
+  geom_errorbar(aes(ymin=(comp_comb_prop.avg-comp_comb_prop.sd), ymax=(comp_comb_prop.avg+comp_comb_prop.sd)),
+                size=0.3,color="black") +
+  theme(axis.text.x=element_text(angle=45, hjust=1, vjust=1))+
+  facet_grid(~channel) +
+  scale_fill_manual(values = c("darkgrey")) + 
+  # scale_y_continuous(breaks=seq(0, 1, 0.2), limit=c(0, 1)) +
+  xlab("Barcode set size")+
+  ylab("Proportion of compatible combinations")+
+ggtitle(paste("Average proportion of compatible combinations ( average over", R,"simulations )"))
+
+
+```
+
+
+* The probability to find compatible combinations increases with the multiplex level
+
+
+```{r echo = FALSE, warning=FALSE, fig.width=11}
+results2 %>% group_by(mplex_level, barcode_number, chemistry) %>%
+  filter(chemistry > 0) %>%
+  summarise(nb_total_combinations=nb_total_combinations[1], nb_comp_combinations=mean(nb_comp_combinations), comp_comb_prop=nb_comp_combinations/nb_total_combinations) %>%
+  group_by(mplex_level, chemistry) %>% 
+  summarize(comp_comb_prop.avg= mean(comp_comb_prop),
+            comp_comb_prop.sd= sd(comp_comb_prop)) %>% ungroup() %>%
+  mutate(mplex_level=as.factor(mplex_level),
+         channel=paste0(chemistry, "-channel")) %>%
+  ggplot(aes(x=mplex_level,y=comp_comb_prop.avg, fill = mplex_level))+
+  geom_histogram(stat = "identity")+
+  geom_errorbar(aes(ymin=(comp_comb_prop.avg-comp_comb_prop.sd), ymax=(comp_comb_prop.avg+comp_comb_prop.sd)),
+  size=0.3,color="black") +
+  # theme(axis.text.x=element_text(angle=45, hjust=1, vjust=1))+
+  facet_grid(~channel) +
+  scale_y_continuous(breaks=seq(0, 1, 0.2), limit=c(0, 1)) +
+  xlab("Multiplex level")+
+  ylab("Proportion of compatible combinations")+
+  ggtitle(paste("Probability to find compatible combinations ( average over", R,"simulations and barcode-set size )"))
+
+
+```
+
+* Relationship between the number of compatibles combinations and the total number of combinations 
+
+For a multiplex level of 2, the number of compatible combinations is even smaller than for the combined Illumina TruSeq small RNA kits. Therefore, for a multiplex level of 2, an exhaustive search is preferable to retrieve all possible compatible combinations of barcodes for the optimization steps. The dashed line in the graph below indicates the threshold (2024) over which the `DNABarcodeCompatibility::experiment_design()` function of the package will perform a random search of compatible combinations instead of an exhaustive search.
+
+
+```{r echo = FALSE, warning=FALSE, fig.width=11}
+results2 %>% group_by(mplex_level, barcode_number, chemistry) %>%
+  filter(chemistry > 0) %>%
+  summarise(nb_total_combinations=nb_total_combinations[1], nb_comp_combinations.avg=mean(nb_comp_combinations),
+            nb_comp_combinations.sd=sd(nb_comp_combinations)) %>%
+  ungroup() %>%
+  mutate(mplex_level=as.factor(mplex_level),
+         channel=paste0(chemistry, "-channel")) %>%
+  ggplot(aes(x=nb_total_combinations,y=nb_comp_combinations.avg, color = mplex_level, size=barcode_number))+
+  geom_point()+ geom_smooth(method= "lm", se=F) +
+  geom_vline(xintercept=2024, linetype="dashed", color = "red")+
+  scale_x_log10(breaks=c(10,100,2024,10^4,10^5, 10^6), labels = scales::comma) +
+  scale_y_log10(breaks=c(5,10,100,1000,10^4,10^5, 10^6), labels = scales::comma) +
+  scale_size_continuous(name = "Barcode-set size", breaks=unique(results2$barcode_number)) +
+  facet_grid(~channel) +
+  xlab("Total number of combinations [log scale]")+
+  ylab("Number of compatible combinations [log scale]")+
+  ggtitle(paste("Number of compatible combinations"))
+
+
+```
+
+### Compatible barcode combinations: average barcode frequencies among input barcode sets
+
+The frequencies of the various barcodes appearing in the compatible combinations generated above may be highly heterogeneous for small multiplex levels. 
+We plot here the distribution of barcodes averaged over the different barcode sets, for distinct chemistries and multiplex levels.
+Despite the averaging of the distibutions over different barcode sets of different sizes, the heterogeneity between barcode frequencies is clearly apparent.
+
+
+* 4-channel chemistry
+
+```{r echo = FALSE, warning=FALSE, fig.width=11}
+if (4 %in% barcodeFreq2$chemistry) {
+  barcodeFreq2 %>% filter(chemistry == 4) %>% 
+    group_by(mplex_level, chemistry, barcode_number) %>%
+    mutate(sum_barcodes=sum(occurrence)) %>%
+    group_by(barcodeID, mplex_level, chemistry, barcode_number) %>%
+    summarise(freq=sum(occurrence)/sum_barcodes[1]) %>% 
+    group_by(barcodeID, mplex_level, chemistry) %>%
+    summarize(freq.avg=mean(freq), freq.sd=sd(freq)) %>% ungroup() %>%
+    mutate(channel=paste0(chemistry, "-channel"),
+           mplex_level=as.factor(mplex_level)) %>%
+    ggplot(aes(x=barcodeID,y=freq.avg, fill=mplex_level))+
+    geom_histogram(stat = "identity")+
+    geom_errorbar(aes(ymin=(freq.avg-freq.sd), ymax=(freq.avg+freq.sd)),
+                  size=0.7,color="black") +
+    theme(axis.text.x=element_text(angle=90, hjust=1, vjust=1))+
+    scale_y_continuous(breaks=seq(0, 0.18, 0.04), limit=c(0, 0.18)) +
+    facet_grid(mplex_level~channel) +
+    xlab("BarcodeID")+
+    ylab("Barcodes frequency")+
+    ggtitle(paste("Barcode frequency averaged over barcode sets (4-channel chemistry)"))
+}
+```
+
+* 2-channel chemistry
+
+```{r echo = FALSE, warning=FALSE, fig.width=11}
+if (2 %in% barcodeFreq2$chemistry) {
+  barcodeFreq2 %>% filter(chemistry == 2) %>% 
+    group_by(mplex_level, chemistry, barcode_number) %>%
+    mutate(sum_barcodes=sum(occurrence)) %>%
+    group_by(barcodeID, mplex_level, chemistry, barcode_number) %>%
+    summarise(freq=sum(occurrence)/sum_barcodes[1]) %>% 
+    group_by(barcodeID, mplex_level, chemistry) %>%
+    summarize(freq.avg=mean(freq), freq.sd=sd(freq)) %>% ungroup() %>%
+    mutate(channel=paste0(chemistry, "-channel"),
+           mplex_level=as.factor(mplex_level)) %>%
+    ggplot(aes(x=barcodeID,y=freq.avg, fill=mplex_level))+
+    geom_histogram(stat = "identity")+
+    geom_errorbar(aes(ymin=(freq.avg-freq.sd), ymax=(freq.avg+freq.sd)),
+                  size=0.7,color="black") +
+    theme(axis.text.x=element_text(angle=90, hjust=1, vjust=1))+
+    scale_y_continuous(breaks=seq(0, 0.18, 0.04), limit=c(0, 0.18)) +
+    facet_grid(mplex_level~channel) +
+    xlab("BarcodeID")+
+    ylab("Barcodes frequency")+
+    ggtitle(paste("Barcode frequency averaged over barcode sets (2-channel chemistry)"))
+}
+```
+
+* 1-channel chemistry
+
+```{r echo = FALSE, warning=FALSE, fig.width=11}
+if (1 %in% barcodeFreq2$chemistry) {
+  barcodeFreq2 %>% filter(chemistry == 1) %>% 
+    group_by(mplex_level, chemistry, barcode_number) %>%
+    mutate(sum_barcodes=sum(occurrence)) %>%
+    group_by(barcodeID, mplex_level, chemistry, barcode_number) %>%
+    summarise(freq=sum(occurrence)/sum_barcodes[1]) %>% 
+    group_by(barcodeID, mplex_level, chemistry) %>%
+    summarize(freq.avg=mean(freq), freq.sd=sd(freq)) %>% ungroup() %>%
+    mutate(channel=paste0(chemistry, "-channel"),
+           mplex_level=as.factor(mplex_level)) %>%
+    ggplot(aes(x=barcodeID,y=freq.avg, fill=mplex_level))+
+    geom_histogram(stat = "identity")+
+    geom_errorbar(aes(ymin=(freq.avg-freq.sd), ymax=(freq.avg+freq.sd)),
+                  size=0.7,color="black") +
+    theme(axis.text.x=element_text(angle=90, hjust=1, vjust=1))+
+    # scale_y_continuous(breaks=seq(0, 0.18, 0.04), limit=c(0, 0.18)) +
+    facet_grid(mplex_level~channel) +
+    xlab("BarcodeID")+
+    ylab("Barcodes frequency")+
+    ggtitle(paste("Barcode frequency averaged over barcode sets (1-channel chemistry)"))
+}
+
+```
+
+## Optimizing combinations: set parameters for the simulations
+
+```{r echo = FALSE, results=F}
+# R=100
+# L = c(12,18,24,30)
+# N = 2:5
+# C = c(2,4)
+# thrs_size_comb_for_GD=c(seq(10,50,5),seq(60,100, 10))
+# thrs_size_comb_for_GE=c(seq(10,50,5),seq(60,100, 10), seq(150,300,50), 400)
+# max_iteration = 0
+# nb_lane=c(4,6,8)
+# algorithm= c("greedy_exchange", "greedy_descent")
+
+R=100
+L = c(12,18,24,30)
+N = 3:5
+C = c(2,4)
+thrs_size_comb_for_GD=c()
+thrs_size_comb_for_GE=c(seq(25,50,5),seq(60,100, 10), seq(150,300,50))
+max_iteration = 0
+nb_lane=c(4,6,8)
+algorithm= c("greedy_exchange")
+
+# R=20
+# L = c(18)
+# N = 4
+# C = c(4)
+# thrs_size_comb_for_GD=c(60)
+# thrs_size_comb_for_GE=c(160)
+# max_iteration = 0
+# nb_lane=c(4)
+# algorithm= c("greedy_exchange", "greedy_descent")
+
+
+print(paste("Number of conditions:",R*length(L)*length(N)*length(C)*(length(thrs_size_comb_for_GD)+length(thrs_size_comb_for_GE))*length(nb_lane)))
+
+```
+
+Number of simulations per condition | Barcode-set size | Multiplex level | Chemistry | Lane number | Algorithm | Compatible combinations (GD) | Compatible combinations (GE) |
+------------------------------------|------------------|-----------------|-----------|----------------|--------------|---------------------------|---------------------------|
+`r R`                               |`r L`             | `r N`           | `r C`     | `r nb_lane`    | `r algorithm`| `r thrs_size_comb_for_GD` | `r thrs_size_comb_for_GE` |
+
+
+Number of simulations | |
+----------------------|-|
+`r R*length(L)*length(N)*length(C)*(length(thrs_size_comb_for_GD)+length(thrs_size_comb_for_GE))*length(nb_lane)`| |
+
+
+
+### Running simulations for the optimization without iteration
+
+
+```{r echo = FALSE, cache=F}
+
+# Initialize output file1 (barcode occurrence from random pic)
+write.table(data.frame(barcodeID=character(0), occurrence=integer(0), rep_number=integer(0), thrs_size_comb=integer(0), barcode_number=integer(0), chemistry=integer(0), nb_lane=integer(0), mplex_level=integer(0), algorithm=character(0)),
+            outputfile1 <- tempfile(), row.names = FALSE, col.names = T, quote=FALSE)
+
+# Initialize output file2 (barcode occurrence from optimized set)
+write.table(data.frame(barcodeID=character(0), occurrence=integer(0), rep_number=integer(0), thrs_size_comb=integer(0), barcode_number=integer(0), chemistry=integer(0), nb_lane=integer(0), mplex_level=integer(0), algorithm=character(0)),
+            outputfile2 <- tempfile(), row.names = FALSE, col.names = T, quote=FALSE)
+
+# Initialize output file3 (calcul of proba to get an optimal solution)
+write.table(data.frame(time=numeric(0), nb_comp_combinations=integer(0), rep_number=integer(0), barcode_number=integer(0), thrs_size_comb=integer(0), S_max=numeric(0), S_init=numeric(0), S_random=numeric(0), S_opt=numeric(0), S_random_opt=numeric(0), chemistry=integer(0), nb_lane=integer(0), mplex_level=integer(0), algorithm=character(0)),
+            outputfile3 <- tempfile(), row.names = FALSE, col.names = T, quote=FALSE)
+
+# Initialize output file4 (barcode occurrence from optimized set based on random picks)
+write.table(data.frame(barcodeID=character(0), occurrence=integer(0), rep_number=integer(0), thrs_size_comb=integer(0), barcode_number=integer(0), chemistry=integer(0), nb_lane=integer(0), mplex_level=integer(0), algorithm=character(0)),
+            outputfile4 <- tempfile(), row.names = FALSE, col.names = T, quote=FALSE)
+
+
+# Define barcode set
+barcode_set = DNABarcodeCompatibility::IlluminaIndexes
+
+
+# Detect CPU number
+nb_cpu=parallel::detectCores()
+
+if (F) {
+  system.time({
+    for (i in L) {
+      # Generate a large set of compatible combinations
+      index <- dplyr::sample_n(barcode_set, nrow(barcode_set), replace = FALSE)
+      for (j in N) {
+        for (k in C) {
+          for (algo in algorithm) {
+            
+            # Initialize input file with a matrix of all combinations
+            combination_m <- DNABarcodeCompatibility::get_all_combinations(index_df = index[1:i,], mplex_level = j, chemistry = k)
+            
+            inc=0
+            while (nrow(combination_m) < max(nb_lane) && inc<10) {
+              print("nrow(combination_m) might be too small")
+              print("other trial...")
+              index <- dplyr::sample_n(barcode_set, nrow(barcode_set), replace = FALSE)
+              combination_m <- DNABarcodeCompatibility::get_all_combinations(index_df = index[1:i,], mplex_level = j, chemistry = k)
+              inc=inc+1
+              print(inc)
+            }
+            if (nrow(combination_m)<max(nb_lane)) {warning("nrow(combination_m) might be too small")}
+            
+            inputfile <- tempfile()
+            save(combination_m, file=inputfile)
+            # save(combination_m, file="combination_m_4ch")
+            
+            # Run simulation using GNU parallel (Windows users need cygwin + Gnu parallel; MacOs: brew install parallel; Linux: apt-get install parallel)
+            if (algo == "greedy_descent") {
+              system(paste0("parallel -j",nb_cpu," Rscript ",SCRIPT_DIR,"sim_optimize_combinations.R {1} {2} {3} {4} {5} {6} {7} {8} {9} {10} {11} {12} {13} ::: ",paste(1:R, collapse=" ")," ::: ",paste(thrs_size_comb_for_GD, collapse=" ")," ::: " , paste(max_iteration, collapse=" "), " ::: ",paste(inputfile, collapse=""), " ::: ", paste(nb_lane, collapse=" "), " ::: ", paste(i, collapse=""), " ::: ", paste(k, collapse=""), " ::: ", paste(outputfile1, collapse=""), " ::: ", paste(outputfile2, collapse=""), " ::: ", paste(outputfile3, collapse=""), " ::: ", paste(outputfile4, collapse=""), " ::: ", paste(j, collapse=""), " ::: ", paste(algo, collapse=" ")))
+            } else if (algo == "greedy_exchange") {
+              system(paste0("parallel -j",nb_cpu," Rscript ",SCRIPT_DIR,"sim_optimize_combinations.R {1} {2} {3} {4} {5} {6} {7} {8} {9} {10} {11} {12} {13} ::: ",paste(1:R, collapse=" ")," ::: ",paste(thrs_size_comb_for_GE, collapse=" ")," ::: " , paste(max_iteration, collapse=" "), " ::: ",paste(inputfile, collapse=""), " ::: ", paste(nb_lane, collapse=" "), " ::: ", paste(i, collapse=""), " ::: ", paste(k, collapse=""), " ::: ", paste(outputfile1, collapse=""), " ::: ", paste(outputfile2, collapse=""), " ::: ", paste(outputfile3, collapse=""), " ::: ", paste(outputfile4, collapse=""), " ::: ", paste(j, collapse=""), " ::: ", paste(algo, collapse=" ")))
+            }
+          }
+        }
+      }
+    }
+    
+    sim3_barcodeStat_random <- read.table(file=outputfile1, header = T, sep = " ", stringsAsFactors = FALSE)
+    save(sim3_barcodeStat_random, file = paste0(SCRIPT_DIR,"sim3_barcodeStat_random"))
+    
+    sim3_barcodeStat_opt <- read.table(file=outputfile2, header = T, sep = " ", stringsAsFactors = FALSE)
+    save(sim3_barcodeStat_opt, file = paste0(SCRIPT_DIR,"sim3_barcodeStat_opt"))
+    
+    sim3_probaSmax <- read.table(file=outputfile3, header = T, sep = " ", stringsAsFactors = FALSE)
+    save(sim3_probaSmax, file = paste0(SCRIPT_DIR,"sim3_probaSmax"))
+    
+    sim3_barcodeStat_random_opt <- read.table(file=outputfile4, header = T, sep = " ", stringsAsFactors = FALSE)
+    save(sim3_barcodeStat_random_opt, file = paste0(SCRIPT_DIR,"sim3_barcodeStat_random_opt"))
+  })
+}
+
+
+# Import results
+sim3_barcodeStat_random <- local(get(load(paste0(SCRIPT_DIR,"sim3_barcodeStat_random"))))
+sim3_barcodeStat_opt <- local(get(load(paste0(SCRIPT_DIR,"sim3_barcodeStat_opt"))))
+# sim3_barcodeStat_random_opt <- local(get(load(paste0(SCRIPT_DIR,"sim3_barcodeStat_random_opt"))))
+sim3_probaSmax <- local(get(load(paste0(SCRIPT_DIR,"sim3_probaSmax"))))
+```
+
+### Probability to get the best optimized set of barcode combinations for a single greedy search
+
+In some cases, the probability to reach the theoretical maximum entropy $S_{max}$ might be $\leq 10^{-2}$ or even be zero. Here, to take account of such cases, we estimate the probability to get the highest value of the entropy $S_{opt}$ where possibly $S_{opt} < S_{max}$. In these conditions, the barcode distribution won't necessarily be uniform, but still much less heterogeneous than it would be for a selection obtained by a random pick (see below).
+
+
+```{r echo = FALSE,  warning=FALSE, message=F, fig.width=11, fig.height=22, eval=T}
+
+sim3_probaSmax %>% group_by(chemistry, barcode_number, mplex_level, nb_lane, algorithm) %>%
+  filter(thrs_size_comb<nb_comp_combinations) %>%
+  group_by(chemistry, barcode_number, mplex_level, nb_lane, algorithm, thrs_size_comb) %>%
+  mutate(S_sup=max(S_opt),
+         isSsup=ifelse(abs(S_opt-S_sup)<10^(-10), T, F)) %>%
+  summarise(time.avg=mean(time), time.sd=sd(time), nb_comp_combinations=nb_comp_combinations[1], S_sup=S_sup[1], ProbaOfSsup=sum(isSsup)/length(rep_number)) %>%
+  ungroup() %>% 
+  mutate(mplex_level=as.factor(mplex_level),
+         chemistry=paste0(chemistry,"-channel"),
+         nb_lane=paste(nb_lane,"lanes"),
+         barcode_number=paste("set of",barcode_number,"barcodes")) %>%
+ggplot(aes( x = thrs_size_comb, y = ProbaOfSsup, color=mplex_level)) +
+  geom_point() +
+  geom_smooth(se = F) +
+  scale_x_continuous(breaks=seq(0, 400, 50)) +
+  scale_y_continuous(breaks=seq(0, 1, 0.2), limit=c(0, 1.1)) +
+  facet_grid(chemistry+nb_lane+algorithm~barcode_number) +
+  
+  ggtitle(paste("Proba to get the best optimized set after a single run: calculated from", R, "runs")) +
+  xlab("Size of the initial set of compatible combinations") +
+  ylab("Probability to get an optimal combination")
+
+```
+
+### Estimation of the maximum execution time (N iterations) of a greedy search to obtain the max entropy in 95% of cases
+
+
+The probability of getting an optimal solution after $R$ iterations reads $P_{R} = 1-(1-P_{1})^R$. For example, if we want to find an optimal solution at least 95% of cases $(P_{R} = 0.95)$, we need a number of iterations $R \geq log(1-P_{R})/log(1-P_{1})$.
+ 
+
+* Max execution time / iteration number as a function of the number of compatible barcodes used for the search, grouped by chemistry, algorithm, barcode-set size, and multiplex level
+
+The results shown in the graphs below are heterogeneous between conditions. However, common trends emerge. First, in general, the greedy-exchange search performs the optimization faster over R iterations than the greedy-descent search, except in a few cases (see next point) where the subset of compatible combinations is smaller than 30. Second, for compatible-combination subsets larger than 120 (only tested for the greedy-exchange), the optimization requires less iterations in general and performs faster. Based on these observations, it seems reasonable to fix the compatible-combination subset size to 120.
+
+```{r echo = FALSE,  warning=FALSE, fig.width=11, fig.height=22, eval=T}
+# for 95% of cases
+P=0.95
+
+sim3_probaSmax %>% 
+  group_by(chemistry, barcode_number, mplex_level, nb_lane, algorithm) %>%
+  filter(thrs_size_comb<nb_comp_combinations) %>% 
+  group_by(chemistry, barcode_number, mplex_level, nb_lane, algorithm, thrs_size_comb) %>%
+  mutate(S_sup=max(S_opt),
+         isSsup=ifelse(abs(S_opt-S_sup)<10^(-10), T, F)) %>%
+  summarise(time.avg=mean(time), time.sd=sd(time), nb_comp_combinations=nb_comp_combinations[1], S_sup=S_sup[1], ProbaOfSsup=sum(isSsup)/length(rep_number)) %>%
+  ungroup() %>%
+  mutate(mplex_level=as.factor(mplex_level),
+         chemistry=paste0(chemistry,"-channel"),
+         nb_lane=paste(nb_lane,"lanes"),
+         barcode_number=paste("set of",barcode_number,"barcodes")) %>%
+  mutate(R=ceiling(log(1-P)/log(1-ProbaOfSsup)),
+         exec_time=(R+1)*time.avg) %>%
+  ggplot(aes(x = thrs_size_comb, y = exec_time, color=R, shape=mplex_level)) +
+  geom_point(size = 2) +
+  scale_colour_gradientn(colours = rainbow(5)) +
+  scale_x_log10(breaks=c(10, 15, 20, 40,60, 80,120, 200, 300)) +
+  scale_y_log10(breaks = c(1, 2,5, 10,30,90,200,1000,5000,10000, 20000)) +
+  geom_hline(yintercept=30, linetype="dashed", color = "black")+
+  geom_hline(yintercept=10, linetype="dashed", color = "black")+
+  geom_hline(yintercept=2, linetype="dashed", color = "black")+
+  facet_grid(chemistry+nb_lane+algorithm~barcode_number) +
+  ggtitle(paste("Estimated execution time to find an optimal solution in",P*100,"% of cases")) +
+  xlab("Size of the initial subset of compatible combinations") +
+  ylab("Maximum execution time [s]")
+
+
+```
+
+* Max execution time /iteration number as a function of lane number, grouped by algorithm, multiplex level, and number of compatible barcodes used for the search
+
+Data are now pooled regardless chemistry and barcode-set sizes. In the graphs below, the number displayed in the right grey panel represents the size the randomly chosen subset of compatible combinations. We confirm that the greedy-descent search performs faster for small subsets of compatible combinations. For subsets larger than 30 compatible combinations, it seems that 50 iterations would be a reasonable number for an efficient and fast optimization by the greedy-exchange search.
+These results are very similar to those obtained with the TruSeq small RNA kits from Illumina.
+
+```{r echo = FALSE,  warning=FALSE, fig.width=11, fig.height=11, eval=T}
+# for 95% of cases
+P=0.95
+
+sim3_probaSmax %>% 
+  group_by(chemistry, barcode_number, mplex_level, nb_lane, algorithm) %>%
+  filter(thrs_size_comb<nb_comp_combinations) %>% 
+  group_by(chemistry, barcode_number, mplex_level, nb_lane, algorithm, thrs_size_comb) %>%
+  mutate(S_sup=max(S_opt),
+         isSsup=ifelse(abs(S_opt-S_sup)<10^(-10), T, F)) %>%
+  summarise(time.avg=mean(time), time.sd=sd(time), nb_comp_combinations=nb_comp_combinations[1], S_sup=S_sup[1], ProbaOfSsup=sum(isSsup)/length(rep_number)) %>%
+  mutate(isNbLibSupToNbbc=ifelse(mplex_level*nb_lane>barcode_number, T, F),
+         isNbCombInfToNbLane=ifelse(nb_comp_combinations<nb_lane, T, F)) %>%
+  ungroup() %>%
+  mutate(mplex_level=as.factor(mplex_level),
+         chemistry=paste0(chemistry,"-channel"),
+         nb_lane=paste(nb_lane,"lanes"),
+         barcode_number=paste("set of",barcode_number,"barcodes")) %>%
+  mutate(R=ceiling(log(1-P)/log(1-ProbaOfSsup)),
+         exec_time=(R+1)*time.avg) %>%
+  filter(thrs_size_comb %in% c(10, 30, 80, 100, 400)) -> dat
+
+
+dat %>%
+  ggplot(aes(x = as.factor(nb_lane), y = R, color=mplex_level)) + 
+  geom_boxplot() +
+  facet_grid(thrs_size_comb~algorithm) +
+  ggtitle(paste("Distribution of the number of iterations needed to find a best optimized solution in",P*100,"% of cases")) +
+  xlab("Number of lanes") +
+  ylab("Number of greedy-search iterations")
+
+
+# dat %>%
+#   ggplot(aes(x = as.factor(nb_lane), y = exec_time, color=mplex_level)) +
+#   geom_boxplot() +
+#   scale_y_log10(breaks=c(2, 10, 30, 100, 360, 3600)) +
+#   geom_hline(yintercept=30, linetype="dashed", color = "darkgrey")+
+#   geom_hline(yintercept=10, linetype="dashed", color = "darkgrey")+
+#   geom_hline(yintercept=2, linetype="dashed", color = "darkgrey")+
+#   facet_grid(thrs_size_comb~algorithm) +
+#   ggtitle(paste("Estimated execution time to find a best optimized solution in",P*100,"% of cases")) +
+#   xlab("Number of lanes") +
+#   ylab("Maximum execution time [s]")
+
+dat %>% group_by(thrs_size_comb, nb_lane, mplex_level, barcode_number, chemistry) %>%
+  mutate(GD_ov_GE_time_ratio= exec_time[1]/exec_time[2]) %>% ungroup() %>% filter(thrs_size_comb<400) %>%
+  ggplot(aes(x = as.factor(nb_lane), y = GD_ov_GE_time_ratio, color=mplex_level)) +
+  geom_boxplot() +
+  scale_y_log10(breaks=c(0.1, 0.5, 1, 5, 10, 50, 100)) +
+  # scale_y_log10() +
+  # geom_hline(yintercept=30, linetype="dashed", color = "darkgrey")+
+  # geom_hline(yintercept=10, linetype="dashed", color = "darkgrey")+
+  geom_hline(yintercept=1, linetype="dashed", color = "darkgrey")+
+  # facet_grid(thrs_size_comb~algorithm) +
+  facet_grid(thrs_size_comb~.) +
+  ggtitle(paste("Relative time performance of the greedy algorithms to find a best optimized solution in",P*100,"% of cases")) +
+  xlab("Number of lanes") +
+  ylab("Time ratio of greedy-descent over greedy-exchange execution (log scale)")
+
+```
+
+### Distributions of entropy values without (S_random) and with (S_opt) optimization
+
+To visualize the efficacy of the greedy search algorithms, we compare the distribution of entropy values obtained from randomly generated selections of compatible barcodes with the distribution of entropy values obtained from optimized selections of compatible barcodes. The graphs below show that both greedy algorithms are comparable and dramatically reduce the barcode frequencies' heterogeneity by favoring selections of compatible barcode combinations with a higher entropy. One multifacetted graph is shown per subset size. The blue line indicates the position of the theoretical value of the maximum entropy $S_{max}$. A dashed line indicates that $S_{max}$ has been reached, whereas a solid line indicates that $S_{max}$ has not been reached.
+
+```{r echo = FALSE,  warning=FALSE, message=FALSE, fig.width=11, fig.height=44, eval=T}
+sim3_probaSmax %>% group_by(chemistry, barcode_number, mplex_level, nb_lane, algorithm) %>%
+  filter(thrs_size_comb<nb_comp_combinations) %>% ungroup() %>%
+  # filter(thrs_size_comb == 60) %>%
+  mutate(isSmax=ifelse(abs(S_opt-S_max)<10^-10, T, F),
+         S_opt=round(S_opt, 3),
+         S_random=round(S_random, 3), 
+         mplex_level=paste0("mplex-",mplex_level),
+         chemistry=paste0(chemistry,"-channel"),
+         nb_lane=paste(nb_lane,"lanes"),
+         barcode_number=paste("set of",barcode_number,"barcodes")) -> dat
+
+dat %>%
+  group_by(chemistry, barcode_number, mplex_level, nb_lane, algorithm, thrs_size_comb) %>%
+  do ({
+    chunk <- .
+    with(chunk, as.data.frame(table(S=S_random))) %>% 
+      mutate(Freq=Freq/sum(Freq),
+             S_max=chunk$S_max[1],
+             dataset="S_random",
+             isSmax=any(chunk$isSmax))
+  }) %>% ungroup() %>% mutate(S=as.double(S)) -> S_random_freq 
+
+
+dat %>%
+  group_by(chemistry, barcode_number, mplex_level, nb_lane, algorithm, thrs_size_comb) %>%
+  do ({
+    chunk <- .
+    with(chunk, as.data.frame(table(S=S_opt))) %>% 
+      mutate( Freq=Freq/sum(Freq), 
+              S_max=chunk$S_max[1], 
+              dataset="S_opt",
+              isSmax=any(chunk$isSmax)) 
+  }) %>% ungroup() %>% mutate(S=as.double(S)) -> S_opt_freq
+
+
+Sdat=bind_rows(S_random_freq, S_opt_freq)
+
+k=1
+gg <- list()
+
+for (i in c(30,80,100,300) ){
+  
+  Sdat %>% filter(thrs_size_comb == i) %>%
+    # mutate(thrs_size_comb=as.factor(thrs_size_comb)) %>%
+    ggplot(aes(x = S)) +
+    geom_histogram(aes(y=0.05*..density.., fill=dataset), position='identity', alpha=0.7, binwidth=0.05, boundary=0.05) +
+    geom_vline(aes(xintercept = S_max, color="S_max", linetype=isSmax)) +
+    scale_x_continuous(breaks=round(seq(min(dat$S_random), max(dat$S_opt), (max(dat$S_opt)-min(dat$S_random))/5),2)) +
+    # scale_x_discrete(breaks=sort(sample(dat$S_random,5)))+
+    theme(axis.text.x=element_text(angle=90, hjust=1, vjust=1))+
+    facet_grid(chemistry+mplex_level+nb_lane+algorithm~barcode_number) +
+    scale_fill_manual("Entropy",
+                      breaks = c("S_opt", "S_random"),
+                      values = c("green", "red")) +
+    
+    scale_color_manual("",
+                       breaks = c("S_max", "S_opt", "S_random"),
+                       values = c("blue", "green", "red")) +
+    xlab("Entropy values") +
+    ylab("Frequency") +
+    ggtitle(paste("Distributions of entropy values for (",i ,"combs;", R, "runs)")) -> gg[[k]]
+  k=k+1
+}
+gg
+
+```
+

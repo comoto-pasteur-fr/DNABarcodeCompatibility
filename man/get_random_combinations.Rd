@@ -23,10 +23,7 @@ Finds a randomly generated set of at most 1000 combinations of compatible barcod
 This function is suited if the total number of possible combinations is too high for an exhaustive search to be possible in a reasonable amount of time.
 }
 \examples{
-write.table(DNABarcodeCompatibility::IlluminaIndexes,
- txtfile <- tempfile(), row.names = FALSE, col.names = FALSE, quote=FALSE)
-barcodes <- file_loading_and_checking(txtfile)
-get_random_combinations(barcodes, 3, 4)
+get_random_combinations(DNABarcodeCompatibility::IlluminaIndexes, 3, 4)
 
 
 }

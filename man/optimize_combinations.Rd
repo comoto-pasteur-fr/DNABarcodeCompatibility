@@ -4,7 +4,8 @@
 \alias{optimize_combinations}
 \title{Find a set of barcode combinations with least redundant barcodes}
 \usage{
-optimize_combinations(combination_m, nb_lane, index_number)
+optimize_combinations(combination_m, nb_lane, index_number,
+ thrs_size_comb, max_iteration, method)
 }
 \arguments{
 \item{combination_m}{A matrix of compatible barcode combinations.}
@@ -12,6 +13,12 @@ optimize_combinations(combination_m, nb_lane, index_number)
 \item{nb_lane}{The number of lanes to be use for sequencing (i.e. the number of libraries divided by the multiplex level).}
 
 \item{index_number}{The total number of distinct DNA barcodes in the dataset.}
+
+\item{thrs_size_comb}{The maximum size of the set of compatible combinations to be used for the greedy optimization.}
+
+\item{max_iteration}{The maximum number of iterations during the optimizing step.}
+
+\item{method}{The choice of the greedy search: 'greedy_exchange' or 'greedy_descent'.}
 }
 \value{
 A matrix containing an optimized set of combinations of compatible barcodes.
@@ -38,10 +45,7 @@ It is actually close to optimal and much improved in terms of non-redundancy of 
 In such a case, there are not enough compatible DNA-barcode combinations and redundancy is inevitable.
 }
 \examples{
-write.table(DNABarcodeCompatibility::IlluminaIndexes,
- txtfile <- tempfile(), row.names = FALSE, col.names = FALSE, quote=FALSE)
-barcodes <- file_loading_and_checking(txtfile)
-m <- get_random_combinations(barcodes, 3, 4)
+m <- get_random_combinations(DNABarcodeCompatibility::IlluminaIndexes, 3, 4)
 optimize_combinations(m, 12, 48)
 
 

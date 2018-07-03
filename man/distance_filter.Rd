@@ -26,10 +26,8 @@ The "hamming" distance is suitable for correcting substitution errors.
 The "seqlev" distance is suitable for correcting both substitution and insertion/deletion errors.
 }
 \examples{
-write.table(DNABarcodeCompatibility::IlluminaIndexes,
- txtfile <- tempfile(), row.names = FALSE, col.names = FALSE, quote=FALSE)
-barcodes <- file_loading_and_checking(txtfile)
-m <- get_all_combinations(barcodes, 3, 4)
+barcodes <- DNABarcodeCompatibility::IlluminaIndexes
+m <- get_all_combinations(barcodes, 2, 4)
 distance_filter(barcodes, m, "hamming", 3)
 
 }

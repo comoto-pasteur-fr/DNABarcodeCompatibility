@@ -18,10 +18,7 @@
 #' A matrix containing the identifiers of compatible barcode combinations.
 #'
 #' @examples
-#' write.table(DNABarcodeCompatibility::IlluminaIndexes,
-#'  txtfile <- tempfile(), row.names = FALSE, col.names = FALSE, quote=FALSE)
-#' barcodes <- file_loading_and_checking(txtfile)
-#' get_all_combinations(barcodes, 3, 4)
+#' get_all_combinations(DNABarcodeCompatibility::IlluminaIndexes, 3, 4)
 #' 
 #'
 #' @seealso 
@@ -42,7 +39,8 @@ get_all_combinations = function(index_df, mplex_level, chemistry){
       display_message("Please choose a correct chemistry for your experiment ")
     }
     if(nrow(as.matrix(combinations_m)) == 0){
-      display_message("The programm did'nt find any compatible combination, please check your index list")
+      display_message("The programm didn't find any compatible combination, please check your index list")
+      return (combinations_m)
     }else{
       return (combinations_m)
     }

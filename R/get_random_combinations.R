@@ -18,10 +18,7 @@
 #' A matrix containing the identifiers of compatible barcode combinations.
 #'
 #' @examples
-#' write.table(DNABarcodeCompatibility::IlluminaIndexes,
-#'  txtfile <- tempfile(), row.names = FALSE, col.names = FALSE, quote=FALSE)
-#' barcodes <- file_loading_and_checking(txtfile)
-#' get_random_combinations(barcodes, 3, 4)
+#' get_random_combinations(DNABarcodeCompatibility::IlluminaIndexes, 3, 4)
 #' 
 #'
 #' @seealso 

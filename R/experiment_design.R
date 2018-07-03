@@ -7,7 +7,7 @@
 #'
 #' @usage 
 #' experiment_design(file1, sample_number, mplex_level, chemistry = 4,
-#'  file2 = NULL, export = NULL, metric = NULL, d = 3)
+#'  file2 = NULL, export = NULL, metric = NULL, d = 3, thrs_size_comb, max_iteration, method)
 #'
 #' @param file1 The input data file that contains 2 columns separated by a space or a tabulation, namely the sequence identifiers and corresponding DNA sequence
 #' @param sample_number Number of libraries to be sequenced.
@@ -17,6 +17,9 @@
 #' @param export If not NULL, results are saved in a csv file at the specified path.
 #' @param metric The type of distance (hamming or seqlev).
 #' @param d The minimum value of the distance.
+#' @param thrs_size_comb The maximum size of the set of compatible combinations to be used for the greedy optimization.
+#' @param max_iteration The maximum number of iterations during the optimizing step.
+#' @param method The choice of the greedy search: 'greedy_exchange' or 'greedy_descent'.
 #' 
 #' @details 
 #' By specifying the total number of libraries and the number of libraries to be multiplexed, 
@@ -44,7 +47,7 @@
 #' A dataframe containing compatible DNA-barcode combinations organized by lanes of the flow cell.
 #'
 #' @examples
-#' write.table(DNABarcodeCompatibility::IlluminaIndexes,
+#' write.table(DNABarcodeCompatibility::IlluminaIndexesRaw,
 #'  txtfile <- tempfile(), row.names = FALSE, col.names = FALSE, quote=FALSE)
 #' experiment_design(file1=txtfile, sample_number=18, mplex_level=3, chemistry=4)
 #' 
@@ -62,13 +65,14 @@ experiment_design = function (file1,
                               file2 = NULL,
                               export = NULL, 
                               metric = NULL, 
-                              d = 3){
+                              d = 3,
+                              thrs_size_comb=120, max_iteration=50, method="greedy_exchange"){
   #browser()
   if (is.null(file2)){
     file1  = file_loading_and_checking(file1)
     if (!is.null(file1)) {
       if (sample_and_multiplexing_level_check(sample_number, mplex_level) == TRUE){
-        print("mlx and sample ok")
+        # print("mlx and sample ok")
         result1 = final_result(file1,sample_number, mplex_level,chemistry, metric, d)
         if(!is.null(export)) {write.csv2(result1, file = export)}
         return(result1)
@@ -86,10 +90,10 @@ experiment_design = function (file1,
           result2 = get_result(file2, sample_number, mplex_level, chemistry, metric, d)
           result2 = check_for_duplicate(result1, result2)
           
-          result1 = left_join(result1, select(file1, Id, sequence)) 
-          print(result1)
-          result2 = left_join(result2, select(file2, Id, sequence)) 
-          print(result2)
+          result1 = left_join(result1, select(file1, Id, sequence), by = "Id") 
+          # print(result1)
+          result2 = left_join(result2, select(file2, Id, sequence), by = "Id") 
+          # print(result2)
           result = data.frame(sample = 1: sample_number %>% as.character(),
                               Lane = result1$Lane %>% as.character(),
                               Id1 = result1$Id %>% as.character(),

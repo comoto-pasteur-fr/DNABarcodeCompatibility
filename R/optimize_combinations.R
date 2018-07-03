@@ -5,11 +5,15 @@
 #' This function uses the Shannon Entropy to identify a set of compatible barcode combinations with least redundancy between DNA barcodes.
 #'
 #' @usage 
-#' optimize_combinations(combination_m, nb_lane, index_number)
+#' optimize_combinations(combination_m, nb_lane, index_number,
+#'  thrs_size_comb, max_iteration, method)
 #'
 #' @param combination_m A matrix of compatible barcode combinations.
 #' @param nb_lane The number of lanes to be use for sequencing (i.e. the number of libraries divided by the multiplex level).
 #' @param index_number The total number of distinct DNA barcodes in the dataset.
+#' @param thrs_size_comb The maximum size of the set of compatible combinations to be used for the greedy optimization.
+#' @param max_iteration The maximum number of iterations during the optimizing step.
+#' @param method The choice of the greedy search: 'greedy_exchange' or 'greedy_descent'.
 #'
 #' @details 
 #' N/k compatible combinations are then selected using a Shannon entropy maximization approach.
@@ -37,10 +41,7 @@
 #' A matrix containing an optimized set of combinations of compatible barcodes.
 #'
 #' @examples
-#' write.table(DNABarcodeCompatibility::IlluminaIndexes,
-#'  txtfile <- tempfile(), row.names = FALSE, col.names = FALSE, quote=FALSE)
-#' barcodes <- file_loading_and_checking(txtfile)
-#' m <- get_random_combinations(barcodes, 3, 4)
+#' m <- get_random_combinations(DNABarcodeCompatibility::IlluminaIndexes, 3, 4)
 #' optimize_combinations(m, 12, 48)
 #' 
 #'
@@ -52,36 +53,49 @@
 #' @export
 #' 
 
-optimize_combinations = function (combination_m, nb_lane, index_number){
+optimize_combinations = function (combination_m, nb_lane, index_number, thrs_size_comb=120, max_iteration=50, method="greedy_exchange"){
   # browser()
   if (nrow(as.matrix(combination_m)) == 0){
     display_message("No combinations have been found")
-  }else {
+  } else {
     if(is.numeric(index_number)){
       if (is.numeric(nb_lane)){
         
         max = entropy_max(index_number, ncol(combination_m) * nb_lane)
-        print(max)
+        print(paste("Theoretical max entropy:",round(max, 5)))
+        
         if(nb_lane < nrow(combination_m)){
-          if (nrow(combination_m) > 80){ 
-            a_combination = recursive_entropy(combination_m[sample(1:nrow(combination_m),80),],nb_lane)
+          if (nrow(combination_m) > thrs_size_comb){ 
+            a_combination = recursive_entropy(combination_m[sample(1:nrow(combination_m),thrs_size_comb),], nb_lane, method=method)
             i = 0
-            while ((i < 10) && (entropy_result(a_combination) < max) ){
-              temp_combination = recursive_entropy(combination_m[sample(1:nrow(combination_m),80),], nb_lane)
+            while ((i < max_iteration) && (entropy_result(a_combination) < max) ){
+              temp_combination = recursive_entropy(combination_m[sample(1:nrow(combination_m),thrs_size_comb),], nb_lane, method=method)
               if (entropy_result(temp_combination) > entropy_result(a_combination) ){
                 a_combination = temp_combination
               }
               i = i+1
             }
           } else {
-            a_combination = recursive_entropy(combination_m,nb_lane)
-            i = 0
-            while ((i < 10) && (entropy_result(a_combination) < max) ){
-              temp_combination = recursive_entropy(combination_m, nb_lane)
-              if (entropy_result(temp_combination) > entropy_result(a_combination) ){
-                a_combination = temp_combination
+            if (nrow(combination_m) > 30) {
+              a_combination = recursive_entropy(combination_m, nb_lane, method=method)
+              i = 0
+              while ( (i < max_iteration) && (entropy_result(a_combination) < max) ){
+                temp_combination = recursive_entropy(combination_m, nb_lane, method=method)
+                if (entropy_result(temp_combination) > entropy_result(a_combination) ){
+                  a_combination = temp_combination
+                }
+                i = i+1
               }
-              i = i+1
+            } else {
+              a_combination = recursive_entropy(combination_m,nb_lane, method="greedy_descent")
+              i = 0
+              while ((i < max_iteration) && (entropy_result(a_combination) < max) ){
+                temp_combination = recursive_entropy(combination_m, nb_lane, method="greedy_descent")
+                if ( entropy_result(temp_combination) > entropy_result(a_combination) ){
+                  a_combination = temp_combination
+                }
+                i = i+1
+              }
             }
           }
         } else {
@@ -100,8 +114,10 @@ optimize_combinations = function (combination_m, nb_lane, index_number){
           }
           a_combination = a_combination[sample(1:nrow(a_combination),nrow(a_combination)),]
         }
-        print(entropy_result(a_combination))
+        
+        print(paste("Entropy of the optimized set:", round(entropy_result(a_combination),5)))
         return(a_combination)
+        
       } else {
         display_message("Please enter a number as nb_lane")
       }

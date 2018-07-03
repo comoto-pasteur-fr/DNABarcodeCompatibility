@@ -20,10 +20,8 @@
 #' A filtered matrix containing the identifiers of the barcodes satisfying the distance constraints.
 #'
 #' @examples
-#' write.table(DNABarcodeCompatibility::IlluminaIndexes,
-#'  txtfile <- tempfile(), row.names = FALSE, col.names = FALSE, quote=FALSE)
-#' barcodes <- file_loading_and_checking(txtfile)
-#' m <- get_all_combinations(barcodes, 3, 4)
+#' barcodes <- DNABarcodeCompatibility::IlluminaIndexes
+#' m <- get_all_combinations(barcodes, 2, 4)
 #' distance_filter(barcodes, m, "hamming", 3)
 #'
 #' @seealso 
