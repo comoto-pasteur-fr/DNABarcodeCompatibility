@@ -801,9 +801,9 @@ sim1_probaSmax %>%
          chemistry=paste0(chemistry,"-channel"),
          nb_lane=paste(nb_lane,"lanes"),
          barcode_number=paste("set of",barcode_number,"barcodes")) %>%
-  mutate(N=ceiling(log(1-P)/log(1-ProbaOfSsup)),
-         exec_time=(N+1)*time.avg) %>%
-  ggplot(aes(x = thrs_size_comb, y = exec_time, color=N, shape=mplex_level)) +
+  mutate(R=ceiling(log(1-P)/log(1-ProbaOfSsup)),
+         exec_time=(R+1)*time.avg) %>%
+  ggplot(aes(x = thrs_size_comb, y = exec_time, color=R, shape=mplex_level)) +
   geom_point(size = 2) +
   scale_colour_gradientn(colours = rainbow(5)) +
   scale_x_log10(breaks=c(10, 15, 20, 40,60, 80,120, 200, 300)) +
@@ -841,13 +841,13 @@ sim1_probaSmax %>%
          chemistry=paste0(chemistry,"-channel"),
          nb_lane=paste(nb_lane,"lanes"),
          barcode_number=paste("set of",barcode_number,"barcodes")) %>%
-  mutate(N=ceiling(log(1-P)/log(1-ProbaOfSsup)),
-         exec_time=(N+1)*time.avg) %>%
+  mutate(R=ceiling(log(1-P)/log(1-ProbaOfSsup)),
+         exec_time=(R+1)*time.avg) %>%
   filter(thrs_size_comb %in% c(10, 30, 80, 100, 400)) -> dat
 
 
 dat %>%
-  ggplot(aes(x = as.factor(nb_lane), y = N, color=mplex_level)) + 
+  ggplot(aes(x = as.factor(nb_lane), y = R, color=mplex_level)) + 
   geom_boxplot() +
   facet_grid(thrs_size_comb~algorithm) +
   ggtitle(paste("Distribution of the number of iterations needed to find a best optimized solution in",P*100,"% of cases")) +
@@ -1023,7 +1023,7 @@ print(paste("Number of conditions:",R*length(L)*length(N)*length(C)*length(thrs_
 ```
 
 
-Number of simulations per condition | Barcode-set size | Multiplex level | Chemistry | Lane number | Algorithm | Compatible combinations (GD) | Compatible combinations (GE) | Max iterations N |
+Number of simulations per condition | Barcode-set size | Multiplex level | Chemistry | Lane number | Algorithm | Compatible combinations (GD) | Compatible combinations (GE) | Max iterations R |
 ------------------------------------|------------------|-----------------|-----------|----------------|--------------|---------------------------|---------------------------|----------------|
 `r R`                               |`r L`             | `r N`           | `r C`     | `r nb_lane`    | `r algorithm`| `r thrs_size_comb_for_GD` | `r thrs_size_comb_for_GE` | `r max_iteration` |
 
@@ -2068,9 +2068,9 @@ sim3_probaSmax %>%
          chemistry=paste0(chemistry,"-channel"),
          nb_lane=paste(nb_lane,"lanes"),
          barcode_number=paste("set of",barcode_number,"barcodes")) %>%
-  mutate(N=ceiling(log(1-P)/log(1-ProbaOfSsup)),
-         exec_time=(N+1)*time.avg) %>%
-  ggplot(aes(x = thrs_size_comb, y = exec_time, color=N, shape=mplex_level)) +
+  mutate(R=ceiling(log(1-P)/log(1-ProbaOfSsup)),
+         exec_time=(R+1)*time.avg) %>%
+  ggplot(aes(x = thrs_size_comb, y = exec_time, color=R, shape=mplex_level)) +
   geom_point(size = 2) +
   scale_colour_gradientn(colours = rainbow(5)) +
   scale_x_log10(breaks=c(10, 15, 20, 40,60, 80,120, 200, 300)) +
@@ -2109,13 +2109,13 @@ sim3_probaSmax %>%
          chemistry=paste0(chemistry,"-channel"),
          nb_lane=paste(nb_lane,"lanes"),
          barcode_number=paste("set of",barcode_number,"barcodes")) %>%
-  mutate(N=ceiling(log(1-P)/log(1-ProbaOfSsup)),
-         exec_time=(N+1)*time.avg) %>%
+  mutate(R=ceiling(log(1-P)/log(1-ProbaOfSsup)),
+         exec_time=(R+1)*time.avg) %>%
   filter(thrs_size_comb %in% c(10, 30, 80, 100, 400)) -> dat
 
 
 dat %>%
-  ggplot(aes(x = as.factor(nb_lane), y = N, color=mplex_level)) + 
+  ggplot(aes(x = as.factor(nb_lane), y = R, color=mplex_level)) + 
   geom_boxplot() +
   facet_grid(thrs_size_comb~algorithm) +
   ggtitle(paste("Distribution of the number of iterations needed to find a best optimized solution in",P*100,"% of cases")) +
