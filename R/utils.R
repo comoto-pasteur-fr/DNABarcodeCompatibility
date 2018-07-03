@@ -13,7 +13,7 @@
 # Inputs ------------------------------------------------------------------
 read_index = function(file) {
   if(!file.exists(file)){
-    display_message("Your file doesn't exist, please check the path", call. = FALSE )
+    display_message("Your file doesn't exist, please check the path")
     index <<- NULL
   }else{
     index <<- try(as.data.frame(read.table(file, 
@@ -146,10 +146,10 @@ sample_number_check = function (sample_number){
     display_message("you have to enter an integer value3")
     return(FALSE)
   }
-  else if (isPrime(sample_number)) {
-    display_message("this a prime number, you can't use multiplexing")
-    return(FALSE)
-  }
+  # else if (isPrime(sample_number)) {
+  #   display_message("this a prime number, you can't use multiplexing")
+  #   return(FALSE)
+  # }
   else if (sample_number < 2) {
     message("You need at least 2 samples in order to use multiplexing !")
     return(FALSE)
@@ -165,7 +165,7 @@ sample_number_check = function (sample_number){
     
  
 multiplexing_level_set = function (sample_number){
-  v  = 2 : (sample_number-1)
+  v  = 2 : (sample_number)
   multiplexing_level_choices = v[sample_number %% v == 0]
   return (multiplexing_level_choices [multiplexing_level_choices< 96])
 }
