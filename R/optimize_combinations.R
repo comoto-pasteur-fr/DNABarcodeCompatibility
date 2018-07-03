@@ -76,7 +76,7 @@ optimize_combinations = function (combination_m, nb_lane, index_number, thrs_siz
               i = i+1
             }
           } else {
-            if (nrow(combination_m) > 25) {
+            if (nrow(combination_m) > 30) {
               a_combination = recursive_entropy(combination_m, nb_lane, method=method)
               i = 0
               while ( (i < max_iteration) && (entropy_result(a_combination) < max) ){
