@@ -12,7 +12,7 @@
 
 <meta name="author" content="Céline Trébeau &amp; Raphaël Etournay" />
 
-<meta name="date" content="2018-07-03" />
+<meta name="date" content="2018-07-04" />
 
 <title>Introduction to DNABarcodeCompatibility</title>
 
@@ -70,7 +70,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">Introduction to DNABarcodeCompatibility</h1>
 <h4 class="author"><em>Céline Trébeau &amp; Raphaël Etournay</em></h4>
-<h4 class="date"><em>2018-07-03</em></h4>
+<h4 class="date"><em>2018-07-04</em></h4>
 
 
 
@@ -78,15 +78,14 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 body {
 text-align: justify}
 </style>
-<p>This document introduces you to DNABarcodeCompatibility’s basic set of tools.</p>
-<p>The DNABarcodeCompatibility package provides six functions and two barcode datasets for running examples. The functions allow one to load DNA barcodes, to generate, filter and optimize sets of compatible barcode combinations for multiplex sequecing experiments. In particular, the package provides an optimizer function to further favor the selection of compatible barcode combinations with <strong>least redundancy of DNA barcodes</strong> and allows one to keep barcodes that are <strong>robust against substitution and insertion/deletion errors</strong> thereby facilitating the demultiplexing step.</p>
-<p>This package contains:</p>
+<p>This document gives an overview of the DNABarcodeCompatibility R package with a brief description of the set of tools that it contains. The package includes six main functions that are briefly described below with examples. These functions allow one to load a list of DNA barcodes (such as the Illumina TruSeq small RNA kits), to filter these barcodes according to distance and nucleotide content criteria, to generate sets of compatible barcode combinations out of the filtered barcode list, and finally to generate an optimized selection of barcode combinations for multiplex sequencing experiments. In particular, the package provides an optimizer function to favour the selection of compatible barcode combinations with <strong>least heterogeneity in the frequencies of DNA barcodes</strong>, and allows one to keep barcodes that are <strong>robust against substitution and insertion/deletion errors</strong>, thereby facilitating the demultiplexing step.</p>
+<p>The DNABarcodeCompatibility package also contains:</p>
 <ul>
-<li>one workflow called <code>experiment_design()</code> to perfom all steps in one go</li>
-<li>two datasets called <code>IlluminaIndexesRaw</code> and <code>IlluminaIndexes</code> for running examples</li>
-<li>a series of API to build your own workflow</li>
+<li>one workflow called <code>experiment_design()</code> allowing one to perfom all steps in one go.</li>
+<li>two datasets called <code>IlluminaIndexesRaw</code> and <code>IlluminaIndexes</code> for running and testing examples.</li>
+<li>a series of API to build your own workflow.</li>
 </ul>
-<p>This package deals with the three existing sequencing-by-synthesis chemistries from Illumina:</p>
+<p>The package deals with the three existing sequencing-by-synthesis chemistries from Illumina:</p>
 <ul>
 <li>Four-Channel SBS Chemistry: MiSeq, HiSeq systems</li>
 <li>Two-Channel SBS Chemistry: MiniSeq, NextSeq, NovaSeq systems</li>
@@ -109,7 +108,7 @@ export_dataset_to_file =<span class="st"> </span><span class="cf">function</span
 </div>
 <div id="design-an-experiment" class="section level2">
 <h2>Design an experiment</h2>
-<p>The function <code>experiment_design()</code> uses a Shannon-entropy maximization approach to identify a set of compatible barcode combinations with least redundancy between DNA barcodes, in the contexts of single and dual barcoding. It performs either an exhaustive or a random search of compatible DNA-barcode combinations depending on the size of the DNA-barcode population and of the number of samples to be multiplexed.</p>
+<p>The function <code>experiment_design()</code> uses a Shannon-entropy maximization approach to identify a set of compatible barcode combinations in which the frequencies of occurrences of the various DNA barcodes are as uniform as possible. The optimization can be performed in the contexts of single and dual barcoding. It performs either an exhaustive or a random search of compatible DNA-barcode combinations, depending on the size of the DNA-barcode set used, and on the number of samples to be multiplexed.</p>
 <div id="examples-for-single-indexing" class="section level3">
 <h3>Examples for single indexing</h3>
 <ul>
@@ -120,18 +119,18 @@ export_dataset_to_file =<span class="st"> </span><span class="cf">function</span
 <span class="co">#&gt; [1] &quot;Theoretical max entropy: 2.48491&quot;</span>
 <span class="co">#&gt; [1] &quot;Entropy of the optimized set: 2.48491&quot;</span>
 <span class="co">#&gt;    sample Lane    Id sequence</span>
-<span class="co">#&gt; 1       1    1 RPI10   TAGCTT</span>
-<span class="co">#&gt; 2       2    1 RPI40   CTCAGA</span>
-<span class="co">#&gt; 3       3    1 RPI41   GACGAC</span>
+<span class="co">#&gt; 1       1    1 RPI02   CGATGT</span>
+<span class="co">#&gt; 2       2    1 RPI07   CAGATC</span>
+<span class="co">#&gt; 3       3    1 RPI19   GTGAAA</span>
 <span class="co">#&gt; 4       4    2 RPI06   GCCAAT</span>
-<span class="co">#&gt; 5       5    2 RPI12   CTTGTA</span>
-<span class="co">#&gt; 6       6    2 RPI27   ATTCCT</span>
-<span class="co">#&gt; 7       7    3 RPI16   CCGTCC</span>
-<span class="co">#&gt; 8       8    3 RPI21   GTTTCG</span>
-<span class="co">#&gt; 9       9    3 RPI46   TCCCGA</span>
-<span class="co">#&gt; 10     10    4 RPI08   ACTTGA</span>
-<span class="co">#&gt; 11     11    4 RPI17   GTAGAG</span>
-<span class="co">#&gt; 12     12    4 RPI43   TACAGC</span></code></pre></div>
+<span class="co">#&gt; 5       5    2 RPI20   GTGGCC</span>
+<span class="co">#&gt; 6       6    2 RPI29   CAACTA</span>
+<span class="co">#&gt; 7       7    3 RPI10   TAGCTT</span>
+<span class="co">#&gt; 8       8    3 RPI23   GAGTGG</span>
+<span class="co">#&gt; 9       9    3 RPI39   CTATAC</span>
+<span class="co">#&gt; 10     10    4 RPI01   ATCACG</span>
+<span class="co">#&gt; 11     11    4 RPI24   GGTAGC</span>
+<span class="co">#&gt; 12     12    4 RPI33   CAGGCG</span></code></pre></div>
 <ul>
 <li>12 libraries sequenced in multiplex of 3 on a NextSeq (2 channels) platform</li>
 </ul>
@@ -140,18 +139,18 @@ export_dataset_to_file =<span class="st"> </span><span class="cf">function</span
 <span class="co">#&gt; [1] &quot;Theoretical max entropy: 2.48491&quot;</span>
 <span class="co">#&gt; [1] &quot;Entropy of the optimized set: 2.48491&quot;</span>
 <span class="co">#&gt;    sample Lane    Id sequence</span>
-<span class="co">#&gt; 1       1    1 RPI13   AGTCAA</span>
-<span class="co">#&gt; 2       2    1 RPI16   CCGTCC</span>
-<span class="co">#&gt; 3       3    1 RPI18   GTCCGC</span>
-<span class="co">#&gt; 4       4    2 RPI06   GCCAAT</span>
-<span class="co">#&gt; 5       5    2 RPI14   AGTTCC</span>
-<span class="co">#&gt; 6       6    2 RPI44   TATAAT</span>
-<span class="co">#&gt; 7       7    3 RPI15   ATGTCA</span>
-<span class="co">#&gt; 8       8    3 RPI29   CAACTA</span>
-<span class="co">#&gt; 9       9    3 RPI31   CACGAT</span>
-<span class="co">#&gt; 10     10    4 RPI22   CGTACG</span>
-<span class="co">#&gt; 11     11    4 RPI27   ATTCCT</span>
-<span class="co">#&gt; 12     12    4 RPI41   GACGAC</span></code></pre></div>
+<span class="co">#&gt; 1       1    1 RPI09   GATCAG</span>
+<span class="co">#&gt; 2       2    1 RPI25   ACTGAT</span>
+<span class="co">#&gt; 3       3    1 RPI40   CTCAGA</span>
+<span class="co">#&gt; 4       4    2 RPI05   ACAGTG</span>
+<span class="co">#&gt; 5       5    2 RPI10   TAGCTT</span>
+<span class="co">#&gt; 6       6    2 RPI39   CTATAC</span>
+<span class="co">#&gt; 7       7    3 RPI03   TTAGGC</span>
+<span class="co">#&gt; 8       8    3 RPI06   GCCAAT</span>
+<span class="co">#&gt; 9       9    3 RPI30   CACCGG</span>
+<span class="co">#&gt; 10     10    4 RPI13   AGTCAA</span>
+<span class="co">#&gt; 11     11    4 RPI17   GTAGAG</span>
+<span class="co">#&gt; 12     12    4 RPI47   TCGAAG</span></code></pre></div>
 <ul>
 <li>12 libraries sequenced in multiplex of 3 on a iSeq (1 channels) platform</li>
 </ul>
@@ -160,18 +159,18 @@ export_dataset_to_file =<span class="st"> </span><span class="cf">function</span
 <span class="co">#&gt; [1] &quot;Theoretical max entropy: 2.48491&quot;</span>
 <span class="co">#&gt; [1] &quot;Entropy of the optimized set: 2.48491&quot;</span>
 <span class="co">#&gt;    sample Lane    Id sequence</span>
-<span class="co">#&gt; 1       1    1 RPI06   GCCAAT</span>
-<span class="co">#&gt; 2       2    1 RPI17   GTAGAG</span>
-<span class="co">#&gt; 3       3    1 RPI42   TAATCG</span>
-<span class="co">#&gt; 4       4    2 RPI04   TGACCA</span>
-<span class="co">#&gt; 5       5    2 RPI19   GTGAAA</span>
-<span class="co">#&gt; 6       6    2 RPI44   TATAAT</span>
-<span class="co">#&gt; 7       7    3 RPI34   CATGGC</span>
-<span class="co">#&gt; 8       8    3 RPI45   TCATTC</span>
-<span class="co">#&gt; 9       9    3 RPI46   TCCCGA</span>
-<span class="co">#&gt; 10     10    4 RPI05   ACAGTG</span>
-<span class="co">#&gt; 11     11    4 RPI13   AGTCAA</span>
-<span class="co">#&gt; 12     12    4 RPI35   CATTTT</span></code></pre></div>
+<span class="co">#&gt; 1       1    1 RPI12   CTTGTA</span>
+<span class="co">#&gt; 2       2    1 RPI44   TATAAT</span>
+<span class="co">#&gt; 3       3    1 RPI46   TCCCGA</span>
+<span class="co">#&gt; 4       4    2 RPI05   ACAGTG</span>
+<span class="co">#&gt; 5       5    2 RPI08   ACTTGA</span>
+<span class="co">#&gt; 6       6    2 RPI10   TAGCTT</span>
+<span class="co">#&gt; 7       7    3 RPI06   GCCAAT</span>
+<span class="co">#&gt; 8       8    3 RPI35   CATTTT</span>
+<span class="co">#&gt; 9       9    3 RPI45   TCATTC</span>
+<span class="co">#&gt; 10     10    4 RPI13   AGTCAA</span>
+<span class="co">#&gt; 11     11    4 RPI22   CGTACG</span>
+<span class="co">#&gt; 12     12    4 RPI27   ATTCCT</span></code></pre></div>
 <ul>
 <li>12 libraries sequenced in multiplex of 3 on a HiSeq platform using barcodes robust against 1 substitution error</li>
 </ul>
@@ -180,18 +179,18 @@ export_dataset_to_file =<span class="st"> </span><span class="cf">function</span
 <span class="co">#&gt; [1] &quot;Theoretical max entropy: 2.48491&quot;</span>
 <span class="co">#&gt; [1] &quot;Entropy of the optimized set: 2.48491&quot;</span>
 <span class="co">#&gt;    sample Lane    Id sequence</span>
-<span class="co">#&gt; 1       1    1 RPI24   GGTAGC</span>
-<span class="co">#&gt; 2       2    1 RPI31   CACGAT</span>
-<span class="co">#&gt; 3       3    1 RPI39   CTATAC</span>
-<span class="co">#&gt; 4       4    2 RPI05   ACAGTG</span>
-<span class="co">#&gt; 5       5    2 RPI10   TAGCTT</span>
-<span class="co">#&gt; 6       6    2 RPI19   GTGAAA</span>
-<span class="co">#&gt; 7       7    3 RPI06   GCCAAT</span>
-<span class="co">#&gt; 8       8    3 RPI26   ATGAGC</span>
-<span class="co">#&gt; 9       9    3 RPI33   CAGGCG</span>
-<span class="co">#&gt; 10     10    4 RPI18   GTCCGC</span>
-<span class="co">#&gt; 11     11    4 RPI25   ACTGAT</span>
-<span class="co">#&gt; 12     12    4 RPI45   TCATTC</span></code></pre></div>
+<span class="co">#&gt; 1       1    1 RPI10   TAGCTT</span>
+<span class="co">#&gt; 2       2    1 RPI38   CTAGCT</span>
+<span class="co">#&gt; 3       3    1 RPI43   TACAGC</span>
+<span class="co">#&gt; 4       4    2 RPI13   AGTCAA</span>
+<span class="co">#&gt; 5       5    2 RPI30   CACCGG</span>
+<span class="co">#&gt; 6       6    2 RPI41   GACGAC</span>
+<span class="co">#&gt; 7       7    3 RPI14   AGTTCC</span>
+<span class="co">#&gt; 8       8    3 RPI24   GGTAGC</span>
+<span class="co">#&gt; 9       9    3 RPI42   TAATCG</span>
+<span class="co">#&gt; 10     10    4 RPI07   CAGATC</span>
+<span class="co">#&gt; 11     11    4 RPI17   GTAGAG</span>
+<span class="co">#&gt; 12     12    4 RPI19   GTGAAA</span></code></pre></div>
 </div>
 <div id="examples-for-dual-indexing" class="section level3">
 <h3>Examples for dual indexing</h3>
@@ -211,18 +210,18 @@ txtfile2 &lt;-<span class="st"> </span><span class="kw">export_dataset_to_file</
 <span class="co">#&gt; [1] &quot;Theoretical max entropy: 2.48491&quot;</span>
 <span class="co">#&gt; [1] &quot;Entropy of the optimized set: 2.48491&quot;</span>
 <span class="co">#&gt;    sample Lane   Id1 sequence1   Id2 sequence2</span>
-<span class="co">#&gt; 1       1    1 RPI03    TTAGGC RPI34    CATGGC</span>
-<span class="co">#&gt; 2       2    1 RPI07    CAGATC RPI37    CGGAAT</span>
-<span class="co">#&gt; 3       3    1 RPI22    CGTACG RPI43    TACAGC</span>
-<span class="co">#&gt; 4       4    2 RPI01    ATCACG RPI30    CACCGG</span>
-<span class="co">#&gt; 5       5    2 RPI23    GAGTGG RPI39    CTATAC</span>
-<span class="co">#&gt; 6       6    2 RPI24    GGTAGC RPI44    TATAAT</span>
-<span class="co">#&gt; 7       7    3 RPI05    ACAGTG RPI38    CTAGCT</span>
-<span class="co">#&gt; 8       8    3 RPI06    GCCAAT RPI46    TCCCGA</span>
-<span class="co">#&gt; 9       9    3 RPI15    ATGTCA RPI48    TCGGCA</span>
-<span class="co">#&gt; 10     10    4 RPI02    CGATGT RPI26    ATGAGC</span>
-<span class="co">#&gt; 11     11    4 RPI08    ACTTGA RPI41    GACGAC</span>
-<span class="co">#&gt; 12     12    4 RPI09    GATCAG RPI47    TCGAAG</span></code></pre></div>
+<span class="co">#&gt; 1       1    1 RPI18    GTCCGC RPI26    ATGAGC</span>
+<span class="co">#&gt; 2       2    1 RPI22    CGTACG RPI36    CCAACA</span>
+<span class="co">#&gt; 3       3    1 RPI23    GAGTGG RPI42    TAATCG</span>
+<span class="co">#&gt; 4       4    2 RPI07    CAGATC RPI25    ACTGAT</span>
+<span class="co">#&gt; 5       5    2 RPI17    GTAGAG RPI40    CTCAGA</span>
+<span class="co">#&gt; 6       6    2 RPI24    GGTAGC RPI41    GACGAC</span>
+<span class="co">#&gt; 7       7    3 RPI05    ACAGTG RPI33    CAGGCG</span>
+<span class="co">#&gt; 8       8    3 RPI09    GATCAG RPI38    CTAGCT</span>
+<span class="co">#&gt; 9       9    3 RPI20    GTGGCC RPI46    TCCCGA</span>
+<span class="co">#&gt; 10     10    4 RPI06    GCCAAT RPI37    CGGAAT</span>
+<span class="co">#&gt; 11     11    4 RPI10    TAGCTT RPI43    TACAGC</span>
+<span class="co">#&gt; 12     12    4 RPI15    ATGTCA RPI45    TCATTC</span></code></pre></div>
 <ul>
 <li>12 libraries sequenced in multiplex of 3 on a HiSeq platform using barcodes robust against 1 substitution error</li>
 </ul>
@@ -239,26 +238,26 @@ txtfile2 &lt;-<span class="st"> </span><span class="kw">export_dataset_to_file</
 <span class="co">#&gt; [1] &quot;Theoretical max entropy: 2.48491&quot;</span>
 <span class="co">#&gt; [1] &quot;Entropy of the optimized set: 2.48491&quot;</span>
 <span class="co">#&gt;    sample Lane   Id1 sequence1   Id2 sequence2</span>
-<span class="co">#&gt; 1       1    1 RPI11    GGCTAC RPI26    ATGAGC</span>
-<span class="co">#&gt; 2       2    1 RPI13    AGTCAA RPI38    CTAGCT</span>
-<span class="co">#&gt; 3       3    1 RPI23    GAGTGG RPI48    TCGGCA</span>
-<span class="co">#&gt; 4       4    2 RPI05    ACAGTG RPI30    CACCGG</span>
-<span class="co">#&gt; 5       5    2 RPI09    GATCAG RPI39    CTATAC</span>
-<span class="co">#&gt; 6       6    2 RPI19    GTGAAA RPI47    TCGAAG</span>
-<span class="co">#&gt; 7       7    3 RPI02    CGATGT RPI25    ACTGAT</span>
-<span class="co">#&gt; 8       8    3 RPI06    GCCAAT RPI37    CGGAAT</span>
-<span class="co">#&gt; 9       9    3 RPI07    CAGATC RPI46    TCCCGA</span>
-<span class="co">#&gt; 10     10    4 RPI08    ACTTGA RPI27    ATTCCT</span>
-<span class="co">#&gt; 11     11    4 RPI17    GTAGAG RPI34    CATGGC</span>
-<span class="co">#&gt; 12     12    4 RPI22    CGTACG RPI45    TCATTC</span></code></pre></div>
+<span class="co">#&gt; 1       1    1 RPI10    TAGCTT RPI40    CTCAGA</span>
+<span class="co">#&gt; 2       2    1 RPI11    GGCTAC RPI44    TATAAT</span>
+<span class="co">#&gt; 3       3    1 RPI14    AGTTCC RPI45    TCATTC</span>
+<span class="co">#&gt; 4       4    2 RPI08    ACTTGA RPI39    CTATAC</span>
+<span class="co">#&gt; 5       5    2 RPI13    AGTCAA RPI46    TCCCGA</span>
+<span class="co">#&gt; 6       6    2 RPI17    GTAGAG RPI47    TCGAAG</span>
+<span class="co">#&gt; 7       7    3 RPI05    ACAGTG RPI25    ACTGAT</span>
+<span class="co">#&gt; 8       8    3 RPI22    CGTACG RPI38    CTAGCT</span>
+<span class="co">#&gt; 9       9    3 RPI24    GGTAGC RPI43    TACAGC</span>
+<span class="co">#&gt; 10     10    4 RPI03    TTAGGC RPI29    CAACTA</span>
+<span class="co">#&gt; 11     11    4 RPI06    GCCAAT RPI37    CGGAAT</span>
+<span class="co">#&gt; 12     12    4 RPI15    ATGTCA RPI42    TAATCG</span></code></pre></div>
 </div>
 </div>
 <div id="buid-your-own-workflow" class="section level2">
 <h2>Buid your own workflow</h2>
-<p>This section guides you through the detailed API of the package with the aim to build your own workflow. This will give you more flexibility than the <code>experiment_design()</code> function.</p>
+<p>This section guides you through the detailed API of the package with the aim to help you build your own workflow. The package is designed to be flexible and should be easily adaptable to most experimental contexts, using the <code>experiment_design()</code> function as a template, or building your own workflow from scratch.</p>
 <div id="load-and-check-a-dataset-of-barcodes" class="section level3">
 <h3>Load and check a dataset of barcodes</h3>
-<p>The <code>file_loading_and_checking()</code> function loads the file containing the DNA barcodes and analyzes its content. In particular, it checks barcodes for unicity (identifier and sequence), DNA content, and equal size. It also calculates the GC content and detects the presence of homopolymers of length &gt;= 3.</p>
+<p>The <code>file_loading_and_checking()</code> function loads the file containing the DNA barcodes set and analyzes its content. In particular, it checks that each barcode in the set is unique and uniquely identified (removing any repetition that occurs). It also checks the homogeneity of size of the barcodes, calculates their GC content and detects the presence of homopolymers of length &gt;= 3.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">file_loading_and_checking</span>(<span class="dt">file =</span> <span class="kw">export_dataset_to_file</span>(<span class="dt">dataset =</span> DNABarcodeCompatibility<span class="op">::</span>IlluminaIndexesRaw))
 <span class="co">#&gt;       Id sequence GC_content homopolymer</span>
 <span class="co">#&gt; 1  RPI01   ATCACG      50.00       FALSE</span>
@@ -312,7 +311,7 @@ txtfile2 &lt;-<span class="st"> </span><span class="kw">export_dataset_to_file</
 </div>
 <div id="examples-of-an-exhaustive-search-of-compatible-barcode-combinations" class="section level3">
 <h3>Examples of an exhaustive search of compatible barcode combinations</h3>
-<p>The total number of combinations depends on the number of available barcodes and of the multiplex level. For 48 barcodes and a multiplex level of 3, the total number of combination can be calculated using <code>choose(48,3)</code>, namely 17296 combinations. However, in many cases the total number of combinations can become gigantic and you must not perform an exhaustive search (see <code>get_random_combinations()</code> below).</p>
+<p>The total number of combinations depends on the number of available barcodes and of the multiplex level. For 48 barcodes and a multiplex level of 3, the total number of combinations (compatible or not) can be calculated using <code>choose(48,3)</code>, which gives 17296 combinations. In many cases the total number of combinations can become much larger (even gigantic), and one cannot perform an exhaustive search (see <code>get_random_combinations()</code> below).</p>
 <ul>
 <li>48 barcodes, multiplex level of 2, HiSeq plateform</li>
 </ul>
@@ -326,7 +325,7 @@ barcodes &lt;-<span class="st"> </span>DNABarcodeCompatibility<span class="op">:
 <span class="co"># Time for an exhaustive search</span>
 <span class="kw">system.time</span>(m &lt;-<span class="st"> </span><span class="kw">get_all_combinations</span>(<span class="dt">index_df =</span> barcodes, <span class="dt">mplex_level =</span> <span class="dv">2</span>, <span class="dt">chemistry =</span> <span class="dv">4</span>))
 <span class="co">#&gt;    user  system elapsed </span>
-<span class="co">#&gt;   0.288   0.006   0.294</span>
+<span class="co">#&gt;   0.304   0.004   0.308</span>
 
 <span class="co"># Each line represents a compatible combination of barcodes</span>
 <span class="kw">head</span>(m)
@@ -350,7 +349,7 @@ barcodes &lt;-<span class="st"> </span>DNABarcodeCompatibility<span class="op">:
 <span class="co"># Time for an exhaustive search</span>
 <span class="kw">system.time</span>(m &lt;-<span class="st"> </span><span class="kw">get_all_combinations</span>(<span class="dt">index_df =</span> barcodes, <span class="dt">mplex_level =</span> <span class="dv">3</span>, <span class="dt">chemistry =</span> <span class="dv">4</span>))
 <span class="co">#&gt;    user  system elapsed </span>
-<span class="co">#&gt;   6.304   0.048   6.378</span>
+<span class="co">#&gt;   6.792   0.080   6.948</span>
 
 <span class="co"># Each line represents a compatible combination of barcodes</span>
 <span class="kw">head</span>(m)
@@ -364,7 +363,7 @@ barcodes &lt;-<span class="st"> </span>DNABarcodeCompatibility<span class="op">:
 </div>
 <div id="examples-of-a-random-search-of-compatible-barcode-combinations" class="section level3">
 <h3>Examples of a random search of compatible barcode combinations</h3>
-<p>When the total number of combinations becomes high, it is recommended to pick combinations at random and then select those that are compatible.</p>
+<p>When the total number of combinations is too high, it is recommended to pick combinations at random and then select those that are compatible.</p>
 <ul>
 <li>48 barcodes, multiplex level of 3, HiSeq plateform</li>
 </ul>
@@ -378,17 +377,17 @@ barcodes &lt;-<span class="st"> </span>DNABarcodeCompatibility<span class="op">:
 <span class="co"># Time for a random search</span>
 <span class="kw">system.time</span>(m &lt;-<span class="st"> </span><span class="kw">get_random_combinations</span>(<span class="dt">index_df =</span> barcodes, <span class="dt">mplex_level =</span> <span class="dv">2</span>, <span class="dt">chemistry =</span> <span class="dv">4</span>))
 <span class="co">#&gt;    user  system elapsed </span>
-<span class="co">#&gt;   0.175   0.001   0.177</span>
+<span class="co">#&gt;   0.178   0.002   0.180</span>
 
 <span class="co"># Each line represents a compatible combination of barcodes</span>
 <span class="kw">head</span>(m)
 <span class="co">#&gt;      [,1]    [,2]   </span>
-<span class="co">#&gt; [1,] &quot;RPI04&quot; &quot;RPI35&quot;</span>
-<span class="co">#&gt; [2,] &quot;RPI05&quot; &quot;RPI19&quot;</span>
-<span class="co">#&gt; [3,] &quot;RPI07&quot; &quot;RPI17&quot;</span>
-<span class="co">#&gt; [4,] &quot;RPI18&quot; &quot;RPI25&quot;</span>
-<span class="co">#&gt; [5,] &quot;RPI20&quot; &quot;RPI30&quot;</span>
-<span class="co">#&gt; [6,] &quot;RPI22&quot; &quot;RPI45&quot;</span></code></pre></div>
+<span class="co">#&gt; [1,] &quot;RPI05&quot; &quot;RPI19&quot;</span>
+<span class="co">#&gt; [2,] &quot;RPI18&quot; &quot;RPI33&quot;</span>
+<span class="co">#&gt; [3,] &quot;RPI20&quot; &quot;RPI30&quot;</span>
+<span class="co">#&gt; [4,] &quot;RPI22&quot; &quot;RPI45&quot;</span>
+<span class="co">#&gt; [5,] &quot;RPI24&quot; &quot;RPI31&quot;</span>
+<span class="co">#&gt; [6,] &quot;RPI27&quot; &quot;RPI45&quot;</span></code></pre></div>
 <ul>
 <li>48 barcodes, multiplex level of 4, HiSeq plateform</li>
 </ul>
@@ -402,17 +401,17 @@ barcodes &lt;-<span class="st"> </span>DNABarcodeCompatibility<span class="op">:
 <span class="co"># Time for a random search</span>
 <span class="kw">system.time</span>(m &lt;-<span class="st"> </span><span class="kw">get_random_combinations</span>(<span class="dt">index_df =</span> barcodes, <span class="dt">mplex_level =</span> <span class="dv">4</span>, <span class="dt">chemistry =</span> <span class="dv">4</span>))
 <span class="co">#&gt;    user  system elapsed </span>
-<span class="co">#&gt;   0.510   0.003   0.515</span>
+<span class="co">#&gt;   0.528   0.003   0.533</span>
 
 <span class="co"># Each line represents a compatible combination of barcodes</span>
 <span class="kw">head</span>(m)
 <span class="co">#&gt;      [,1]    [,2]    [,3]    [,4]   </span>
-<span class="co">#&gt; [1,] &quot;RPI01&quot; &quot;RPI08&quot; &quot;RPI22&quot; &quot;RPI42&quot;</span>
-<span class="co">#&gt; [2,] &quot;RPI01&quot; &quot;RPI04&quot; &quot;RPI13&quot; &quot;RPI35&quot;</span>
-<span class="co">#&gt; [3,] &quot;RPI01&quot; &quot;RPI34&quot; &quot;RPI37&quot; &quot;RPI46&quot;</span>
-<span class="co">#&gt; [4,] &quot;RPI01&quot; &quot;RPI02&quot; &quot;RPI25&quot; &quot;RPI45&quot;</span>
-<span class="co">#&gt; [5,] &quot;RPI01&quot; &quot;RPI05&quot; &quot;RPI37&quot; &quot;RPI48&quot;</span>
-<span class="co">#&gt; [6,] &quot;RPI01&quot; &quot;RPI03&quot; &quot;RPI27&quot; &quot;RPI43&quot;</span></code></pre></div>
+<span class="co">#&gt; [1,] &quot;RPI01&quot; &quot;RPI12&quot; &quot;RPI16&quot; &quot;RPI17&quot;</span>
+<span class="co">#&gt; [2,] &quot;RPI01&quot; &quot;RPI26&quot; &quot;RPI31&quot; &quot;RPI43&quot;</span>
+<span class="co">#&gt; [3,] &quot;RPI01&quot; &quot;RPI15&quot; &quot;RPI30&quot; &quot;RPI44&quot;</span>
+<span class="co">#&gt; [4,] &quot;RPI01&quot; &quot;RPI24&quot; &quot;RPI30&quot; &quot;RPI42&quot;</span>
+<span class="co">#&gt; [5,] &quot;RPI01&quot; &quot;RPI24&quot; &quot;RPI42&quot; &quot;RPI44&quot;</span>
+<span class="co">#&gt; [6,] &quot;RPI01&quot; &quot;RPI05&quot; &quot;RPI09&quot; &quot;RPI40&quot;</span></code></pre></div>
 <ul>
 <li>48 barcodes, multiplex level of 6, HiSeq plateform</li>
 </ul>
@@ -426,17 +425,17 @@ barcodes &lt;-<span class="st"> </span>DNABarcodeCompatibility<span class="op">:
 <span class="co"># Time for a random search</span>
 <span class="kw">system.time</span>(m &lt;-<span class="st"> </span><span class="kw">get_random_combinations</span>(<span class="dt">index_df =</span> barcodes, <span class="dt">mplex_level =</span> <span class="dv">6</span>, <span class="dt">chemistry =</span> <span class="dv">4</span>))
 <span class="co">#&gt;    user  system elapsed </span>
-<span class="co">#&gt;   0.775   0.007   0.787</span>
+<span class="co">#&gt;   0.772   0.003   0.776</span>
 
 <span class="co"># Each line represents a compatible combination of barcodes</span>
 <span class="kw">head</span>(m)
 <span class="co">#&gt;      [,1]    [,2]    [,3]    [,4]    [,5]    [,6]   </span>
-<span class="co">#&gt; [1,] &quot;RPI01&quot; &quot;RPI07&quot; &quot;RPI10&quot; &quot;RPI22&quot; &quot;RPI32&quot; &quot;RPI47&quot;</span>
-<span class="co">#&gt; [2,] &quot;RPI01&quot; &quot;RPI09&quot; &quot;RPI17&quot; &quot;RPI22&quot; &quot;RPI26&quot; &quot;RPI43&quot;</span>
-<span class="co">#&gt; [3,] &quot;RPI01&quot; &quot;RPI09&quot; &quot;RPI12&quot; &quot;RPI32&quot; &quot;RPI37&quot; &quot;RPI42&quot;</span>
-<span class="co">#&gt; [4,] &quot;RPI01&quot; &quot;RPI07&quot; &quot;RPI13&quot; &quot;RPI19&quot; &quot;RPI33&quot; &quot;RPI46&quot;</span>
-<span class="co">#&gt; [5,] &quot;RPI01&quot; &quot;RPI14&quot; &quot;RPI15&quot; &quot;RPI25&quot; &quot;RPI33&quot; &quot;RPI43&quot;</span>
-<span class="co">#&gt; [6,] &quot;RPI01&quot; &quot;RPI07&quot; &quot;RPI12&quot; &quot;RPI30&quot; &quot;RPI40&quot; &quot;RPI41&quot;</span></code></pre></div>
+<span class="co">#&gt; [1,] &quot;RPI01&quot; &quot;RPI12&quot; &quot;RPI17&quot; &quot;RPI18&quot; &quot;RPI25&quot; &quot;RPI42&quot;</span>
+<span class="co">#&gt; [2,] &quot;RPI01&quot; &quot;RPI15&quot; &quot;RPI18&quot; &quot;RPI20&quot; &quot;RPI42&quot; &quot;RPI46&quot;</span>
+<span class="co">#&gt; [3,] &quot;RPI01&quot; &quot;RPI02&quot; &quot;RPI04&quot; &quot;RPI05&quot; &quot;RPI16&quot; &quot;RPI30&quot;</span>
+<span class="co">#&gt; [4,] &quot;RPI01&quot; &quot;RPI04&quot; &quot;RPI10&quot; &quot;RPI12&quot; &quot;RPI28&quot; &quot;RPI44&quot;</span>
+<span class="co">#&gt; [5,] &quot;RPI01&quot; &quot;RPI19&quot; &quot;RPI25&quot; &quot;RPI26&quot; &quot;RPI37&quot; &quot;RPI38&quot;</span>
+<span class="co">#&gt; [6,] &quot;RPI01&quot; &quot;RPI05&quot; &quot;RPI10&quot; &quot;RPI22&quot; &quot;RPI32&quot; &quot;RPI44&quot;</span></code></pre></div>
 </div>
 <div id="constrain-barcodes-to-be-robust-against-one-substitution-error" class="section level3">
 <h3>Constrain barcodes to be robust against one substitution error</h3>
@@ -452,12 +451,12 @@ filtered_m &lt;-<span class="st"> </span><span class="kw">distance_filter</span>
 <span class="co"># Each line represents a compatible combination of barcodes</span>
 <span class="kw">head</span>(filtered_m)
 <span class="co">#&gt;      V1      V2      V3     </span>
-<span class="co">#&gt; [1,] &quot;RPI01&quot; &quot;RPI08&quot; &quot;RPI41&quot;</span>
-<span class="co">#&gt; [2,] &quot;RPI01&quot; &quot;RPI14&quot; &quot;RPI45&quot;</span>
-<span class="co">#&gt; [3,] &quot;RPI01&quot; &quot;RPI10&quot; &quot;RPI14&quot;</span>
-<span class="co">#&gt; [4,] &quot;RPI01&quot; &quot;RPI12&quot; &quot;RPI42&quot;</span>
-<span class="co">#&gt; [5,] &quot;RPI01&quot; &quot;RPI08&quot; &quot;RPI11&quot;</span>
-<span class="co">#&gt; [6,] &quot;RPI01&quot; &quot;RPI02&quot; &quot;RPI48&quot;</span></code></pre></div>
+<span class="co">#&gt; [1,] &quot;RPI01&quot; &quot;RPI08&quot; &quot;RPI42&quot;</span>
+<span class="co">#&gt; [2,] &quot;RPI01&quot; &quot;RPI23&quot; &quot;RPI32&quot;</span>
+<span class="co">#&gt; [3,] &quot;RPI01&quot; &quot;RPI06&quot; &quot;RPI12&quot;</span>
+<span class="co">#&gt; [4,] &quot;RPI01&quot; &quot;RPI25&quot; &quot;RPI46&quot;</span>
+<span class="co">#&gt; [5,] &quot;RPI01&quot; &quot;RPI10&quot; &quot;RPI15&quot;</span>
+<span class="co">#&gt; [6,] &quot;RPI01&quot; &quot;RPI10&quot; &quot;RPI48&quot;</span></code></pre></div>
 </div>
 <div id="optimize-the-set-of-compatible-combinations-to-reduce-barcode-redundancy-between-lanes" class="section level3">
 <h3>Optimize the set of compatible combinations to reduce barcode redundancy between lanes</h3>
@@ -474,18 +473,18 @@ df &lt;-<span class="st"> </span><span class="kw">optimize_combinations</span>(<
 <span class="co"># Each line represents a compatible combination of barcodes and each row a lane of the flow cell</span>
 df
 <span class="co">#&gt;       V1      V2      V3     </span>
-<span class="co">#&gt;  [1,] &quot;RPI10&quot; &quot;RPI14&quot; &quot;RPI36&quot;</span>
-<span class="co">#&gt;  [2,] &quot;RPI07&quot; &quot;RPI18&quot; &quot;RPI33&quot;</span>
-<span class="co">#&gt;  [3,] &quot;RPI26&quot; &quot;RPI30&quot; &quot;RPI48&quot;</span>
-<span class="co">#&gt;  [4,] &quot;RPI22&quot; &quot;RPI27&quot; &quot;RPI45&quot;</span>
-<span class="co">#&gt;  [5,] &quot;RPI02&quot; &quot;RPI13&quot; &quot;RPI23&quot;</span>
-<span class="co">#&gt;  [6,] &quot;RPI03&quot; &quot;RPI16&quot; &quot;RPI37&quot;</span>
-<span class="co">#&gt;  [7,] &quot;RPI01&quot; &quot;RPI12&quot; &quot;RPI43&quot;</span>
-<span class="co">#&gt;  [8,] &quot;RPI19&quot; &quot;RPI28&quot; &quot;RPI35&quot;</span>
-<span class="co">#&gt;  [9,] &quot;RPI17&quot; &quot;RPI29&quot; &quot;RPI44&quot;</span>
-<span class="co">#&gt; [10,] &quot;RPI24&quot; &quot;RPI31&quot; &quot;RPI39&quot;</span>
-<span class="co">#&gt; [11,] &quot;RPI05&quot; &quot;RPI06&quot; &quot;RPI20&quot;</span>
-<span class="co">#&gt; [12,] &quot;RPI32&quot; &quot;RPI40&quot; &quot;RPI47&quot;</span></code></pre></div>
+<span class="co">#&gt;  [1,] &quot;RPI10&quot; &quot;RPI27&quot; &quot;RPI39&quot;</span>
+<span class="co">#&gt;  [2,] &quot;RPI12&quot; &quot;RPI18&quot; &quot;RPI28&quot;</span>
+<span class="co">#&gt;  [3,] &quot;RPI13&quot; &quot;RPI23&quot; &quot;RPI31&quot;</span>
+<span class="co">#&gt;  [4,] &quot;RPI21&quot; &quot;RPI32&quot; &quot;RPI40&quot;</span>
+<span class="co">#&gt;  [5,] &quot;RPI16&quot; &quot;RPI17&quot; &quot;RPI29&quot;</span>
+<span class="co">#&gt;  [6,] &quot;RPI01&quot; &quot;RPI14&quot; &quot;RPI43&quot;</span>
+<span class="co">#&gt;  [7,] &quot;RPI26&quot; &quot;RPI38&quot; &quot;RPI47&quot;</span>
+<span class="co">#&gt;  [8,] &quot;RPI11&quot; &quot;RPI20&quot; &quot;RPI30&quot;</span>
+<span class="co">#&gt;  [9,] &quot;RPI05&quot; &quot;RPI24&quot; &quot;RPI44&quot;</span>
+<span class="co">#&gt; [10,] &quot;RPI08&quot; &quot;RPI22&quot; &quot;RPI45&quot;</span>
+<span class="co">#&gt; [11,] &quot;RPI04&quot; &quot;RPI35&quot; &quot;RPI46&quot;</span>
+<span class="co">#&gt; [12,] &quot;RPI02&quot; &quot;RPI07&quot; &quot;RPI41&quot;</span></code></pre></div>
 </div>
 <div id="the-optimized-result-cannot-be-an-optimum-when-filtering-out-too-many-barcodes" class="section level3">
 <h3>The optimized result cannot be an optimum when filtering out too many barcodes</h3>
@@ -500,23 +499,23 @@ filtered_m &lt;-<span class="st"> </span><span class="kw">distance_filter</span>
 <span class="co"># Use a Shannon-entropy maximization approach to reduce barcode redundancy</span>
 df &lt;-<span class="st"> </span><span class="kw">optimize_combinations</span>(<span class="dt">combination_m =</span> filtered_m, <span class="dt">nb_lane =</span> <span class="dv">12</span>, <span class="dt">index_number =</span> <span class="dv">48</span>)
 <span class="co">#&gt; [1] &quot;Theoretical max entropy: 3.58352&quot;</span>
-<span class="co">#&gt; [1] &quot;Entropy of the optimized set: 2.80826&quot;</span>
+<span class="co">#&gt; [1] &quot;Entropy of the optimized set: 2.8613&quot;</span>
 
 <span class="co"># Each line represents a compatible combination of barcodes and each row a lane of the flow cell</span>
 df
 <span class="co">#&gt;       V1      V2      V3     </span>
-<span class="co">#&gt;  [1,] &quot;RPI03&quot; &quot;RPI27&quot; &quot;RPI30&quot;</span>
-<span class="co">#&gt;  [2,] &quot;RPI03&quot; &quot;RPI27&quot; &quot;RPI29&quot;</span>
-<span class="co">#&gt;  [3,] &quot;RPI16&quot; &quot;RPI24&quot; &quot;RPI42&quot;</span>
-<span class="co">#&gt;  [4,] &quot;RPI03&quot; &quot;RPI14&quot; &quot;RPI30&quot;</span>
-<span class="co">#&gt;  [5,] &quot;RPI20&quot; &quot;RPI35&quot; &quot;RPI40&quot;</span>
-<span class="co">#&gt;  [6,] &quot;RPI20&quot; &quot;RPI35&quot; &quot;RPI40&quot;</span>
-<span class="co">#&gt;  [7,] &quot;RPI24&quot; &quot;RPI33&quot; &quot;RPI46&quot;</span>
-<span class="co">#&gt;  [8,] &quot;RPI03&quot; &quot;RPI23&quot; &quot;RPI27&quot;</span>
-<span class="co">#&gt;  [9,] &quot;RPI24&quot; &quot;RPI35&quot; &quot;RPI36&quot;</span>
-<span class="co">#&gt; [10,] &quot;RPI04&quot; &quot;RPI28&quot; &quot;RPI35&quot;</span>
-<span class="co">#&gt; [11,] &quot;RPI16&quot; &quot;RPI21&quot; &quot;RPI43&quot;</span>
-<span class="co">#&gt; [12,] &quot;RPI16&quot; &quot;RPI21&quot; &quot;RPI43&quot;</span></code></pre></div>
+<span class="co">#&gt;  [1,] &quot;RPI02&quot; &quot;RPI36&quot; &quot;RPI44&quot;</span>
+<span class="co">#&gt;  [2,] &quot;RPI14&quot; &quot;RPI37&quot; &quot;RPI43&quot;</span>
+<span class="co">#&gt;  [3,] &quot;RPI03&quot; &quot;RPI37&quot; &quot;RPI41&quot;</span>
+<span class="co">#&gt;  [4,] &quot;RPI12&quot; &quot;RPI36&quot; &quot;RPI42&quot;</span>
+<span class="co">#&gt;  [5,] &quot;RPI01&quot; &quot;RPI24&quot; &quot;RPI35&quot;</span>
+<span class="co">#&gt;  [6,] &quot;RPI14&quot; &quot;RPI37&quot; &quot;RPI43&quot;</span>
+<span class="co">#&gt;  [7,] &quot;RPI03&quot; &quot;RPI37&quot; &quot;RPI41&quot;</span>
+<span class="co">#&gt;  [8,] &quot;RPI13&quot; &quot;RPI21&quot; &quot;RPI30&quot;</span>
+<span class="co">#&gt;  [9,] &quot;RPI01&quot; &quot;RPI24&quot; &quot;RPI35&quot;</span>
+<span class="co">#&gt; [10,] &quot;RPI19&quot; &quot;RPI30&quot; &quot;RPI35&quot;</span>
+<span class="co">#&gt; [11,] &quot;RPI16&quot; &quot;RPI21&quot; &quot;RPI29&quot;</span>
+<span class="co">#&gt; [12,] &quot;RPI12&quot; &quot;RPI36&quot; &quot;RPI42&quot;</span></code></pre></div>
 </div>
 </div>
 
