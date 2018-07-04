@@ -82,7 +82,7 @@ R
 print(paste("Total number of simulations:",R*length(L)*length(N)*length(C)))
 
 ```
-Table 2.1: parameters used in the simulations
+Table 2.2: parameters used in the simulations
 
 Number of simulations per condition | Barcode-set size | Multiplex level | Chemistry |
 ------------------------------------|------------------|-----------------|-----------|
@@ -167,7 +167,7 @@ ggplot(aes( x = nb_total_combinations, y = time.avg))+
 
 ### Execution time of an exhaustive search as a function of the barcode-set size
 
-The total number of combinations (compatible or not) is given by the binomial coefficient ${n \choose k}$ where $n$ is the number of barcodes in the dataset, referred to as the barcode-set size, and $k$ is the mutliplex level (where $n$ and $k$ being positive integers).
+The total number of combinations (compatible or not) is given by the binomial coefficient ${n \choose k}$ where $n$ is the number of barcodes in the dataset, referred to as the barcode-set size, and $k$ is the mutliplex level ($n$ and $k$ being positive integers).
 We now plot the execution time as function of the barcode-set size for various multiplex levels. This reveals that the execution time is less than 2 seconds for a multiplex level of 2 with the 48-barcode Illumina small RNA TruSep kits.
 Therefore, in these conditions, it is advantageous to perform an exhaustive search of compatible combinations for a multiplex level of 2. For a multiplex level of 4 or higher, the program will typically perform a search of compatible barcodes from a randomly generated set of barcode combinations.
 
@@ -256,7 +256,7 @@ results %>% group_by(mplex_level, barcode_number, chemistry) %>%
 
 * Relationship between the number of compatibles combinations and the total number of combinations 
 
-For a multiplex level of 2, the number of compatible combinations is less than 100 for the combined Illumina TruSeq small RNA kits. Therefore, for a multiplex level of 2, an exhaustive search is preferable to retrieve all possible compatible combinations of barcodes for the optimization steps. We fix to 2024 the total number of combinations beyond which a random search of compatible combinations is performed much faster (see dashed line in the graph below). This number is motivated by two reasons. Below this threshold, an exhaustive search will be systematically performed for a multiplex level of 2 (less than 2024 combinations in total). Above this threshold, a random search will provide enough compatible combinations for futher optimization steps. Indeed, the above results indicate that the probability to get a compatible combination is at least 18% for multiplex levels >= 3. Briefly, the random search will randomly pick up an arbitrarily fixed number of 1000 combinations representing a pool of at least 180 compatible combinations, which is enough for the further optimization steps to be efficient (see below). Thus, the `DNABarcodeCompatibility::experiment_design()` function of the package will use a threshold of 2024 combinations in total to switch between an exhaustive search and a random search of compatible combinations.
+For a multiplex level of 2, the number of compatible combinations is less than 100 for the combined Illumina TruSeq small RNA kits. Therefore, for a multiplex level of 2, an exhaustive search is preferable to retrieve all possible compatible combinations of barcodes for the optimization steps. We fix to 2024 the total number of combinations beyond which a (much faster) random search of compatible combinations is performed (see dashed line in the graph below). This number is motivated by two reasons. Below this threshold, an exhaustive search will be systematically performed for a multiplex level of 2 (less than 2024 combinations in total). Above this threshold, a random search will provide enough compatible combinations for futher optimization steps. Indeed, the above results indicate that the probability to get a compatible combination is at least 18% for multiplex levels >= 3. Briefly, the random search will randomly pick up an arbitrarily fixed number of 1000 combinations representing a pool of at least 180 compatible combinations, which is enough for the further optimization steps to be efficient (see below). Thus, the `DNABarcodeCompatibility::experiment_design()` function of the package will use a threshold of 2024 combinations in total to switch between an exhaustive search and a random search of compatible combinations.
 
 
 
@@ -460,7 +460,7 @@ ggtitle(paste("Barcode occurences among",nb_comp_combinations,"compatible barcod
 
 ## Optimizing combinations: set parameters for simulations relative to Step2 of the workflow
 
-* Step2: optimize the set of compatible barcodes to minimize the heterogeneity of barcode frequencies
+* Step2: optimizing the set of compatible barcodes to minimize the heterogeneity of barcode frequencies
 
 The goal here is to estimate the probability to get an optimal solution, in the sense of a maximum entropy solution, and to test how the optimizer improves the solution compared with a random pick. 
 
@@ -471,13 +471,14 @@ Based on this probability $P_{1}$, we devise an optimizer function that performs
 
 * We therefore run two series of simulations:
 
-**Step2a:** find the probability $P_{1}$ of to get an optimal combination given the subset size, and estimate $R$ for $P_{R} \geq 0.95$, in order to refine the optimization in a reasonable computation time.
+**Step2a:** find the probability $P_{1}$ to get an optimal combination given the subset size, and estimate $R$ such that $P_{R} \geq 0.95$, in order to refine the optimization in a reasonable computation time.
 
 
 **Step2b:** check the efficacy of the optimizer function on a few challenging examples
 
 
-### Step2a: table of parameters for the simulations
+### Step2a: estimating $P_{1}$
+
 
 
 ```{r echo = FALSE, results=F}
@@ -532,7 +533,7 @@ algorithm
 print(paste("Number of conditions:",R*length(L)*length(N)*length(C)*(length(thrs_size_comb_for_GD)+length(thrs_size_comb_for_GE))*length(nb_lane)))
 
 ```
-Table 2.3.1
+Table 2.3.1: parameters used for the simulations of step2a
 
 Number of simulations per condition | Barcode-set size | Multiplex level | Chemistry | Lane number | Algorithm | Compatible combinations (GD) | Compatible combinations (GE) |
 ------------------------------------|------------------|-----------------|-----------|----------------|--------------|---------------------------|---------------------------|
@@ -648,11 +649,11 @@ for (i in thrs_size_comb){
 ```
 #### Execution time of a single greedy search run for different sizes of compatible combination subsets
 
-We perform `r R` repetitions of the greedy search for the conditions (described in table 2.3.1 above). When the set of compatible combinations is large, the computation time, required to run these greedy algorithms on the full set of compatible combinations generated in step1, may become prohibitively large. To reduce the computation time, we apply the greedy search on a randomly generated subset of compatible combinations of a size comprized between `r min(L)` and `r max(L)`. Here, we want to know how the size of the subset influences the computation time for each of the greedy search algorithm.
+We perform `r R` repetitions of the greedy search for the conditions (described in table 2.3.1 above). When the set of compatible combinations is large, the computation time, required to run these greedy algorithms on the full set of compatible combinations generated in step1, may become prohibitively large. To reduce the computation time, we apply the greedy search on a randomly generated subset of `r min(thrs_size_comb_for_GE)` $\leq N_{comp}\leq$ `r max(thrs_size_comb_for_GE)` compatible combinations, for a barcode set size comprized between `r min(L)` and `r max(L)`, and a multiplex level between `r min(N)` and `r max(N)`. Here, we want to know how the size of the subset influences the computation time for each of the greedy search algorithm.
 
 We averaged the execution time over `r R` replicates of different combinations of conditions of chemistry, barcode-set size, number of lanes, and multiplex level. Part of the variability observed for the execution time comes from the diversity of conditions that may substantially influence the execution time.
 
-The graph below indicates that the running time of the greedy-descent algorithm is quadratic as a function of the barcode-set size, which is expected, since the number of operations required to complete this algorithm on a set of $N_{comp}$ compatible combinations is $\mathcal{O}(N_{comp}^2)$. In contrats, the computation time of the greedy-exchange algorithm is linear ($\mathcal{O}(N_{comp})$).
+The graph below indicates that the running time of the greedy-descent algorithm is quadratic as a function of the barcode-set size, which is expected, since the number of operations required to complete this algorithm on a set of $N_{comp}$ compatible combinations is $\mathcal{O}(N_{comp}^2)$. In contrast, the computation time of the greedy-exchange algorithm is linear ($\mathcal{O}(N_{comp})$).
 
 ```{r echo = FALSE,  warning=FALSE, message=F}
 # In linear coordinates
@@ -775,15 +776,14 @@ ggplot(aes( x = thrs_size_comb, y = ProbaOfSsup, color=mplex_level)) +
 
 
 
-#### Estimation of the maximum execution time (R iterations) of a greedy search to obtain the maximum entropy selection in 95% of cases
-
+#### Estimation of the execution time required for R iterations of a greedy search, with R chosen to ensure 95% confidence of obtaining a maximum entropy barcode selection
 
  The probability of getting an optimal solution after $R$ iterations reads $P_{R} = 1-(1-P_{1})^R$. For example, if we want to find an optimal solution at least 95% of cases $(P_{R} = 0.95)$, we need a number of iterations $R \geq log(1-P_{R})/log(1-P_{1})$.
  
 
-* Max execution time / iteration number as a function of the number of compatible barcodes used for the search, grouped by chemistry, algorithm, barcode-set size, and multiplex level
+* Maximum execution time (y-axis) and number of iterations R (color coded) plotted as a function of the number of compatible barcode combinations used for the search, grouped by chemistry, algorithm, barcode-set size, and multiplex level
 
-The results shown in the graphs below are heterogeneous between conditions. However, common trends emerge. First, in general, the greedy-exchange search performs the optimization faster over R iterations than the greedy-descent search, except in a few cases (see next point) where the subset of compatible combinations is smaller than 30. Second, for compatible-combination subsets larger than 120 (only tested for the greedy-exchange), the optimization requires less iterations in general and performs faster. Based on these observations, it seems reasonable to fix the compatible-combination subset size to 120.
+The results shown in the graphs below are heterogeneous between conditions. However, common trends emerge. First, in general, the greedy-exchange search performs the optimization faster over R iterations than the greedy-descent search, except in a few cases (see next point) where the number $N_{comp}$ of compatible combinations is smaller than 30. Second, when $N_{comp}$ is larger than 120 (only tested for the greedy-exchange algorithm), the optimization requires less iterations in general and performs faster. Based on these observations, it seems reasonable to fix the compatible-combination subset size to 120.
 
 ```{r echo = FALSE,  warning=FALSE, fig.width=11, fig.height=22}
 # for 95% of cases
@@ -819,9 +819,10 @@ sim1_probaSmax %>%
 
 ```
 
-* Max execution time / iteration number as a function of the number of lanes $a$, grouped by algorithm, multiplex level, and number of compatible barcodes used for the search
+*	Number of iterations required to find the optimal selection with 95 % confidence, and corresponding ratio between greedy-descent and greedy-exchange execution times, as a function of the number of lanes $a$, grouped by algorithm, multiplex level, and number of compatible barcodes used for the search 
 
-Data are now pooled regardless chemistry and barcode-set sizes. In the graphs below, the number displayed in the right grey panel represents the size the randomly chosen subset of compatible combinations. We confirm that the greedy-descent search performs faster for small subsets of compatible combinations. For subsets larger than 30 compatible combinations, it seems that 50 iterations would be a reasonable number for an efficient and fast optimization by the greedy-exchange search.
+In the graphs below, data are now pooled regardless chemistry and barcode-set sizes. The number displayed in the right grey panel represents the size the randomly chosen subset of compatible combinations. We confirm that the greedy-descent search performs faster for small subsets of compatible combinations. For subsets larger than 30 compatible combinations, it seems that 50 iterations would be a reasonable number for an efficient and fast optimization by the greedy-exchange search.
+
 
 ```{r echo = FALSE,  warning=FALSE, fig.width=11, fig.height=11}
 # for 95% of cases
@@ -875,7 +876,7 @@ dat %>% group_by(thrs_size_comb, nb_lane, mplex_level, barcode_number, chemistry
 
 #### Distributions of entropy values without (S_random) and with (S_opt) optimization
 
-To visualize the efficacy of the greedy search algorithms, we compare the distribution of entropy values obtained from randomly generated selections of compatible barcodes with the distribution of entropy values obtained from optimized selections of compatible barcodes. The graphs below show that both greedy algorithms are comparable and dramatically reduce the barcode frequencies' heterogeneity by favoring selections of compatible barcode combinations with a higher entropy. One multifacetted graph is shown per subset size. The blue line indicates the position of the theoretical value of the maximum entropy $S_{max}$. A dashed line indicates that $S_{max}$ has been reached, whereas a solid line indicates that $S_{max}$ has not been reached.
+To visualize the efficacy of the greedy search algorithms, we compare the distribution of entropy values obtained from randomly generated selections of compatible barcodes with the distribution of entropy values obtained from optimized selections of compatible barcodes. The graphs below show that both greedy algorithms are comparable and dramatically reduce the barcode frequencies' heterogeneity by favoring selections of compatible barcode combinations with a higher entropy. One graph table is shown per subset size. The blue line indicates the position of the theoretical value of the maximum entropy $S_{max}$. A dashed line indicates that $S_{max}$ has been reached, whereas a solid line indicates that $S_{max}$ has not been reached.
 
 ```{r echo = FALSE,  warning=FALSE, message=FALSE, fig.width=11, fig.height=44}
 sim1_probaSmax %>% group_by(chemistry, barcode_number, mplex_level, nb_lane, algorithm) %>%
@@ -1254,7 +1255,9 @@ gg
 
 #### Comparison of barcode distributions between a randomly generated set and an optimized selection of compatible combinations
 
-##### Case A: 30 barcodes, $S_{max}$ is reached
+As above $n$, $k$ and $a$ denote the barcode set size, the multiplex level, and the number of lanes, respectively
+
+##### Case A: $n = 30$, $k = 4$, $a = 6$, $S_{max}$ is reached
 
 * Barcode set obtained:
 ```{r echo = FALSE, warning=FALSE}
@@ -1313,7 +1316,7 @@ ggtitle(paste0("Barcode occurences from a random set of compatible combinations 
 
 * Set of compatible barcodes that was optimized with the iterative greedy-exchange search
 
-We use the same experimental conditions as above for a fair comparison. Here, the optimal selection has a uniform distribution of barcodes (of entropy $S_{max} = log(N)$ where $N$ is the number of libraries, and $N=a.k$ where $a$ is the number of lanes and $k$ the multiplex level), and is reached by the greedy algorithms.
+We use the same experimental conditions as above for a fair comparison. Here, the number of libraries $N=a.k=24$ is smaller than the barcode set size ($n=30$). The optimal selection has a uniform distribution of the barcodes used (of entropy $S_{max} = log(N)$), and is reached by the greedy algorithms.
 
 ```{r echo = FALSE, warning=FALSE, fig.width=11}
 S_opt <- (sim2_probaSmax %>% filter(chemistry == chem) %>% 
@@ -1343,7 +1346,7 @@ ggtitle(paste0("Barcode occurences from a random set of compatible combinations 
 ```
 
 
-##### Case B: 30 barcodes, $S_{max}$ is **not** reached
+##### Case B: $n = 30$, $k = 5$, $a = 6$, $S_{max}$ is **not** reached
 
 * Barcode set obtained:
 ```{r echo = FALSE, warning=FALSE}
@@ -1402,7 +1405,7 @@ ggtitle(paste0("Barcode occurences from a random set of compatible combinations 
 
 * Set of compatible barcodes that was optimized with the iterative greedy-exchange search
 
-We use the same experimental conditions as above for a fair comparison.
+We use the same experimental conditions as above for a fair comparison. Here, the number of libraries $N = a.k = 30$ is equal to the barcode set size $n$, and the maximum possible value of the entropy of the barcode selection is the entropy of the uniform distribution, $S_{max}=log(n)$. Such a selection, exhausting the set of available barcodes, would correspond to a partition of this set in $a=6$ disjoint combinations of $k=5$ barcodes. However, no such partition exists for the set of compatible combinations at hand, which allows one to form selections containing a maximum of 29 barcodes. Hence, a uniform barcode distribution cannot be attained. Nevertheless, the greedy algorithm still finds a selection having the maximum attainable entropy, $S_{opt} = 3.35$, corresponding to the value of $S_{max}$ obtained (Eq. 1 in Supplementary File S2) for $N = 30$ and $n = 29$.
 
 ```{r echo = FALSE, warning=FALSE, fig.width=11}
 S_opt <- (sim2_probaSmax %>% filter(chemistry == chem) %>% 
@@ -1431,7 +1434,7 @@ sim2_barcodeStat_opt %>% filter(chemistry == chem) %>%
 ggtitle(paste0("Barcode occurences from a random set of compatible combinations (S_opt=",round(S_opt,2),"; S_max=",round(S_max,2),")"))
 ```
 
-##### Case C: 12 barcodes, $S_{max}$ is reached
+##### Case C: $n = 12$, $k = 5$, $a = 6$, $S_{max}$ is reached
 
 * Barcode set obtained:
 ```{r echo = FALSE, warning=FALSE}
@@ -1444,8 +1447,6 @@ barcodeset <- sort(unique((sim2_barcodeStat_random_opt %>% filter(barcode_number
 
 
 * Selection of compatible combinations that was randomly chosen
-
-Here, a selection with uniform barcode distribution cannot be reached because $N=a.k$ is greater than, but nut divisible by the number of available barcodes $n$. However, the selection having the maximum possible entropy $S_{max}$ is reached.
 
 ```{r echo = FALSE, warning=FALSE, fig.width=11}
 chem=4
@@ -1492,7 +1493,7 @@ ggtitle(paste0("Barcode occurences from a random set of compatible combinations 
 
 * Set of compatible barcodes that was optimized with the iterative greedy-exchange search
 
-We use the same experimental conditions as above for a fair comparison.
+We use the same experimental conditions as above for a fair comparison. Here, the number of libraries ($N=a.k=30$) is greater than the barcode set size ($n=12$). A selection with uniform barcode distribution cannot be reached, however, because $N$ is not divisible by $n$. However, the selection having the maximum possible entropy $S_{max}$ is reached.
 
 ```{r echo = FALSE, warning=FALSE, fig.width=11}
 S_opt <- (sim2_probaSmax %>% filter(chemistry == chem) %>% 
@@ -1522,7 +1523,7 @@ ggtitle(paste0("Barcode occurences from a random set of compatible combinations 
 ```
 
 
-##### Case D: 12 barcodes, $S_{max}$ is **not** reached
+##### Case D: $n=12$, $k=4$, $a=6$, $S_{max}$ is **not** reached
 
 * Barcode set obtained:
 ```{r echo = FALSE, warning=FALSE}
@@ -2042,15 +2043,15 @@ ggplot(aes( x = thrs_size_comb, y = ProbaOfSsup, color=mplex_level)) +
 
 ```
 
-### Estimation of the maximum execution time (N iterations) of a greedy search to obtain the max entropy in 95% of cases
+### Estimation of the maximum execution time (R iterations) of a greedy search to obtain the max entropy in 95% of cases
 
 
 The probability of getting an optimal solution after $R$ iterations reads $P_{R} = 1-(1-P_{1})^R$. For example, if we want to find an optimal solution at least 95% of cases $(P_{R} = 0.95)$, we need a number of iterations $R \geq log(1-P_{R})/log(1-P_{1})$.
  
 
-* Max execution time / iteration number as a function of the number of compatible barcodes used for the search, grouped by chemistry, algorithm, barcode-set size, and multiplex level
+* Maximum execution time (y-axis) and number of iterations R (color coded) plotted as a function of the number of compatible barcode combinations used for the search, grouped by chemistry, algorithm, barcode-set size, and multiplex level
 
-The results shown in the graphs below are heterogeneous between conditions. However, common trends emerge. First, in general, the greedy-exchange search performs the optimization faster over R iterations than the greedy-descent search, except in a few cases (see next point) where the subset of compatible combinations is smaller than 30. Second, for compatible-combination subsets larger than 120 (only tested for the greedy-exchange), the optimization requires less iterations in general and performs faster. Based on these observations, it seems reasonable to fix the compatible-combination subset size to 120.
+The results shown in the graphs below are heterogeneous between conditions. However, common trends emerge. First, in general, the greedy-exchange search performs the optimization faster over R iterations than the greedy-descent search, except in a few cases (see next point) where the number $N_{comp}$ of compatible combinations is smaller than 30. Second, when $N_{comp}$ is larger than 120 (only tested for the greedy-exchange algorithm), the optimization requires less iterations in general and performs faster. Based on these observations, it seems reasonable to fix the compatible-combination subset size to 120.
 
 ```{r echo = FALSE,  warning=FALSE, fig.width=11, fig.height=22, eval=T}
 # for 95% of cases
@@ -2086,10 +2087,9 @@ sim3_probaSmax %>%
 
 ```
 
-* Max execution time /iteration number as a function of lane number, grouped by algorithm, multiplex level, and number of compatible barcodes used for the search
+*	Number of iterations required to find the optimal selection with 95 % confidence, and corresponding ratio between greedy-descent and greedy-exchange execution times, as a function of the number of lanes $a$, grouped by algorithm, multiplex level, and number of compatible barcodes used for the search 
 
-Data are now pooled regardless chemistry and barcode-set sizes. In the graphs below, the number displayed in the right grey panel represents the size the randomly chosen subset of compatible combinations. We confirm that the greedy-descent search performs faster for small subsets of compatible combinations. For subsets larger than 30 compatible combinations, it seems that 50 iterations would be a reasonable number for an efficient and fast optimization by the greedy-exchange search.
-These results are very similar to those obtained with the TruSeq small RNA kits from Illumina.
+In the graphs below, data are now pooled regardless chemistry and barcode-set sizes. The number displayed in the right grey panel represents the size the randomly chosen subset of compatible combinations. We confirm that the greedy-descent search performs faster for small subsets of compatible combinations. For subsets larger than 30 compatible combinations, it seems that 50 iterations would be a reasonable number for an efficient and fast optimization by the greedy-exchange search.
 
 ```{r echo = FALSE,  warning=FALSE, fig.width=11, fig.height=11, eval=T}
 # for 95% of cases
@@ -2154,7 +2154,7 @@ dat %>% group_by(thrs_size_comb, nb_lane, mplex_level, barcode_number, chemistry
 
 ### Distributions of entropy values without (S_random) and with (S_opt) optimization
 
-To visualize the efficacy of the greedy search algorithms, we compare the distribution of entropy values obtained from randomly generated selections of compatible barcodes with the distribution of entropy values obtained from optimized selections of compatible barcodes. The graphs below show that both greedy algorithms are comparable and dramatically reduce the barcode frequencies' heterogeneity by favoring selections of compatible barcode combinations with a higher entropy. One multifacetted graph is shown per subset size. The blue line indicates the position of the theoretical value of the maximum entropy $S_{max}$. A dashed line indicates that $S_{max}$ has been reached, whereas a solid line indicates that $S_{max}$ has not been reached.
+To visualize the efficacy of the greedy search algorithms, we compare the distribution of entropy values obtained from randomly generated selections of compatible barcodes with the distribution of entropy values obtained from optimized selections of compatible barcodes. The graphs below show that both greedy algorithms are comparable and dramatically reduce the barcode frequencies' heterogeneity by favoring selections of compatible barcode combinations with a higher entropy. One graph table is shown per subset size. The blue line indicates the position of the theoretical value of the maximum entropy $S_{max}$. A dashed line indicates that $S_{max}$ has been reached, whereas a solid line indicates that $S_{max}$ has not been reached.
 
 ```{r echo = FALSE,  warning=FALSE, message=FALSE, fig.width=11, fig.height=44, eval=T}
 sim3_probaSmax %>% group_by(chemistry, barcode_number, mplex_level, nb_lane, algorithm) %>%
