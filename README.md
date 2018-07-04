@@ -10,7 +10,10 @@ DNABarcodeCompatibility: R-package to find least-redundant sets of compatible ba
 Installation 
 ================
 
-* First install [R](https://www.r-project.org/) if not yet installed (R >= 3.2 is required).
+* Requirements
+    + Install [R](https://www.r-project.org/) if not yet installed (R >= 3.2 is required).
+    + Install Java [JDK 8](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html) if not yet installed.
+
 
 * Within a R console, type in the following commands:
     
@@ -24,9 +27,11 @@ setRepositories(ind=1:2)
 # Install DNABarcodeCompatibility
 devtools::install_github("comoto-pasteur-fr/DNABarcodeCompatibility")
 ```
+
+
 * Note:
 
-DNABarcodeCompatibility uses the rJava package and therefore requires [java (JDK 8)](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html) to be installed on your system.
+Optionally, DNABarcodeCompatibility uses the rJava package to communicate with a graphical [user interface](https://github.com/comoto-pasteur-fr/DNABarcodeCompatibility_GUI) and therefore requires [Java (JDK 8)](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html) to be installed on your system.
 
 Documentation
 ================
@@ -35,7 +40,7 @@ Documentation
 
 [API documentation](https://comoto-pasteur-fr.github.io/DNABarcodeCompatibility/DNABarcodeCompatibility-manual.pdf)
 
-[Front-end in Java](https://github.com/comoto-pasteur-fr/DNABarcodeCompatibility_GUI)
+Related tool: see the [graphical user interface (GUI)](https://github.com/comoto-pasteur-fr/DNABarcodeCompatibility_GUI) of DNABarcodeCompatibility.
 
 Support
 =========

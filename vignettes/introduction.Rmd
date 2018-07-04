@@ -24,21 +24,21 @@ knitr::opts_chunk$set(
 options(width=120)
 ```
 
-This document introduces you to DNABarcodeCompatibility’s basic set of tools.     
+This document gives an overview of the DNABarcodeCompatibility R package with a brief description of the set of tools that it contains.
+The package includes six main functions that are briefly described below with examples. These functions allow one to load a list of DNA barcodes (such as the Illumina TruSeq small RNA kits), to filter these barcodes according to distance and nucleotide content criteria, to generate sets of compatible barcode combinations out of the filtered barcode list, and finally to generate an optimized selection of barcode combinations for multiplex sequencing experiments. In particular, the package provides an optimizer function to favour the selection of compatible barcode combinations with **least heterogeneity in the frequencies of DNA barcodes**, and allows one to keep barcodes that are **robust against substitution and insertion/deletion errors**, thereby facilitating the demultiplexing step.
+     
 
-The DNABarcodeCompatibility package provides six functions and two barcode datasets for running examples. The functions allow one to load DNA barcodes, to generate, filter and optimize sets of compatible barcode combinations for multiplex sequecing experiments. In particular, the package provides an optimizer function to further favor the selection of compatible barcode combinations with **least redundancy of DNA barcodes** and allows one to keep barcodes that are **robust against substitution and insertion/deletion errors** thereby facilitating the demultiplexing step.      
+The DNABarcodeCompatibility package also contains:
 
-This package contains:
+*	one workflow called `experiment_design()` allowing one to perfom all steps in one go. 
+*	two datasets called `IlluminaIndexesRaw` and `IlluminaIndexes` for running and testing examples. 
+*	a series of API to build your own workflow. 
 
-* one workflow called `experiment_design()` to perfom all steps in one go
-* two datasets called `IlluminaIndexesRaw` and `IlluminaIndexes` for running examples
-* a series of API to build your own workflow     
+The package deals with the three existing sequencing-by-synthesis chemistries from Illumina:
 
-This package deals with the three existing sequencing-by-synthesis chemistries from Illumina:
-
-* Four-Channel SBS Chemistry: MiSeq, HiSeq systems
-* Two-Channel SBS Chemistry: MiniSeq, NextSeq, NovaSeq systems
-* One-Channel SBS Chemistry: iSeq system    
+*	Four-Channel SBS Chemistry: MiSeq, HiSeq systems 
+*	Two-Channel SBS Chemistry: MiniSeq, NextSeq, NovaSeq systems 
+*	One-Channel SBS Chemistry: iSeq system 
 
 
 ## Load the package
@@ -63,7 +63,7 @@ export_dataset_to_file = function(dataset = DNABarcodeCompatibility::IlluminaInd
 
 ## Design an experiment 
 
-The function `experiment_design()` uses a Shannon-entropy maximization approach to identify a set of compatible barcode combinations with least redundancy between DNA barcodes, in the contexts of single and dual barcoding. It performs either an exhaustive or a random search of compatible DNA-barcode combinations depending on the size of the DNA-barcode population and of the number of samples to be multiplexed.
+The function `experiment_design()` uses a Shannon-entropy maximization approach to identify a set of compatible barcode combinations in which the frequencies of occurrences of the various DNA barcodes are as uniform as possible. The optimization can be performed in the contexts of single and dual barcoding. It performs either an exhaustive or a random search of compatible DNA-barcode combinations, depending on the size of the DNA-barcode set used, and on the number of samples to be multiplexed.
 
 ### Examples for single indexing
 
@@ -122,11 +122,11 @@ experiment_design(file1=txtfile1, sample_number=12, mplex_level=3, chemistry=4, 
 
 ## Buid your own workflow
 
-This section guides you through the detailed API of the package with the aim to build your own workflow. This will give you more flexibility than the `experiment_design()` function.
+This section guides you through the detailed API of the package with the aim to help you build your own workflow. The package is designed to be flexible and should be easily adaptable to most experimental contexts, using the  `experiment_design()` function as a template, or building your own workflow from scratch.
 
 ### Load and check a dataset of barcodes
 
-The `file_loading_and_checking()` function loads the file containing the DNA barcodes and analyzes its content. In particular, it checks barcodes for unicity (identifier and sequence), DNA content, and equal size. It also calculates the GC content and detects the presence of homopolymers of length >= 3.
+The `file_loading_and_checking()` function loads the file containing the DNA barcodes set and analyzes its content. In particular, it checks that each barcode in the set is unique and uniquely identified (removing any repetition that occurs). It also checks the homogeneity of size of the barcodes,  calculates their GC content and detects the presence of homopolymers of length >= 3.
 
 ```{r, echo=TRUE}
 file_loading_and_checking(file = export_dataset_to_file(dataset = DNABarcodeCompatibility::IlluminaIndexesRaw))
@@ -134,7 +134,7 @@ file_loading_and_checking(file = export_dataset_to_file(dataset = DNABarcodeComp
 
 ### Examples of an exhaustive search of compatible barcode combinations
 
-The total number of combinations depends on the number of available barcodes and of the multiplex level. For 48 barcodes and a multiplex level of 3, the total number of combination can be calculated using `choose(48,3)`, namely 17296 combinations. However, in many cases the total number of combinations can become gigantic and you must not perform an exhaustive search (see `get_random_combinations()` below).
+The total number of combinations depends on the number of available barcodes and of the multiplex level. For 48 barcodes and a multiplex level of 3, the total number of combinations (compatible or not) can be calculated using `choose(48,3)`, which gives `r format(choose(48,3))` combinations. In many cases the total number of combinations can become much larger (even gigantic), and one cannot perform an exhaustive search (see `get_random_combinations()` below).
 
 * 48 barcodes, multiplex level of 2, HiSeq plateform
 ```{r, echo=TRUE}
@@ -170,7 +170,7 @@ head(m)
 
 ### Examples of a random search of compatible barcode combinations
 
-When the total number of combinations becomes high, it is recommended to pick combinations at random and then select those that are compatible. 
+When the total number of combinations is too high, it is recommended to pick combinations at random and then select those that are compatible. 
 
 * 48 barcodes, multiplex level of 3, HiSeq plateform
 ```{r, echo=TRUE}
