@@ -12,7 +12,6 @@ Installation
 
 * Requirements
     + Install [R](https://www.r-project.org/) if not yet installed (R >= 3.2 is required).
-    + Install Java [JDK 8](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html) if not yet installed.
 
 
 * Within a R console, type in the following commands:
@@ -31,7 +30,8 @@ devtools::install_github("comoto-pasteur-fr/DNABarcodeCompatibility")
 
 * Note:
 
-Optionally, DNABarcodeCompatibility uses the rJava package to communicate with a graphical [user interface](https://github.com/comoto-pasteur-fr/DNABarcodeCompatibility_GUI) and therefore requires [Java (JDK 8)](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html) to be installed on your system.
+In addition, DNABarcodeCompatibility can be used from the DNABarcodeCompatibility [graphical user interface](https://github.com/comoto-pasteur-fr/DNABarcodeCompatibility_GUI). In such a case, additional dependencies must be installed: [Java (JDK 8)](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html) and `rJava` R-package (`install.packages("rJava")`). 
+
 
 Documentation
 ================
