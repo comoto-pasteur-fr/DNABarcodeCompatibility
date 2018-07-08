@@ -30,7 +30,7 @@ devtools::install_github("comoto-pasteur-fr/DNABarcodeCompatibility")
 
 * Note:
 
-In addition, DNABarcodeCompatibility can be used from the DNABarcodeCompatibility [graphical user interface](https://github.com/comoto-pasteur-fr/DNABarcodeCompatibility_GUI). In such a case, additional dependencies must be installed: [Java (JDK 8)](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html) and `rJava` R-package (`install.packages("rJava")`). 
+In addition, DNABarcodeCompatibility can be used from the DNABarcodeCompatibility [graphical user interface](https://github.com/comoto-pasteur-fr/DNABarcodeCompatibility_GUI). In such a case, additional dependencies must be installed: [Java (JDK 8 - 64 bits)](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html) and `rJava` R-package (`install.packages("rJava")`). 
 
 
 Documentation
