@@ -3,7 +3,7 @@
 About
 =================
 
-DNABarcodeCompatibility: R-package to find least-redundant sets of compatible barcodes for multiplex experiments performed on Illumina sequencing platforms.
+DNABarcodeCompatibility: R-package to find least-redundant sets of compatible barcodes for multiplex experiments.
 
 
 
