@@ -14,9 +14,9 @@
 read_index = function(file) {
   if(!file.exists(file)){
     display_message("Your file doesn't exist, please check the path")
-    index <<- NULL
+    index <- NULL; index <<- NULL
   }else{
-    index <<- NULL
+    index <- NULL
     index <<- try(as.data.frame(read.table(file, 
                                            header = FALSE, 
                                            sep = "", 
@@ -848,7 +848,7 @@ final_result_dual = function(index_df_1, index_df_2, sample_number, mplex_level,
 
 
 display_message <- function (a_message){
-  error_message <<- NULL
+  error_message <- NULL
   error_message <<- a_message
   print(a_message)
 } 
