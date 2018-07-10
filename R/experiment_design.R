@@ -53,6 +53,8 @@
 #' 
 #'
 #' 
+#' @importFrom("stats", "na.omit")
+#' @importFrom("utils", "combn", "read.table", "write.csv2")
 #' 
 #' @export
 #' 
