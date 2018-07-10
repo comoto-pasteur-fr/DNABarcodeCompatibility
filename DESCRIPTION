@@ -1,6 +1,6 @@
 Package: DNABarcodeCompatibility
 Type: Package
-Title: A tool for optimizing combinations of DNA barcodes used in multiplxed experiments on Next Generation Sequencing plateforms.
+Title: A tool for optimizing combinations of DNA barcodes used in multiplxed experiments on Next Generation Sequencing plateforms
 Version: 1.0.0
 Author: Céline Trébeau, Jacques Boutet de Monvel, Fabienne Wong Jun Tai, Raphaël Etournay
 Maintainer: Céline Trébeau <celine.trebeau@pasteur.fr>
@@ -15,5 +15,6 @@ Encoding: UTF-8
 LazyData: true
 RoxygenNote: 6.0.1
 Imports: dplyr, tidyr, numbers, purrr, stringr, DNABarcodes
+Depends: R(>= 3.2.0)
 Suggests: knitr, rmarkdown
 VignetteBuilder: knitr
