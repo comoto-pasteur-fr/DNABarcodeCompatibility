@@ -52,9 +52,8 @@
 #' experiment_design(file1=txtfile, sample_number=18, mplex_level=3, chemistry=4)
 #' 
 #'
-#' 
-#' @importFrom("stats", "na.omit")
-#' @importFrom("utils", "combn", "read.table", "write.csv2")
+#' @importFrom stats na.omit
+#' @importFrom utils combn read.table write.csv2
 #' 
 #' @export
 #' 
