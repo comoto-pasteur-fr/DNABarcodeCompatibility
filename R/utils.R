@@ -14,9 +14,9 @@
 read_index = function(file) {
   if(!file.exists(file)){
     display_message("Your file doesn't exist, please check the path")
-    index <- NULL; index <<- NULL
+    index <<- NULL
   }else{
-    index <- NULL
+    index <<- NULL
     index <<- try(as.data.frame(read.table(file, 
                                            header = FALSE, 
                                            sep = "", 
