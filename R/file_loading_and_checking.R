@@ -27,6 +27,7 @@
 file_loading_and_checking = function(file){
   index = read_index(file) 
   if (!is.null(index) && index_check(index)){#  if no issue
+    index_number <- NULL
     index_number <<- nrow(index)
     index  = index %>% mutate (GC_content = get_index_GC_content(index), 
                                homopolymer = get_index_homopolymer(index))
