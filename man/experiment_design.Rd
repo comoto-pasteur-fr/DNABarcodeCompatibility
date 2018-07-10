@@ -63,5 +63,4 @@ experiment_design(file1=txtfile, sample_number=18, mplex_level=3, chemistry=4)
 
 
 
-
 }
