@@ -7,7 +7,7 @@
  library("DNABarcodes")
 
 
-
+ index <- NULL
 
 
 # Inputs ------------------------------------------------------------------
@@ -36,12 +36,12 @@ read_index = function(file) {
 unicity_check = function(index){
   index$sequence <<- toupper(index$sequence)
   if(index$Id %>% anyDuplicated() != 0){#checks if the index Ids are unique
-    v = paste("two duplicated indexes IDs,check row n°", anyDuplicated(index$Id))
+    v = paste("two duplicated indexes IDs,check row number", anyDuplicated(index$Id))
     display_message(v)
     return(FALSE)
   }
   else if(index$sequence %>% anyDuplicated() != 0){#checks if the index sequences are unique
-    v = paste("At least one of your sequences is not unique, check row n°", anyDuplicated(index$sequence))
+    v = paste("At least one of your sequences is not unique, check row number", anyDuplicated(index$sequence))
     display_message(v) 
     return(FALSE) 
   }
@@ -73,7 +73,7 @@ length_check = function(sequences){
 character_and_length_check = function(index){
   c_check =  sequences_character_check(index$sequence)
   if (length (which(c_check == FALSE)) > 0 ){
-    display_message(paste("Your sequence contains a wrong charater, row n° : ", which(c_check == FALSE)))
+    display_message(paste("Your sequence contains a wrong charater, row number : ", which(c_check == FALSE)))
     return(FALSE)
   }
   else {
@@ -85,7 +85,7 @@ character_and_length_check = function(index){
             nchar
             (index$sequence)))[as.numeric(which(table(nchar(index$sequence))== min(table(nchar(index$sequence)))))])
       c = which(nchar(index$sequence) == wrong_length)
-      display_message(paste("the indexes have not the same size, check out row n°", c))
+      display_message(paste("the indexes have not the same size, check out row number", c))
       
       return(FALSE)
     }else{
