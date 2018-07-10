@@ -7,7 +7,8 @@
  library("DNABarcodes")
 
 
-
+ globalVariables(c("Id", "Id1", "Id2", "Lane", "V1", "V2", "barcodes", "bcID", "bc_gp", "combID", "hamming", "index",
+                   "isDropping", "matchOcc", "pairID", "seqlev"))
 
 
 # Inputs ------------------------------------------------------------------
