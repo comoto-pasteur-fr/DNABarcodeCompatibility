@@ -1,45 +1,46 @@
 
- library("dplyr")
- library("tidyr")
- library("numbers")
- library("purrr")
- library ("stringr")
- library("DNABarcodes")
+library("dplyr")
+library("tidyr")
+library("numbers")
+library("purrr")
+library ("stringr")
+library("DNABarcodes")
 
 
- # initialize variable for CRAN/Bioc repository compatibility
- globalVariables(c("Id", "Id1", "Id2", "Lane", "V1", "V2", "barcodes", "bcID", "bc_gp", "combID", "hamming", "index",
-                   "isDropping", "matchOcc", "pairID", "seqlev", "."))
+# initialize variable for CRAN/Bioc repository compatibility
+globalVariables(c("Id", "Id1", "Id2", "Lane", "V1", "V2", "barcodes", "bcID", "bc_gp", "combID", "hamming",
+                  "index", "isDropping", "matchOcc", "pairID", "seqlev", "."))
 
 
 # Inputs ------------------------------------------------------------------
+index_env <- new.env() # ?bindenv() for help
 read_index = function(file) {
   if(!file.exists(file)){
     display_message("Your file doesn't exist, please check the path")
-    # index <- NULL
-    index <<- NULL
+    assign("index", NULL, envir = index_env) #index <<- NULL
   }else{
-    # index <- NULL
-    index <<- try(as.data.frame(read.table(file, 
-                                           header = FALSE, 
-                                           sep = "", 
-                                           col.names = c("Id", "sequence"),
-                                           colClasses = c("character", "character"), 
-                                           stringsAsFactors = FALSE)), silent = TRUE)
-    if (exists("index")){
-      if(class(index) == "try-error"){
-        # index <- NULL
-        index <<- NULL
+    input <- try(as.data.frame(read.table(file, 
+                                          header = FALSE, 
+                                          sep = "", 
+                                          col.names = c("Id", "sequence"),
+                                          colClasses = c("character", "character"), 
+                                          stringsAsFactors = FALSE)), silent = TRUE)
+    if (exists("input")){
+      if(class(input) == "try-error"){
+        assign("index", NULL, envir = index_env) #index <<- NULL
         display_message("An error occurred, please check the content of your file")
-      }
+      } else {assign("index", input, envir = index_env)}
     }
   }
-  return(index)
+  return(input)
 }
 
-    
+
 unicity_check = function(index){
-  index$sequence <<- toupper(index$sequence)
+  # index$sequence <<- toupper(index$sequence)
+  index$sequence <- toupper(index$sequence)
+  assign("index", index, envir = index_env)
+  
   if(index$Id %>% anyDuplicated() != 0){#checks if the index Ids are unique
     v = paste("two duplicated indexes IDs,check row number", anyDuplicated(index$Id))
     display_message(v)
@@ -53,7 +54,7 @@ unicity_check = function(index){
   else{return (TRUE)}
 }
 
-    
+
 #check the character for one sequence
 character_check = function(sequence){
   wrong_letters = LETTERS[!(LETTERS) %in% c("A", "G", "C", "T")]
@@ -61,19 +62,19 @@ character_check = function(sequence){
   return(check)
 }
 
-    
+
 #checks the characters of each sequence
 sequences_character_check = function(sequences){
   return(map_lgl(sequences, character_check))
 }
 
-    
+
 #checks the length of each sequence
 length_check = function(sequences){
   return(str_length(sequences) == str_length(sequences[1]))
 }
 
-    
+
 #checks for character type and sequence  length
 character_and_length_check = function(index){
   c_check =  sequences_character_check(index$sequence)
@@ -100,39 +101,39 @@ character_and_length_check = function(index){
 }
 
 
-    
+
 ## Check the index for possible issues
 index_check = function(index){
   return (all(unicity_check(index), 
               character_and_length_check(index)))
 }
 
-    
+
 get_sequence_GC_content =  function (sequence){
   GC_content = str_count(sequence,pattern = ("G|C"))/nchar(sequence) * 100
   return(round(GC_content, digits = 2))
 }
 
-    
+
 get_index_GC_content = function(index){
   index_GC_content = map_dbl(index$sequence, get_sequence_GC_content)
   return (index_GC_content)
 }
 
-    
+
 get_sequence_homopolymer = function(sequence){
   if(length(str_which(sequence, "A{3,}|G{3,}|C{3,}|T{3,}")) > 0 ){
     return (TRUE)
   }else{return (FALSE)}
 }
 
-    
+
 get_index_homopolymer = function(index){
   homopolymer  = map_lgl(index$sequence, get_sequence_homopolymer)
 }
 
 
-    
+
 sample_number_check = function (sample_number){
   # if (!try(x = sample_number, silent = TRUE) ){
   #   print("you have to enter an integer value")
@@ -167,15 +168,15 @@ sample_number_check = function (sample_number){
   }
 }
 
-    
- 
+
+
 multiplexing_level_set = function (sample_number){
   v  = 2 : (sample_number)
   multiplexing_level_choices = v[sample_number %% v == 0]
   return (multiplexing_level_choices [multiplexing_level_choices< 96])
 }
 
-  
+
 sample_and_multiplexing_level_check = function(sample_number,mplex_level){
   if (sample_number_check(sample_number)){
     possible_multiplexing_level = multiplexing_level_set(sample_number)
@@ -207,8 +208,8 @@ sample_and_multiplexing_level_check = function(sample_number,mplex_level){
 #   return (index_df)
 # }
 
-    
- 
+
+
 # sequence traduction for a 4_channel chemistry :
 sequence_binary_conversion_4_channel = function(sequence){
   binary_sequence = 
@@ -218,16 +219,16 @@ sequence_binary_conversion_4_channel = function(sequence){
   return(binary_sequence)
 }
 
-    
- 
+
+
 # index traduction for a 4_channel chemistry :
 index_binary_conversion_4_channel = function(index){
   index = index %>% mutate (binary_4 = sequence_binary_conversion_4_channel(sequence))
   return (index)
 }
 
-    
- 
+
+
 # sequence traduction for a 2_channel chemistry for image 1 :
 sequence_binary_conversion_2_channel_1 = function(sequence){
   binary_sequence = 
@@ -237,8 +238,8 @@ sequence_binary_conversion_2_channel_1 = function(sequence){
   return(binary_sequence)
 }
 
-    
- 
+
+
 # sequence traduction for a 2_channel chemistry for image 2 :
 sequence_binary_conversion_2_channel_2 = function(sequence){
   binary_sequence = 
@@ -248,8 +249,8 @@ sequence_binary_conversion_2_channel_2 = function(sequence){
   return(binary_sequence)
 }
 
-    
- 
+
+
 # index traduction for a 2_channel chemistry :
 index_binary_conversion_2_channel = function(index){
   index = index %>% mutate (binary_2_image_1 = sequence_binary_conversion_2_channel_1(sequence), 
@@ -257,8 +258,8 @@ index_binary_conversion_2_channel = function(index){
   return (index)
 }
 
-    
- 
+
+
 # sequence traduction for a 1_channel chemistry for image 1 :
 sequence_binary_conversion_1_channel_1 = function(sequence){
   binary_sequence = 
@@ -268,8 +269,8 @@ sequence_binary_conversion_1_channel_1 = function(sequence){
   return(binary_sequence)
 }
 
-    
- 
+
+
 # sequence traduction for a 1_channel chemistry for image 2 :
 sequence_binary_conversion_1_channel_2 = function(sequence){
   binary_sequence = 
@@ -279,8 +280,8 @@ sequence_binary_conversion_1_channel_2 = function(sequence){
   return(binary_sequence)
 }
 
-    
- 
+
+
 index_binary_conversion_1_channel = function(index){
   index = index %>% mutate (binary_1_image_1 = sequence_binary_conversion_1_channel_1(sequence), 
                             binary_1_image_2 = sequence_binary_conversion_1_channel_2(sequence))
@@ -291,23 +292,23 @@ index_binary_conversion_1_channel = function(index){
 # Compatibility -----------------------------------------------------------
 
 
-    
- 
+
+
 #conversion of the string sequence into a vector of numeric
 binary_word_into_numeric = function (binary_word){
   as.numeric(unlist(strsplit(as.character(binary_word),"")))
 }
 
-    
- 
+
+
 #conversion of each index sequence combination into a matrix
 vectors_into_matrix = function (binary_word){
   m =  mapply(binary_word_into_numeric,binary_word)
   return(m)
 }
 
-    
- 
+
+
 #test if a column/line of a index combination is correct
 any_different = function(binary_sequence){
   if (length(unique(binary_sequence)) > 1){
@@ -317,8 +318,8 @@ any_different = function(binary_sequence){
   }
 }
 
-    
- 
+
+
 has_signal_in_both_channels = function(colored_sequence){
   if(any(as.logical(colored_sequence))){
     return (TRUE)
@@ -327,8 +328,8 @@ has_signal_in_both_channels = function(colored_sequence){
   }
 }
 
-    
- 
+
+
 # check if a combination of indexes is correct
 is_a_good_combination = function (combination_matrix){
   all_combinations = vectors_into_matrix(combination_matrix)
@@ -336,31 +337,31 @@ is_a_good_combination = function (combination_matrix){
   return(results)
 }
 
-    
- 
+
+
 is_a_good_combination_2 = function (combination_matrix){
   all_combinations = vectors_into_matrix(combination_matrix)
   results = prod(apply(all_combinations,1,has_signal_in_both_channels))
   return(results)
 }
 
-    
- 
+
+
 # keeps only the good ones :
 list_of_good_combinations = function (matrix_id){
   list = apply(matrix_id,2,is_a_good_combination)
   return(list)
 }
 
-    
- 
+
+
 list_of_good_combinations_2 = function (matrix_id){
   list = apply(matrix_id,2,is_a_good_combination_2)
   return(list)
 }
 
-    
- 
+
+
 ##super fast and furious
 #matches an id to its binary_sequence
 id_into_4_channel_binary_sequence = function (index_id_combination, index_df){
@@ -369,8 +370,8 @@ id_into_4_channel_binary_sequence = function (index_id_combination, index_df){
   return (index_binary_sequence_combination)
 }
 
-    
- 
+
+
 # matches an id to its binary_sequence for 2_channel image 1
 id_into_2_channel_image_1_binary_sequence = function (index_id_combination, index_df){
   index_rows = subset(index_df, Id == index_id_combination)
@@ -378,8 +379,8 @@ id_into_2_channel_image_1_binary_sequence = function (index_id_combination, inde
   return (index_binary_sequence_combination)
 }
 
-    
- 
+
+
 # matches an id to its binary_sequence for 2_channel image 2
 id_into_2_channel_image_2_binary_sequence = function (index_id_combination, index_df){
   index_rows = subset(index_df, Id == index_id_combination)
@@ -387,8 +388,8 @@ id_into_2_channel_image_2_binary_sequence = function (index_id_combination, inde
   return (index_binary_sequence_combination)
 }
 
-    
- 
+
+
 # matches an id to its binary_sequence for 1_channel image 1
 id_into_1_channel_image_1_binary_sequence = function (index_id_combination, index_df){
   index_rows = subset(index_df, Id == index_id_combination)
@@ -396,8 +397,8 @@ id_into_1_channel_image_1_binary_sequence = function (index_id_combination, inde
   return (index_binary_sequence_combination)
 }
 
-    
- 
+
+
 # matches an id to its binary_sequence for 1_channel image 2
 id_into_1_channel_image_2_binary_sequence = function (index_id_combination, index_df){
   index_rows = subset(index_df, Id == index_id_combination)
@@ -413,8 +414,8 @@ id_into_1_channel_image_2_binary_sequence = function (index_id_combination, inde
 #   return (result)
 # }
 
-    
- 
+
+
 # matches the matrix_id to the matrix_binary_sequence
 matrix_id_to_binary_sequence = function(matrix_id, index_df){
   m = matrix_id
@@ -423,8 +424,8 @@ matrix_id_to_binary_sequence = function(matrix_id, index_df){
   return (m)
 }
 
-    
- 
+
+
 # matches the matrix_id to the matrix_2_channel_immage_1_binary_sequence
 matrix_id_to_2_channel_image_1_binary_sequence = function(matrix_id, index_df){
   m = matrix_id
@@ -433,8 +434,8 @@ matrix_id_to_2_channel_image_1_binary_sequence = function(matrix_id, index_df){
   return (m)
 }
 
-    
- 
+
+
 # matches the matrix_id to the matrix_2_channel_immage_2_binary_sequence
 matrix_id_to_2_channel_image_2_binary_sequence = function(matrix_id, index_df){
   m = matrix_id
@@ -443,8 +444,8 @@ matrix_id_to_2_channel_image_2_binary_sequence = function(matrix_id, index_df){
   return (m)
 }
 
-    
- 
+
+
 # matches the matrix_id to the matrix_1_channel_immage_1_binary_sequence
 matrix_id_to_1_channel_image_1_binary_sequence = function(matrix_id, index_df){
   m = matrix_id
@@ -453,8 +454,8 @@ matrix_id_to_1_channel_image_1_binary_sequence = function(matrix_id, index_df){
   return (m)
 }
 
-    
- 
+
+
 # matches the matrix_id to the matrix_1_channel_immage_2_binary_sequence
 matrix_id_to_1_channel_image_2_binary_sequence = function(matrix_id, index_df){
   m = matrix_id
@@ -463,8 +464,8 @@ matrix_id_to_1_channel_image_2_binary_sequence = function(matrix_id, index_df){
   return (m)
 }
 
-    
- 
+
+
 # get all compatible combinations of an index for 4_channel chemistry
 get_all_combinations_4_channel = function(index_df, mplex_level){
   index_df = index_binary_conversion_4_channel(index_df)
@@ -476,8 +477,8 @@ get_all_combinations_4_channel = function(index_df, mplex_level){
   return(list_of_all_combinations)
 }
 
-    
- 
+
+
 # get all compatible combinations of an index for 2_channel chemistry
 get_all_combinations_2_channel = function(index_df, mplex_level){
   index_df = index_binary_conversion_2_channel(index_df)
@@ -492,8 +493,8 @@ get_all_combinations_2_channel = function(index_df, mplex_level){
   return(list_of_all_combinations)
 }
 
-    
- 
+
+
 # get all compatible combinations of an index for 1_channel chemistry
 get_all_combinations_1_channel = function(index_df, mplex_level){
   index_df = index_binary_conversion_1_channel(index_df)
@@ -508,8 +509,8 @@ get_all_combinations_1_channel = function(index_df, mplex_level){
   return(list_of_all_combinations)
 }
 
-    
- 
+
+
 # For a random search
 get_random_combinations_4_channel = function (index_df, mplex_level){
   index_df = index_binary_conversion_4_channel(index_df)
@@ -528,8 +529,8 @@ get_random_combinations_4_channel = function (index_df, mplex_level){
   return (M)
 }
 
-    
- 
+
+
 get_random_combinations_2_channel = function (index_df, mplex_level){
   index_df = index_binary_conversion_2_channel(index_df)
   list_of_good_combs = matrix(nrow = 1000, ncol = mplex_level)
@@ -547,8 +548,8 @@ get_random_combinations_2_channel = function (index_df, mplex_level){
   return (M)
 }
 
-    
- 
+
+
 get_random_combinations_1_channel = function (index_df, mplex_level){
   index_df = index_binary_conversion_1_channel(index_df)
   list_of_good_combs = matrix(nrow = 1000, ncol = mplex_level)
@@ -566,8 +567,8 @@ get_random_combinations_1_channel = function (index_df, mplex_level){
   return (M)
 }
 
-    
- 
+
+
 # gets the rights combinations according to the number of possible combinations
 get_combinations = function (index_df, mplex_level, chemistry){
   
@@ -584,8 +585,8 @@ get_combinations = function (index_df, mplex_level, chemistry){
 
 # Filtering  --------------------------------------------------------------
 
-    
- 
+
+
 # generates all possible couples and caculates DNAbarcodes's hamming and seqlev distances
 index_distance = function (index_df){
   index_distance_df = combn(index_df$sequence,2)  %>% t()%>%  as.data.frame(stringsAsFactors = FALSE)
@@ -595,8 +596,8 @@ index_distance = function (index_df){
   return(index_distance_df)
 }
 
-    
- 
+
+
 # couples with hamming distance under threshold
 low_hamming_distance = function(index_df, index_distance_df, d){
   i_d = index_distance_df %>% filter(hamming < d)
@@ -607,8 +608,8 @@ low_hamming_distance = function(index_df, index_distance_df, d){
   
 }
 
-    
- 
+
+
 #couples with seqlev distance under threshold
 low_seqlev_distance = function(index_df,index_distance_df, d){
   i_d = index_distance_df %>% filter(seqlev < d) # suoerieur ou superieur ou egal
@@ -618,20 +619,20 @@ low_seqlev_distance = function(index_df,index_distance_df, d){
   return(low_distance_tab)
 }
 
-    
- 
+
+
 # low distance tab = hamming rejection table or seq lev rejection table
 filter_combinations = function(combinations_m, low_distance_tab){
   # browser()
   combinations_df <- combinations_m %>% as.data.frame(., stringsAsFactors=F) %>% mutate(combID=0:((nrow(.)>0)*(nrow(.)-1)))
   # head(combinations_df)
-
+  
   combinations_df_long <- gather(combinations_df, bc_gp, barcodes, -combID) %>% select(-bc_gp) %>% arrange(combID)
   # head(combinations_df_long)
-
+  
   dist_tab_long <- gather(low_distance_tab %>% mutate(pairID = 0:((nrow(low_distance_tab)>0)*(nrow(low_distance_tab)-1))), bcID, barcodes, -pairID) %>% select(-bcID) %>% arrange(pairID)
   # head(dist_tab_long)
-
+  
   droppedComb <- combinations_df_long %>%  group_by(combID) %>%
     do ({
       single_comb <- .
@@ -640,29 +641,29 @@ filter_combinations = function(combinations_m, low_distance_tab){
         mutate(isDropping = as.logical(matchOcc == 2)) %>%
         summarise(isDropping = any(isDropping))
     }) %>% ungroup()
-
-
+  
+  
   keptComb <- inner_join(combinations_df, droppedComb, by = "combID") %>%
     filter(!isDropping) %>% select(-c(combID,isDropping)) %>% as.matrix()
-
+  
   # if (nrow(keptComb)<1) stop("No combination left after filtering, please reduce the threshold.")
-
+  
   return(keptComb)
-
+  
 }
 
 
 # Result ------------------------------------------------------------------
 
-    
- 
+
+
 # Shannon's entropy
 shannon_entropy = function(frequence){
   return(-1 * sum(frequence*log(frequence)))
 }
 
-    
- 
+
+
 #for a matrix of combination
 entropy_result = function (index_combination){
   d = index_combination  %>% table()
@@ -671,8 +672,8 @@ entropy_result = function (index_combination){
   return (entropy)
 }
 
-    
- 
+
+
 # Celine's entropy for given parameters
 entropy_n_k = function (index_number,sample_number){
   k = index_number
@@ -683,8 +684,8 @@ entropy_n_k = function (index_number,sample_number){
   return(entropy)
 }
 
-    
- 
+
+
 entropy_max = function (index_number,sample_number){
   if(sample_number > index_number){
     return (entropy_n_k(index_number, sample_number))
@@ -694,8 +695,8 @@ entropy_max = function (index_number,sample_number){
   }
 }
 
-    
- 
+
+
 recursive_entropy = function(combination_m, nb_lane, method="greedy_exchange"){
   
   if (!method %in% c("greedy_exchange", "greedy_descent")) {
@@ -742,7 +743,7 @@ recursive_entropy = function(combination_m, nb_lane, method="greedy_exchange"){
   }
 }
 
- 
+
 # gets the result
 get_result = function (index_df,sample_number, mplex_level, chemistry, metric = NULL, d = 3, thrs_size_comb=120, max_iteration=50, method="greedy_exchange"){
   # browser()
@@ -764,8 +765,8 @@ get_result = function (index_df,sample_number, mplex_level, chemistry, metric = 
 # Experiment Design (single or dual) -----------------------------------------------------------
 
 # change the position of index if there is any duplicate
-    
- 
+
+
 # Illumina 770-2017-004-C|page 3
 # Using unique dual index combinations is a
 # best practice to make sure that reads with incorrect indexes do not
@@ -799,23 +800,23 @@ check_for_duplicate = function(result1, result2){
   }
 }
 
-  
- 
+
+
 
 
 
 
 # For java ----------------------------------------------------------------
 
-    
- 
+
+
 is_a_prime_number = function (sample_number){
   result = isPrime(sample_number) %>% as.numeric()
   return(result)
 }
 
-    
- 
+
+
 final_result = function(index_df, sample_number, mplex_level, chemistry, metric, d, thrs_size_comb=120, max_iteration=50, method="greedy_exchange"){
   result1 = get_result(index_df, sample_number, mplex_level, chemistry, metric, d, thrs_size_comb, max_iteration, method)
   result1 = data.frame(sample = 1: sample_number %>% as.character(),
@@ -826,8 +827,8 @@ final_result = function(index_df, sample_number, mplex_level, chemistry, metric,
   return (result1)
 }
 
-    
- 
+
+
 final_result_dual = function(index_df_1, index_df_2, sample_number, mplex_level, chemistry = 4, metric = NULL, d = 3, thrs_size_comb=120, max_iteration=50, method="greedy_exchange"){
   result1 = get_result(index_df_1, sample_number, mplex_level, chemistry, metric, d, thrs_size_comb, max_iteration, method)
   result2 = get_result(index_df_2, sample_number, mplex_level, chemistry, metric, d, thrs_size_comb, max_iteration, method)
@@ -850,10 +851,10 @@ final_result_dual = function(index_df_1, index_df_2, sample_number, mplex_level,
 }
 
 
-
 display_message <- function (a_message){
-  error_message <- NULL
-  error_message <<- a_message
+  assign("error_message", a_message, envir = .GlobalEnv)
   print(a_message)
 } 
+
+
 
