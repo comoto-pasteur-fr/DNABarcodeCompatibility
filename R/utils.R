@@ -471,7 +471,7 @@ get_all_combinations_4_channel = function(index_df, mplex_level){
   index_df = index_df %>% arrange(Id)
   matrix_id = combn(x = index_df$Id, m = mplex_level)
   matrix_binary_sequence = matrix_id_to_binary_sequence(matrix_id = matrix_id, index_df = index_df)#matches Ids to binary sequences
-  logical_rigth_combination = as.logical(x = list_of_good_combinations(m = matrix_binary_sequence))
+  logical_rigth_combination = as.logical(x = list_of_good_combinations(matrix_id = matrix_binary_sequence))
   list_of_all_combinations = matrix_id[, logical_rigth_combination] %>% t()
   return(list_of_all_combinations)
 }
@@ -484,9 +484,9 @@ get_all_combinations_2_channel = function(index_df, mplex_level){
   index_df = index_df %>% arrange(Id)
   matrix_id = combn(x = index_df$Id, m = mplex_level)
   image_1_matrix_binary_sequence = matrix_id_to_2_channel_image_1_binary_sequence(matrix_id = matrix_id, index_df = index_df)#matches Ids to binary sequences
-  image_1_logical_rigth_combination = as.logical(x = list_of_good_combinations_2(m = image_1_matrix_binary_sequence))
+  image_1_logical_rigth_combination = as.logical(x = list_of_good_combinations_2(matrix_id = image_1_matrix_binary_sequence))
   image_2_matrix_binary_sequence = matrix_id_to_2_channel_image_2_binary_sequence(matrix_id = matrix_id, index_df = index_df)#matches Ids to binary sequences
-  image_2_logical_rigth_combination = as.logical(x = list_of_good_combinations_2(m = image_2_matrix_binary_sequence))
+  image_2_logical_rigth_combination = as.logical(x = list_of_good_combinations_2(matrix_id = image_2_matrix_binary_sequence))
   logical_rigth_combination = as.logical(image_1_logical_rigth_combination*image_2_logical_rigth_combination)
   list_of_all_combinations = matrix_id[, (logical_rigth_combination)] %>% t()
   return(list_of_all_combinations)
@@ -500,9 +500,9 @@ get_all_combinations_1_channel = function(index_df, mplex_level){
   index_df = index_df %>% arrange(Id)
   matrix_id = combn(x = index_df$Id, m = mplex_level)
   image_1_matrix_binary_sequence = matrix_id_to_1_channel_image_1_binary_sequence(matrix_id = matrix_id, index_df = index_df)#matches Ids to binary sequences
-  image_1_logical_rigth_combination = as.logical(x = list_of_good_combinations_2(m = image_1_matrix_binary_sequence))
+  image_1_logical_rigth_combination = as.logical(x = list_of_good_combinations_2(matrix_id = image_1_matrix_binary_sequence))
   image_2_matrix_binary_sequence = matrix_id_to_1_channel_image_2_binary_sequence(matrix_id = matrix_id, index_df = index_df)#matches Ids to binary sequences
-  image_2_logical_rigth_combination = as.logical(x = list_of_good_combinations_2(m = image_2_matrix_binary_sequence))
+  image_2_logical_rigth_combination = as.logical(x = list_of_good_combinations_2(matrix_id = image_2_matrix_binary_sequence))
   logical_rigth_combination = as.logical(image_1_logical_rigth_combination*image_2_logical_rigth_combination)
   list_of_all_combinations = matrix_id[, (logical_rigth_combination)] %>% t()
   return(list_of_all_combinations)
