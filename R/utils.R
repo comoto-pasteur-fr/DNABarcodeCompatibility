@@ -7,17 +7,19 @@
  library("DNABarcodes")
 
 
+ # initialize variable for CRAN/Bioc repository compatibility
  globalVariables(c("Id", "Id1", "Id2", "Lane", "V1", "V2", "barcodes", "bcID", "bc_gp", "combID", "hamming", "index",
-                   "isDropping", "matchOcc", "pairID", "seqlev"))
+                   "isDropping", "matchOcc", "pairID", "seqlev", "."))
 
 
 # Inputs ------------------------------------------------------------------
 read_index = function(file) {
   if(!file.exists(file)){
     display_message("Your file doesn't exist, please check the path")
+    index <- NULL
     index <<- NULL
   }else{
-    index <<- NULL
+    index <- NULL
     index <<- try(as.data.frame(read.table(file, 
                                            header = FALSE, 
                                            sep = "", 
@@ -26,6 +28,7 @@ read_index = function(file) {
                                            stringsAsFactors = FALSE)), silent = TRUE)
     if (exists("index")){
       if(class(index) == "try-error"){
+        index <- NULL
         index <<- NULL
         display_message("An error occurred, please check the content of your file")
       }
@@ -585,7 +588,7 @@ get_combinations = function (index_df, mplex_level, chemistry){
  
 # generates all possible couples and caculates DNAbarcodes's hamming and seqlev distances
 index_distance = function (index_df){
-  index_distance_df = combn(index_df$sequence,2)  %>% t()%>%  as.data.frame(., stringsAsFactors = FALSE)
+  index_distance_df = combn(index_df$sequence,2)  %>% t()%>%  as.data.frame(stringsAsFactors = FALSE)
   index_distance_df = index_distance_df %>% mutate(n = 1 : nrow(index_distance_df))
   index_distance_df = index_distance_df %>% group_by(n) %>% mutate (hamming = distance(V1, V2, metric = "hamming"),
                                                                     seqlev = distance (V1, V2, metric = "seqlev"))
