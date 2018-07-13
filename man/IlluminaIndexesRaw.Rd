@@ -6,9 +6,9 @@
 \title{Barcode dataset from Illumina.}
 \format{A data frame with 48 rows and 2 variables:
 \describe{
-  \item{V1}{barcode identifier}
-  \item{V2}{DNA sequence}
-  ...
+\item{V1}{barcode identifier}
+\item{V2}{DNA sequence}
+...
 }}
 \usage{
 IlluminaIndexesRaw

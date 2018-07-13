@@ -7,11 +7,13 @@
 get_all_combinations(index_df, mplex_level, chemistry)
 }
 \arguments{
-\item{index_df}{A dataframe containing barcodes identifiers, corresponding DNA sequences along with GC content and presence of homopolymers.}
+\item{index_df}{A dataframe containing barcodes identifiers, corresponding
+DNA sequences along with GC content and presence of homopolymers.}
 
 \item{mplex_level}{The number at which the barcodes will be multiplexed.}
 
-\item{chemistry}{An integer representing the number of channels (1, 2, 4) of the Illumina plateform to be used.}
+\item{chemistry}{An integer representing the number of channels (1, 2, 4) of
+the Illumina plateform to be used.}
 }
 \value{
 A matrix containing the identifiers of compatible barcode combinations.
@@ -20,7 +22,8 @@ A matrix containing the identifiers of compatible barcode combinations.
 Finds the exhaustive set of compatible barcode combinations.
 }
 \details{
-Be aware that the total number of combinations may become prohibitively large for large barcode sets and large multiplexing numbers.
+Be aware that the total number of combinations may become prohibitively 
+large for large barcode sets and large multiplexing numbers.
 }
 \examples{
 get_all_combinations(DNABarcodeCompatibility::IlluminaIndexes, 3, 4)
