@@ -3,14 +3,16 @@
 About
 =================
 
-DNABarcodeCompatibility: R-package to find least-redundant sets of compatible barcodes for multiplex experiments performed on Illumina sequencing platforms.
+DNABarcodeCompatibility: R-package to find least-redundant sets of compatible barcodes for multiplex experiments.
 
 
 
 Installation 
 ================
 
-* First install [R](https://www.r-project.org/) if not yet installed.
+* Requirements
+    + Install [R](https://www.r-project.org/) if not yet installed (R >= 3.2 is required).
+
 
 * Within a R console, type in the following commands:
     
@@ -24,16 +26,21 @@ setRepositories(ind=1:2)
 # Install DNABarcodeCompatibility
 devtools::install_github("comoto-pasteur-fr/DNABarcodeCompatibility")
 ```
+
+
 * Note:
 
-DNABarcodeCompatibility uses the rJava package and therefore requires [java (JDK)](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html) to be installed on your system.
+In addition, DNABarcodeCompatibility can be used from the DNABarcodeCompatibility [graphical user interface](https://github.com/comoto-pasteur-fr/DNABarcodeCompatibility_GUI). In such a case, additional dependencies must be installed: [Java (JDK 8 - 64 bits)](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html) and `rJava` R-package (`install.packages("rJava")`). 
+
 
 Documentation
 ================
 
 [Introduction](https://comoto-pasteur-fr.github.io/DNABarcodeCompatibility/)
 
-API documentation [](https://comoto-pasteur-fr.github.io/DNABarcodeCompatibility/DNABarcodeCompatibility-manual.pdf)
+[API documentation](https://comoto-pasteur-fr.github.io/DNABarcodeCompatibility/DNABarcodeCompatibility-manual.pdf)
+
+Related tool: see the [graphical user interface (GUI)](https://github.com/comoto-pasteur-fr/DNABarcodeCompatibility_GUI) of DNABarcodeCompatibility.
 
 Support
 =========
@@ -46,7 +53,7 @@ We also welcome pull requests.
 Reference
 ==========
 
-Céline Trébeau, Jacques Boutet de Monvel, Virginie Wong Jun Tai, Raphaël Etournay. (2018, May 31). comoto-pasteur-fr/DNABarcodeCompatibility: First stable release (Version v0.0.0.9000). Zenodo. [http://doi.org/10.5281/zenodo.1256863](http://doi.org/10.5281/zenodo.1256863)
+Céline Trébeau, Jacques Boutet de Monvel, Fabienne Wong Jun Tai, Raphaël Etournay. (2018, May 31). comoto-pasteur-fr/DNABarcodeCompatibility: First complete release (Version v0.0.0.9000). Zenodo. [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1256863.svg)](https://doi.org/10.5281/zenodo.1256863)
 
 
 

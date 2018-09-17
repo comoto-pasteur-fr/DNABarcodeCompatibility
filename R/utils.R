@@ -691,25 +691,55 @@ entropy_max = function (index_number,sample_number){
 
     
  
-recursive_entropy = function(combination_m, nb_lane){
-  while(nrow(combination_m)> nb_lane){
-    ind = combn(nrow(combination_m), nrow(combination_m)-1)
-    a = vector(length = nrow(combination_m))
-    for(i in 1:nrow(combination_m)){
-      a[i]=entropy_result(combination_m[ind[,i],])
-    }
-    x = which.max(a)
-    z = which(a == a[x])
-    combination_m = combination_m[ind[,z[sample(1:length(z),1)]],] 
+recursive_entropy = function(combination_m, nb_lane, method="greedy_exchange"){
+  
+  if (!method %in% c("greedy_exchange", "greedy_descent")) {
+    display_message(paste0("recursive_entropy(): the selected method '",method,"' does not exist. Please select 'greedy_exchange' or 'greedy_descent'"))
+    return(combination_m)
   }
-  return (combination_m)
+  
+  if (method=="greedy_descent") {
+    # Celine's implementation
+    while(nrow(combination_m)> nb_lane){
+      ind = combn(nrow(combination_m), nrow(combination_m)-1)
+      a = vector(length = nrow(combination_m))
+      for(i in 1:nrow(combination_m)){
+        a[i]=entropy_result(combination_m[ind[,i],])
+      }
+      x = which.max(a)
+      z = which(a == a[x])
+      combination_m = combination_m[ind[,z[sample(1:length(z),1)]],] 
+    }
+    return (combination_m)
+  } 
+  
+  if (method=="greedy_exchange") {
+    # Jacques' implementation from his Matlab code
+    clist=combination_m
+    ncomb=nb_lane
+    c0=combination_m[sample(1:nrow(combination_m), nb_lane),]
+    N=nrow(combination_m) 
+    c=c0; ctest=c
+    Sc=entropy_result(c); test=1;
+    while(test) {
+      test=0; Stest=Sc;
+      n=1; i=1;
+      while ( (n<=ncomb) && (i<=N) && (test==0) ) {
+        ctp=c; 
+        ctp[n,]=clist[i,];
+        Stp=entropy_result(ctp);
+        if(Stp>Sc) {test=1; Stest=Stp; ctest=ctp}
+        if (i<N) {i=i+1} else {i=1; n=n+1}
+      }
+      if (Stest>Sc) {c=ctest; Sc=Stest}
+    }
+    return (ctest)
+  }
 }
 
-
-    
  
 # gets the result
-get_result = function (index_df,sample_number, mplex_level, chemistry, metric = NULL, d = 3){
+get_result = function (index_df,sample_number, mplex_level, chemistry, metric = NULL, d = 3, thrs_size_comb=120, max_iteration=50, method="greedy_exchange"){
   # browser()
   combinations_m = get_combinations(index_df, mplex_level, chemistry)
   if(!is.null(metric)){
@@ -717,7 +747,7 @@ get_result = function (index_df,sample_number, mplex_level, chemistry, metric = 
   }
   nb_lane = sample_number %>% as.numeric() / mplex_level %>% as.numeric()
   index_number = nrow(index_df)
-  cb = optimize_combinations(combinations_m, nb_lane, index_number) %>% as.data.frame()
+  cb = optimize_combinations(combinations_m, nb_lane, index_number, thrs_size_comb, max_iteration, method) %>% as.data.frame()
   result = data.frame(Id = as.vector(cb %>% t() %>% as.vector),
                       Lane = (rep(1:nb_lane, length.out = sample_number, each = mplex_level)))
   result$Id = as.character(result$Id)
@@ -737,7 +767,7 @@ get_result = function (index_df,sample_number, mplex_level, chemistry, metric = 
 # impact variant calling or assignment of gene expression counts.
 check_for_duplicate = function(result1, result2){
   check = data.frame(Id1 = result1$Id, Id2 = result2$Id)
-  print(check)
+  # print(check)
   if (anyDuplicated(check) != 0){
     d = anyDuplicated(check)
     for(i in 1 : length(d)){
@@ -757,7 +787,7 @@ check_for_duplicate = function(result1, result2){
       }
       result = bind_rows(lane_to_change,lanes_to_keep) %>% arrange(Lane)
     }
-    print(result2)
+    # print(result2)
     return (result)
   }else{
     return (result2)
@@ -781,8 +811,8 @@ is_a_prime_number = function (sample_number){
 
     
  
-final_result = function(index_df, sample_number, mplex_level, chemistry, metric, d){
-  result1 = get_result(index_df, sample_number, mplex_level, chemistry, metric, d)
+final_result = function(index_df, sample_number, mplex_level, chemistry, metric, d, thrs_size_comb=120, max_iteration=50, method="greedy_exchange"){
+  result1 = get_result(index_df, sample_number, mplex_level, chemistry, metric, d, thrs_size_comb, max_iteration, method)
   result1 = data.frame(sample = 1: sample_number %>% as.character(),
                        Lane = result1$Lane %>% as.character(),
                        Id = result1$Id %>% as.character(),
@@ -793,15 +823,15 @@ final_result = function(index_df, sample_number, mplex_level, chemistry, metric,
 
     
  
-final_result_dual = function(index_df_1, index_df_2, sample_number, mplex_level, chemistry = 4, metric = NULL, d = 3){
-  result1 = get_result(index_df_1, sample_number, mplex_level, chemistry, metric, d)
-  result2 = get_result(index_df_2, sample_number, mplex_level, chemistry, metric, d)
+final_result_dual = function(index_df_1, index_df_2, sample_number, mplex_level, chemistry = 4, metric = NULL, d = 3, thrs_size_comb=120, max_iteration=50, method="greedy_exchange"){
+  result1 = get_result(index_df_1, sample_number, mplex_level, chemistry, metric, d, thrs_size_comb, max_iteration, method)
+  result2 = get_result(index_df_2, sample_number, mplex_level, chemistry, metric, d, thrs_size_comb, max_iteration, method)
   result2 = check_for_duplicate(result1, result2)
   
-  result1 = left_join(result1, select(index_df_1, Id, sequence)) 
-  print(result1)
-  result2 = left_join(result2, select(index_df_2, Id, sequence)) 
-  print(result2)
+  result1 = left_join(result1, select(index_df_1, Id, sequence), by = "Id") 
+  # print(result1)
+  result2 = left_join(result2, select(index_df_2, Id, sequence), by = "Id") 
+  # print(result2)
   result = data.frame(sample = 1: sample_number %>% as.numeric(),
                       Lane = result1$Lane %>% as.character(),
                       Id1 = result1$Id %>% as.character(),

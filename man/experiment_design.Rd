@@ -5,7 +5,7 @@
 \title{Find a set of barcode combinations with least redundant barcodes for single and dual indexing}
 \usage{
 experiment_design(file1, sample_number, mplex_level, chemistry = 4,
- file2 = NULL, export = NULL, metric = NULL, d = 3)
+ file2 = NULL, export = NULL, metric = NULL, d = 3, thrs_size_comb, max_iteration, method)
 }
 \arguments{
 \item{file1}{The input data file that contains 2 columns separated by a space or a tabulation, namely the sequence identifiers and corresponding DNA sequence}
@@ -23,6 +23,12 @@ experiment_design(file1, sample_number, mplex_level, chemistry = 4,
 \item{metric}{The type of distance (hamming or seqlev).}
 
 \item{d}{The minimum value of the distance.}
+
+\item{thrs_size_comb}{The maximum size of the set of compatible combinations to be used for the greedy optimization.}
+
+\item{max_iteration}{The maximum number of iterations during the optimizing step.}
+
+\item{method}{The choice of the greedy search: 'greedy_exchange' or 'greedy_descent'.}
 }
 \value{
 A dataframe containing compatible DNA-barcode combinations organized by lanes of the flow cell.
@@ -51,7 +57,7 @@ Otherwise, it will proceed by picking up combinations at random, in order to ide
 Finds an optimized set of barcode combinations in which barcode redundancy is minimized (see details in \code{\link{optimize_combinations}})
 }
 \examples{
-write.table(DNABarcodeCompatibility::IlluminaIndexes,
+write.table(DNABarcodeCompatibility::IlluminaIndexesRaw,
  txtfile <- tempfile(), row.names = FALSE, col.names = FALSE, quote=FALSE)
 experiment_design(file1=txtfile, sample_number=18, mplex_level=3, chemistry=4)
 
