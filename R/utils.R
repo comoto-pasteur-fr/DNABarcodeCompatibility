@@ -566,20 +566,12 @@ get_random_combinations_1_channel = function (index_df, mplex_level){
 # gets the rights combinations according to the number of possible combinations
 get_combinations = function (index_df, mplex_level, chemistry){
   
-  if (choose(nrow(index_df),mplex_level) <= 2024){
+  if (choose(nrow(index_df),mplex_level) <= 2024 || mplex_level == 2){
     return(get_all_combinations(index_df, mplex_level, chemistry))
   }else {
     return(get_random_combinations(index_df, mplex_level, chemistry))
   }
-  
-  
-    
-#     if (choose(nrow(index_df),mplex_level) <= 2024 || mplex_level == 2){
-#       return(get_all_combinations(index_df, mplex_level, chemistry))
-#     }else {
-#       return(get_random_combinations(index_df, mplex_level, chemistry))
-#     }
-# }
+ }
 
 
 
