@@ -1,140 +1,228 @@
 ---
 title: "Introduction to DNABarcodeCompatibility"
-author: "Céline Trébeau & Raphaël Etournay"
+author: "Céline Trébeau, Jacques Boutet de Monvel,
+Fabienne Wong Jun Tai, Raphaël Etournay"
 date: "`r Sys.Date()`"
-output: rmarkdown::html_vignette
-vignette: >
-  %\VignetteIndexEntry{Vignette Title}
-  %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
+output:
+    BiocStyle::html_document:
+        toc: true
+    BiocStyle::pdf_document:
+        toc: true
 ---
-<style>
-body {
-text-align: justify}
-</style>
+<!--
+%% \VignetteEngine{knitr::rmarkdown}
+%\VignetteIndexEntry{Introduction to DNABarcodeCompatibility}
+-->
+
+```{r style, echo = FALSE, results = 'asis', warnings=FALSE, messages=FALSE}
+# <style>
+# body {
+# text-align: justify}
+# </style>
+BiocStyle::markdown()
+```
+
+
 
 
 ```{r setup, include = FALSE}
-
-  
 knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>"
+    collapse = TRUE #,
+    # comment = "#>"
 )
 options(width=120)
 ```
 
-This document gives an overview of the DNABarcodeCompatibility R package with a brief description of the set of tools that it contains.
-The package includes six main functions that are briefly described below with examples. These functions allow one to load a list of DNA barcodes (such as the Illumina TruSeq small RNA kits), to filter these barcodes according to distance and nucleotide content criteria, to generate sets of compatible barcode combinations out of the filtered barcode list, and finally to generate an optimized selection of barcode combinations for multiplex sequencing experiments. In particular, the package provides an optimizer function to favour the selection of compatible barcode combinations with **least heterogeneity in the frequencies of DNA barcodes**, and allows one to keep barcodes that are **robust against substitution and insertion/deletion errors**, thereby facilitating the demultiplexing step.
-     
+This document gives an overview of the DNABarcodeCompatibility R package with a
+brief description of the set of tools that it contains. The package includes
+six main functions that are briefly described below with examples.
+These functions allow one to load a list of DNA barcodes (such as the Illumina
+TruSeq small RNA kits), to filter these barcodes according to distance and
+nucleotide content criteria, to generate sets of compatible barcode
+combinations out of the filtered barcode list, and finally to generate an
+optimized selection of barcode combinations for multiplex sequencing
+experiments. In particular, the package provides an optimizer function to
+favour the selection of compatible barcode combinations with 
+**least heterogeneity in the frequencies of DNA barcodes**, and allows one to
+keep barcodes that are **robust against substitution and insertion/deletion
+errors**, thereby facilitating the demultiplexing step.
+
 
 The DNABarcodeCompatibility package also contains:
 
-*	one workflow called `experiment_design()` allowing one to perfom all steps in one go. 
-*	two datasets called `IlluminaIndexesRaw` and `IlluminaIndexes` for running and testing examples. 
-*	a series of API to build your own workflow. 
+* one workflow called `experiment_design()` allowing one to perfom all steps
+in one go. 
+* two datasets called `IlluminaIndexesRaw` and `IlluminaIndexes` for running
+and testing examples. 
+* a series of API to build your own workflow. 
 
-The package deals with the three existing sequencing-by-synthesis chemistries from Illumina:
+The package deals with the three existing sequencing-by-synthesis chemistries
+from Illumina:
 
-*	Four-Channel SBS Chemistry: MiSeq, HiSeq systems 
-*	Two-Channel SBS Chemistry: MiniSeq, NextSeq, NovaSeq systems 
-*	One-Channel SBS Chemistry: iSeq system 
+* Four-Channel SBS Chemistry: MiSeq, HiSeq systems 
+* Two-Channel SBS Chemistry: MiniSeq, NextSeq, NovaSeq systems 
+* One-Channel SBS Chemistry: iSeq system 
 
 
-## Load the package
+# Load the package
 
 ```{r, echo=TRUE}
 library("DNABarcodeCompatibility")
 ```
 
-## Define a helper function to save the raw dataset as a temporary text file
+# Define a helper function to save the raw dataset as a temporary text file
 
 ```{r, echo=TRUE}
 # This function is created for the purpose of the documentation 
-export_dataset_to_file = function(dataset = DNABarcodeCompatibility::IlluminaIndexesRaw) {
-  if (class(dataset)=="data.frame") {
-    write.table(dataset,
-                textfile <- tempfile(), row.names = FALSE, col.names = FALSE, quote=FALSE)
-    return(textfile)
-  } else print("The input dataset isn't a data.frame: NOT exported into file")
-}
+export_dataset_to_file = 
+    function(dataset = DNABarcodeCompatibility::IlluminaIndexesRaw) {
+        if (class(dataset)=="data.frame") {
+            write.table(dataset,
+                        textfile <- tempfile(),
+                        row.names = FALSE, col.names = FALSE, quote=FALSE)
+            return(textfile)
+        } else print("The input dataset isn't a data.frame:
+                    NOT exported into file")
+    }
 ```
 
 
-## Design an experiment 
+# Design an experiment 
 
-The function `experiment_design()` uses a Shannon-entropy maximization approach to identify a set of compatible barcode combinations in which the frequencies of occurrences of the various DNA barcodes are as uniform as possible. The optimization can be performed in the contexts of single and dual barcoding. It performs either an exhaustive or a random search of compatible DNA-barcode combinations, depending on the size of the DNA-barcode set used, and on the number of samples to be multiplexed.
+The function `experiment_design()` uses a Shannon-entropy maximization approach
+to identify a set of compatible barcode combinations in which the frequencies
+of occurrences of the various DNA barcodes are as uniform as possible. 
+The optimization can be performed in the contexts of single and dual barcoding.
+It performs either an exhaustive or a random search of compatible DNA-barcode
+combinations, depending on the size of the DNA-barcode set used, and on the
+number of samples to be multiplexed.
 
-### Examples for single indexing
+## Examples for single indexing
 
 * 12 libraries sequenced in multiplex of 3 on a HiSeq (4 channels) platform
 ```{r, echo=TRUE}
-txtfile <- export_dataset_to_file(dataset = DNABarcodeCompatibility::IlluminaIndexesRaw)
-experiment_design(file1=txtfile, sample_number=12, mplex_level=3, chemistry=4)
+txtfile <- export_dataset_to_file (
+    dataset = DNABarcodeCompatibility::IlluminaIndexesRaw
+)
+experiment_design(file1=txtfile,
+                    sample_number=12,
+                    mplex_level=3,
+                    chemistry=4)
 ```
 
 * 12 libraries sequenced in multiplex of 3 on a NextSeq (2 channels) platform
 ```{r, echo=TRUE}
-txtfile <- export_dataset_to_file(dataset = DNABarcodeCompatibility::IlluminaIndexesRaw)
-experiment_design(file1=txtfile, sample_number=12, mplex_level=3, chemistry=2)
+txtfile <- export_dataset_to_file (
+    dataset = DNABarcodeCompatibility::IlluminaIndexesRaw
+)
+experiment_design(file1=txtfile,
+                    sample_number=12,
+                    mplex_level=3,
+                    chemistry=2)
 ```
 
 * 12 libraries sequenced in multiplex of 3 on a iSeq (1 channels) platform
 ```{r, echo=TRUE}
-txtfile <- export_dataset_to_file(dataset = DNABarcodeCompatibility::IlluminaIndexesRaw)
-experiment_design(file1=txtfile, sample_number=12, mplex_level=3, chemistry=1)
+txtfile <- export_dataset_to_file (
+    dataset = DNABarcodeCompatibility::IlluminaIndexesRaw
+)
+experiment_design(file1=txtfile,
+                    sample_number=12,
+                    mplex_level=3,
+                    chemistry=1)
 ```
 
-* 12 libraries sequenced in multiplex of 3 on a HiSeq platform using barcodes robust against 1 substitution error
+* 12 libraries sequenced in multiplex of 3 on a HiSeq platform using barcodes
+robust against 1 substitution error
 ```{r, echo=TRUE}
-txtfile <- export_dataset_to_file(dataset = DNABarcodeCompatibility::IlluminaIndexesRaw)
-experiment_design(file1=txtfile, sample_number=12, mplex_level=3, chemistry=4, metric = "hamming", d = 3)
+txtfile <- export_dataset_to_file (
+    dataset = DNABarcodeCompatibility::IlluminaIndexesRaw
+)
+experiment_design(file1=txtfile,
+                sample_number=12,
+                mplex_level=3,
+                chemistry=4,
+                metric = "hamming",
+                d = 3)
 
 ```
 
-### Examples for dual indexing
+## Examples for dual indexing
 
 
 * 12 libraries sequenced in multiplex of 3 on a HiSeq platform
 ```{r, echo=TRUE}
 # Select the first half of barcodes from the dataset
-txtfile1 <- export_dataset_to_file(DNABarcodeCompatibility::IlluminaIndexesRaw[1:24,])
+txtfile1 <- export_dataset_to_file (
+    DNABarcodeCompatibility::IlluminaIndexesRaw[1:24,]
+)
 
 # Select the second half of barcodes from the dataset
-txtfile2 <- export_dataset_to_file(DNABarcodeCompatibility::IlluminaIndexesRaw[25:48,])
+txtfile2 <- export_dataset_to_file (
+    DNABarcodeCompatibility::IlluminaIndexesRaw[25:48,]
+)
 
 # Get compatibles combinations of least redundant barcodes
-experiment_design(file1=txtfile1, sample_number=12, mplex_level=3, chemistry=4, file2=txtfile2)
+experiment_design(file1=txtfile1,
+                sample_number=12,
+                mplex_level=3,
+                chemistry=4,
+                file2=txtfile2)
 ```
 
-* 12 libraries sequenced in multiplex of 3 on a HiSeq platform using barcodes robust against 1 substitution error
+* 12 libraries sequenced in multiplex of 3 on a HiSeq platform using barcodes
+robust against 1 substitution error
 ```{r, echo=TRUE}
 # Select the first half of barcodes from the dataset
-txtfile1 <- export_dataset_to_file(DNABarcodeCompatibility::IlluminaIndexesRaw[1:24,])
+txtfile1 <- export_dataset_to_file (
+    DNABarcodeCompatibility::IlluminaIndexesRaw[1:24,]
+)
 
 # Select the second half of barcodes from the dataset
-txtfile2 <- export_dataset_to_file(DNABarcodeCompatibility::IlluminaIndexesRaw[25:48,])
+txtfile2 <- export_dataset_to_file (
+    DNABarcodeCompatibility::IlluminaIndexesRaw[25:48,]
+)
 
 # Get compatibles combinations of least redundant barcodes
-experiment_design(file1=txtfile1, sample_number=12, mplex_level=3, chemistry=4, file2=txtfile2, metric="hamming", d=3)
+experiment_design(file1=txtfile1, sample_number=12, mplex_level=3, chemistry=4,
+                    file2=txtfile2, metric="hamming", d=3)
 ```
 
 
-## Buid your own workflow
+# Buid your own workflow
 
-This section guides you through the detailed API of the package with the aim to help you build your own workflow. The package is designed to be flexible and should be easily adaptable to most experimental contexts, using the  `experiment_design()` function as a template, or building your own workflow from scratch.
+This section guides you through the detailed API of the package with the aim to
+help you build your own workflow. The package is designed to be flexible and
+should be easily adaptable to most experimental contexts, using the
+`experiment_design()` function as a template, or building your own workflow
+from scratch.
 
-### Load and check a dataset of barcodes
+## Load and check a dataset of barcodes
 
-The `file_loading_and_checking()` function loads the file containing the DNA barcodes set and analyzes its content. In particular, it checks that each barcode in the set is unique and uniquely identified (removing any repetition that occurs). It also checks the homogeneity of size of the barcodes,  calculates their GC content and detects the presence of homopolymers of length >= 3.
+The `file_loading_and_checking()` function loads the file containing the DNA
+barcodes set and analyzes its content. In particular, it checks that each
+barcode in the set is unique and uniquely identified (removing any repetition
+that occurs). It also checks the homogeneity of size of the barcodes, 
+calculates their GC content and detects the presence of homopolymers of
+length >= 3.
 
 ```{r, echo=TRUE}
-file_loading_and_checking(file = export_dataset_to_file(dataset = DNABarcodeCompatibility::IlluminaIndexesRaw))
+file_loading_and_checking(
+    file = export_dataset_to_file(
+        dataset = DNABarcodeCompatibility::IlluminaIndexesRaw
+    )
+)
 ```
 
-### Examples of an exhaustive search of compatible barcode combinations
+## Examples of an exhaustive search of compatible barcode combinations
 
-The total number of combinations depends on the number of available barcodes and of the multiplex level. For 48 barcodes and a multiplex level of 3, the total number of combinations (compatible or not) can be calculated using `choose(48,3)`, which gives `r format(choose(48,3))` combinations. In many cases the total number of combinations can become much larger (even gigantic), and one cannot perform an exhaustive search (see `get_random_combinations()` below).
+The total number of combinations depends on the number of available barcodes 
+and of the multiplex level. For 48 barcodes and a multiplex level of 3, the 
+total number of combinations (compatible or not) can be calculated using
+`choose(48,3)`, which gives `r format(choose(48,3))` combinations. In many
+cases the total number of combinations can become much larger (even gigantic),
+and one cannot perform an exhaustive search
+(see `get_random_combinations()` below).
 
 * 48 barcodes, multiplex level of 2, HiSeq plateform
 ```{r, echo=TRUE}
@@ -145,7 +233,9 @@ choose(48,2)
 barcodes <- DNABarcodeCompatibility::IlluminaIndexes
 
 # Time for an exhaustive search
-system.time(m <- get_all_combinations(index_df = barcodes, mplex_level = 2, chemistry = 4))
+system.time(m <- get_all_combinations(index_df = barcodes,
+                                    mplex_level = 2,
+                                    chemistry = 4))
 
 # Each line represents a compatible combination of barcodes
 head(m)
@@ -161,16 +251,19 @@ choose(48,3)
 barcodes <- DNABarcodeCompatibility::IlluminaIndexes
 
 # Time for an exhaustive search
-system.time(m <- get_all_combinations(index_df = barcodes, mplex_level = 3, chemistry = 4))
+system.time(m <- get_all_combinations(index_df = barcodes,
+                                    mplex_level = 3,
+                                    chemistry = 4))
 
 # Each line represents a compatible combination of barcodes
 head(m)
 
 ```
 
-### Examples of a random search of compatible barcode combinations
+## Examples of a random search of compatible barcode combinations
 
-When the total number of combinations is too high, it is recommended to pick combinations at random and then select those that are compatible. 
+When the total number of combinations is too high, it is recommended to pick
+combinations at random and then select those that are compatible. 
 
 * 48 barcodes, multiplex level of 3, HiSeq plateform
 ```{r, echo=TRUE}
@@ -181,7 +274,9 @@ choose(48,3)
 barcodes <- DNABarcodeCompatibility::IlluminaIndexes
 
 # Time for a random search
-system.time(m <- get_random_combinations(index_df = barcodes, mplex_level = 2, chemistry = 4))
+system.time(m <- get_random_combinations(index_df = barcodes,
+                                        mplex_level = 2,
+                                        chemistry = 4))
 
 # Each line represents a compatible combination of barcodes
 head(m)
@@ -197,7 +292,9 @@ choose(48,4)
 barcodes <- DNABarcodeCompatibility::IlluminaIndexes
 
 # Time for a random search
-system.time(m <- get_random_combinations(index_df = barcodes, mplex_level = 4, chemistry = 4))
+system.time(m <- get_random_combinations(index_df = barcodes,
+                                        mplex_level = 4,
+                                        chemistry = 4))
 
 # Each line represents a compatible combination of barcodes
 head(m)
@@ -213,14 +310,16 @@ choose(48,6)
 barcodes <- DNABarcodeCompatibility::IlluminaIndexes
 
 # Time for a random search
-system.time(m <- get_random_combinations(index_df = barcodes, mplex_level = 6, chemistry = 4))
+system.time(m <- get_random_combinations(index_df = barcodes,
+                                        mplex_level = 6,
+                                        chemistry = 4))
 
 # Each line represents a compatible combination of barcodes
 head(m)
 
 ```
 
-### Constrain barcodes to be robust against one substitution error 
+## Constrain barcodes to be robust against one substitution error 
 
 
 ```{r, echo=TRUE}
@@ -228,42 +327,64 @@ head(m)
 barcodes <- DNABarcodeCompatibility::IlluminaIndexes
 
 # Perform a random search of compatible combinations
-m <- get_random_combinations(index_df = barcodes, mplex_level = 3, chemistry = 4)
+m <- get_random_combinations(index_df = barcodes,
+                            mplex_level = 3,
+                            chemistry = 4)
 
 # Keep barcodes that are robust against one substitution error
-filtered_m <- distance_filter(index_df = barcodes, combinations_m = m, metric = "hamming", d = 3)
+filtered_m <- distance_filter(index_df = barcodes,
+                            combinations_m = m,
+                            metric = "hamming",
+                            d = 3)
 
 # Each line represents a compatible combination of barcodes
 head(filtered_m)
 ```
 
-### Optimize the set of compatible combinations to reduce barcode redundancy between lanes
+## Optimize the set of compatible combinations to reduce barcode redundancy
+between lanes
 
 ```{r, echo=TRUE}
-# Keep set of compatible barcodes that are robust against one substitution error
-filtered_m <- distance_filter(index_df = DNABarcodeCompatibility::IlluminaIndexes,
-                              combinations_m = get_random_combinations(index_df = barcodes, mplex_level = 3, chemistry = 4),
-                              metric = "hamming", d = 3)
+# Keep set of compatible barcodes that are robust against one substitution
+# error
+filtered_m <- distance_filter(
+    index_df = DNABarcodeCompatibility::IlluminaIndexes,
+    combinations_m = get_random_combinations(index_df = barcodes,
+                                            mplex_level = 3,
+                                            chemistry = 4),
+    metric = "hamming", d = 3)
 
 # Use a Shannon-entropy maximization approach to reduce barcode redundancy
-df <- optimize_combinations(combination_m = filtered_m, nb_lane = 12, index_number = 48)
+df <- optimize_combinations(combination_m = filtered_m,
+                            nb_lane = 12,
+                            index_number = 48)
 
-# Each line represents a compatible combination of barcodes and each row a lane of the flow cell
+# Each line represents a compatible combination of barcodes and each row a lane
+# of the flow cell
 df
 ```
 
-### The optimized result cannot be an optimum when filtering out too many barcodes
+## The optimized result cannot be an optimum when filtering out too many
+barcodes
 
-* Increased distance between barcode sequences: redundancy may become inevitable
+* Increased distance between barcode sequences: redundancy may become
+inevitable
 ```{r, echo=TRUE}
-# Keep set of compatible barcodes that are robust against multiple substitution and insertion/deletion errors
-filtered_m <- distance_filter(index_df = DNABarcodeCompatibility::IlluminaIndexes,
-                              combinations_m = get_random_combinations(index_df = barcodes, mplex_level = 3, chemistry = 4),
-                              metric = "seqlev", d = 4)
+# Keep set of compatible barcodes that are robust against multiple substitution
+# and insertion/deletion errors
+filtered_m <- distance_filter(
+    index_df = DNABarcodeCompatibility::IlluminaIndexes,
+    combinations_m = get_random_combinations(index_df = barcodes,
+                                            mplex_level = 3,
+                                            chemistry = 4),
+    metric = "seqlev", d = 4)
 
 # Use a Shannon-entropy maximization approach to reduce barcode redundancy
-df <- optimize_combinations(combination_m = filtered_m, nb_lane = 12, index_number = 48)
+df <- optimize_combinations(combination_m = filtered_m,
+                            nb_lane = 12,
+                            index_number = 48)
 
-# Each line represents a compatible combination of barcodes and each row a lane of the flow cell
+# Each line represents a compatible combination of barcodes and each row a
+# lane of the flow cell
 df
 ```

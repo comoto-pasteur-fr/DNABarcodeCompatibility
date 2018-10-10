@@ -5,44 +5,63 @@
 \title{Find a set of barcode combinations with least redundant barcodes}
 \usage{
 optimize_combinations(combination_m, nb_lane, index_number,
- thrs_size_comb, max_iteration, method)
+thrs_size_comb, max_iteration, method)
 }
 \arguments{
 \item{combination_m}{A matrix of compatible barcode combinations.}
 
-\item{nb_lane}{The number of lanes to be use for sequencing (i.e. the number of libraries divided by the multiplex level).}
+\item{nb_lane}{The number of lanes to be use for sequencing
+(i.e. the number of libraries divided by the multiplex level).}
 
-\item{index_number}{The total number of distinct DNA barcodes in the dataset.}
+\item{index_number}{The total number of distinct DNA barcodes in the
+dataset.}
 
-\item{thrs_size_comb}{The maximum size of the set of compatible combinations to be used for the greedy optimization.}
+\item{thrs_size_comb}{The maximum size of the set of compatible
+combinations to be used for the greedy optimization.}
 
-\item{max_iteration}{The maximum number of iterations during the optimizing step.}
+\item{max_iteration}{The maximum number of iterations during
+the optimizing step.}
 
-\item{method}{The choice of the greedy search: 'greedy_exchange' or 'greedy_descent'.}
+\item{method}{The choice of the greedy search: 'greedy_exchange'
+or 'greedy_descent'.}
 }
 \value{
-A matrix containing an optimized set of combinations of compatible barcodes.
+A matrix containing an optimized set of combinations
+of compatible barcodes.
 }
 \description{
-This function uses the Shannon Entropy to identify a set of compatible barcode combinations with least redundancy between DNA barcodes.
+This function uses the Shannon Entropy to identify a set of compatible
+barcode combinations with least redundancy between DNA barcodes.
 }
 \details{
-N/k compatible combinations are then selected using a Shannon entropy maximization approach.
-It can be shown that the maximum value of the entropy that can be attained for a selection of N barcodes among n, with possible repetitions, reads:
-\deqn{S_{max}=-(n-r)\frac{\lfloor N/n\rfloor}{N}\log(\frac{\lfloor N/n\rfloor}{N})-r\frac{\lceil N/n\rceil}{N}\log(\frac{\lceil N/n\rceil}{N})}
+N/k compatible combinations are then selected using a Shannon entropy
+maximization approach.
+It can be shown that the maximum value of the entropy that can be attained
+for a selection of N barcodes among n, with possible repetitions, reads:
+\deqn{S_{max}=-(n-r)\frac{\lfloor N/n\rfloor}{N}
+\log(\frac{\lfloor N/n\rfloor}{N})-r\frac{\lceil N/n\rceil}{N}
+\log(\frac{\lceil N/n\rceil}{N})}
 
 where r denotes the rest of the division of N by n, while
 \deqn{\lfloor N/n\rfloor} and \deqn{\lceil N/n\rceil} denote
-the lower and upper integer parts of N/n, respectively.\preformatted{+ Case 1: number of lanes < number of compatible DNA-barcode combinations
-}
+the lower and upper integer parts of N/n, respectively.
 
-This function seeks for compatible DNA-barcode combinations of highest entropy.
-In brief this function uses a randomized greedy descent algorithm to find an optimized selection.
+\strong{Case 1:} number of lanes < number of compatible DNA-barcode
+combinations
+
+This function seeks for compatible DNA-barcode combinations of
+highest entropy. In brief this function uses a randomized greedy descent
+algorithm to find an optimized selection.
 Note that the resulting optimized selection may not be globally optimal.
-It is actually close to optimal and much improved in terms of non-redundancy of DNA barcodes used, compared to a randomly choosen set of combinations of compatible barcodes.\preformatted{+ Case 2: number of lanes >= number of compatible DNA-barcode combinations
-}
+It is actually close to optimal and much improved in terms of
+non-redundancy of DNA barcodes used, compared to a randomly choosen set of
+combinations of compatible barcodes.
 
-In such a case, there are not enough compatible DNA-barcode combinations and redundancy is inevitable.
+\strong{Case 2:} number of lanes >= number of
+compatible DNA-barcode combinations
+
+In such a case, there are not enough compatible DNA-barcode combinations
+and redundancy is inevitable.
 }
 \examples{
 m <- get_random_combinations(DNABarcodeCompatibility::IlluminaIndexes, 3, 4)

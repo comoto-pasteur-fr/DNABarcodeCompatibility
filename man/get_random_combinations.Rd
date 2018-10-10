@@ -7,20 +7,24 @@
 get_random_combinations(index_df, mplex_level, chemistry)
 }
 \arguments{
-\item{index_df}{A dataframe containing barcodes identifiers, corresponding DNA sequences along with GC content and presence of homopolymers.}
+\item{index_df}{A dataframe containing barcodes identifiers, corresponding
+DNA sequences along with GC content and presence of homopolymers.}
 
 \item{mplex_level}{The number at which the barcodes will be multiplexed.}
 
-\item{chemistry}{An integer representing the number of channels (1, 2, 4) of the Illumina plateform to be used.}
+\item{chemistry}{An integer representing the number of channels (1, 2, 4) 
+of the Illumina plateform to be used.}
 }
 \value{
 A matrix containing the identifiers of compatible barcode combinations.
 }
 \description{
-Finds a randomly generated set of at most 1000 combinations of compatible barcodes.
+Finds a randomly generated set of at most 1000 combinations
+of compatible barcodes.
 }
 \details{
-This function is suited if the total number of possible combinations is too high for an exhaustive search to be possible in a reasonable amount of time.
+This function is suited if the total number of possible combinations is too
+high for an exhaustive search to be possible in a reasonable amount of time.
 }
 \examples{
 get_random_combinations(DNABarcodeCompatibility::IlluminaIndexes, 3, 4)

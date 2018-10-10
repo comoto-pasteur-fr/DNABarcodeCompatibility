@@ -7,7 +7,9 @@
 distance_filter(index_df, combinations_m, metric, d)
 }
 \arguments{
-\item{index_df}{A dataframe containing barcodes identifiers, corresponding DNA sequences along with GC content and presence of homopolymers.}
+\item{index_df}{A dataframe containing barcodes identifiers, 
+corresponding DNA sequences along with GC content and presence 
+of homopolymers.}
 
 \item{combinations_m}{A matrix of compatible barcode combinations.}
 
@@ -16,14 +18,18 @@ distance_filter(index_df, combinations_m, metric, d)
 \item{d}{The minimum value of the distance.}
 }
 \value{
-A filtered matrix containing the identifiers of the barcodes satisfying the distance constraints.
+A filtered matrix containing the identifiers of the barcodes
+satisfying the distance constraints.
 }
 \description{
-Filters a list of barcode combinations for a given distance metric (hamming or seqlev) and threshold in order to produce a list of barcodes satisfying the distance constraints.
+Filters a list of barcode combinations for a given distance metric 
+(hamming or seqlev) and threshold in order to produce a list of barcodes
+satisfying the distance constraints.
 }
 \details{
 The "hamming" distance is suitable for correcting substitution errors. 
-The "seqlev" distance is suitable for correcting both substitution and insertion/deletion errors.
+The "seqlev" distance is suitable for correcting both 
+substitution and insertion/deletion errors.
 }
 \examples{
 barcodes <- DNABarcodeCompatibility::IlluminaIndexes
@@ -32,9 +38,12 @@ distance_filter(barcodes, m, "hamming", 3)
 
 }
 \references{
-Buschmann, T. 2015. The Systematic Design and Application of Robust DNA Barcodes.
+Buschmann, T. 2015. 
+The Systematic Design and Application of Robust DNA Barcodes.
 
-Buschmann, T. 2017. DNABarcodes: an R package for the systematic construction of DNA sample tags. Bioinformatics 33, 920–922.
+Buschmann, T. 2017. 
+DNABarcodes: an R package for the systematic construction of 
+DNA sample tags. Bioinformatics 33, 920–922.
 }
 \seealso{
 \code{\link{get_all_combinations}}, 

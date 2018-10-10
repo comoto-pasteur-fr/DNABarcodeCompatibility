@@ -2,66 +2,91 @@
 % Please edit documentation in R/experiment_design.R
 \name{experiment_design}
 \alias{experiment_design}
-\title{Find a set of barcode combinations with least redundant barcodes for single and dual indexing}
+\title{Find a set of barcode combinations with least redundant barcodes
+for single and dual indexing}
 \usage{
 experiment_design(file1, sample_number, mplex_level, chemistry = 4,
- file2 = NULL, export = NULL, metric = NULL, d = 3, thrs_size_comb, max_iteration, method)
+file2 = NULL, export = NULL, metric = NULL, d = 3, thrs_size_comb,
+max_iteration, method)
 }
 \arguments{
-\item{file1}{The input data file that contains 2 columns separated by a space or a tabulation, namely the sequence identifiers and corresponding DNA sequence}
+\item{file1}{The input data file that contains 2 columns separated by a
+space or a tabulation, namely the sequence identifiers and corresponding
+DNA sequence}
 
 \item{sample_number}{Number of libraries to be sequenced.}
 
 \item{mplex_level}{The number at which the barcodes will be multiplexed.}
 
-\item{chemistry}{An integer representing the number of channels (1, 2, 4) of the desired Illumina plateform.}
+\item{chemistry}{An integer representing the number of channels (1, 2, 4)
+of the desired Illumina plateform.}
 
-\item{file2}{The input data file that contains 2 columns separated by a space or a tabulation, namely the sequence identifiers and corresponding DNA sequence; used for dual-indexing.}
+\item{file2}{The input data file that contains 2 columns separated by
+a space or a tabulation, namely the sequence identifiers and
+corresponding DNA sequence; used for dual-indexing.}
 
-\item{export}{If not NULL, results are saved in a csv file at the specified path.}
+\item{export}{If not NULL, results are saved in a csv file at the
+specified path.}
 
 \item{metric}{The type of distance (hamming or seqlev).}
 
 \item{d}{The minimum value of the distance.}
 
-\item{thrs_size_comb}{The maximum size of the set of compatible combinations to be used for the greedy optimization.}
+\item{thrs_size_comb}{The maximum size of the set of compatible
+combinations to be used for the greedy optimization.}
 
-\item{max_iteration}{The maximum number of iterations during the optimizing step.}
+\item{max_iteration}{The maximum number of iterations during the
+optimizing step.}
 
-\item{method}{The choice of the greedy search: 'greedy_exchange' or 'greedy_descent'.}
+\item{method}{The choice of the greedy search: 'greedy_exchange' or
+'greedy_descent'.}
 }
 \value{
-A dataframe containing compatible DNA-barcode combinations organized by lanes of the flow cell.
+A dataframe containing compatible DNA-barcode combinations organized
+by lanes of the flow cell.
 }
 \description{
-This function uses the Shannon Entropy to identify a set of compatible barcode combinations with least redundancy between DNA barcodes, in the context of single and dual indexing.
-It performs either an exhaustive or a random-greedy search of compatible DNA-barcode combinations depending on the size of the DNA-barcode population and of the number of samples to be multiplexed.
+This function uses the Shannon Entropy to identify a set of compatible
+barcode combinations with least redundancy between DNA barcodes,
+in the context of single and dual indexing.
+It performs either an exhaustive or a random-greedy search of compatible
+DNA-barcode combinations depending on the size of the
+DNA-barcode population and of the number of samples to be multiplexed.
 }
 \details{
-By specifying the total number of libraries and the number of libraries to be multiplexed,
-this function returns an optimal set of DNA-barcode combinations to be used for sequencing.
+By specifying the total number of libraries and the number of libraries
+to be multiplexed, this function returns an optimal set of DNA-barcode
+combinations to be used for sequencing.
 
-The inputs of the algorithm are a list of n distinct barcodes, the number N of required libraries, and the multiplex level k; N = ak, where a is the number of lanes of the flow cells to be used for the experiment.
+The inputs of the algorithm are a list of n distinct barcodes,
+the number N of required libraries, and the multiplex level k; N = ak,
+where a is the number of lanes of the flow cells to be used for the
+experiment.
 \itemize{
 \item Step 1:
 }
 
-This step consists of identifying a set of compatible barcode combinations. Given the number of barcodes and the multiplex level,
-the total number of barcode combinations (compatible or not) reads:  \deqn{{n}\choose{k}}
-If this number is not too large, the algorithm will perform an exhaustive search and output all compatible combinations of k barcodes.
-Otherwise, it will proceed by picking up combinations at random, in order to identify a large enough set of compatible barcode combinations.
+This step consists of identifying a set of compatible barcode
+combinations. Given the number of barcodes and the multiplex level,
+the total number of barcode combinations (compatible or not) reads:
+\deqn{{n}\choose{k}}
+If this number is not too large, the algorithm will perform an
+exhaustive search and output all compatible combinations of k barcodes.
+Otherwise, it will proceed by picking up combinations at random, in
+order to identify a large enough set of compatible barcode combinations.
 \itemize{
 \item Step 2:
 }
 
-Finds an optimized set of barcode combinations in which barcode redundancy is minimized (see details in \code{\link{optimize_combinations}})
+Finds an optimized set of barcode combinations in which barcode
+redundancy is minimized (see details in
+\code{\link{optimize_combinations}})
 }
 \examples{
 write.table(DNABarcodeCompatibility::IlluminaIndexesRaw,
- txtfile <- tempfile(), row.names = FALSE, col.names = FALSE, quote=FALSE)
-experiment_design(file1=txtfile, sample_number=18, mplex_level=3, chemistry=4)
-
-
+txtfile <- tempfile(), row.names = FALSE, col.names = FALSE, quote=FALSE)
+experiment_design(file1=txtfile, sample_number=18, mplex_level=3,
+chemistry=4)
 
 
 }

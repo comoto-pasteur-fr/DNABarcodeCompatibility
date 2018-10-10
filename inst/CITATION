@@ -1,0 +1,12 @@
+bibentry(bibtype = "Unpublished",
+  title="comoto-pasteur-fr/DNABarcodeCompatibility: First 
+                   stable release",
+  author = c(person("Celine","Trebeau"),
+             person("Jacques","Boutet de Monvel"),
+             person("Fabienne","Wong Jun Tai"),
+             person("Raphael","Etournay")),
+  note="manuscript in preparation",
+  month="May",
+  year="2018",
+  doi="10.5281/zenodo.1256863",
+  url="https://doi.org/10.5281/zenodo.1256863")

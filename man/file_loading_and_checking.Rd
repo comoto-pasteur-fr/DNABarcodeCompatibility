@@ -7,21 +7,27 @@
 file_loading_and_checking(file)
 }
 \arguments{
-\item{file}{The input data file that contains 2 columns separated by a space or a tabulation, namely the sequence identifiers and corresponding DNA sequence.}
+\item{file}{The input data file that contains 2 columns separated by a space
+or a tabulation, namely the sequence identifiers and
+corresponding DNA sequence.}
 }
 \value{
-A dataframe containing sequence identifiers, nucleotide sequence, GC content, presence of homopolymers.
+A dataframe containing sequence identifiers, nucleotide sequence, GC content,
+presence of homopolymers.
 }
 \description{
 Loads the file containing DNA barcodes and analyze barcode content.
 }
 \details{
-This function loads the DNA barcodes from the input file and checks barcodes for unicity (identifier and sequence), DNA content, and equal size. 
-It also calculates the fraction of G and C relative to A and T, as refered to as "GC content", and it detects the presence of homopolymers of length >= 3.
+This function loads the DNA barcodes from the input file and checks barcodes
+for unicity (identifier and sequence), DNA content, and equal size.
+It also calculates the fraction of G and C relative to A and T, as refered
+to as "GC content", and it detects the presence of
+homopolymers of length >= 3.
 }
 \examples{
 write.table(DNABarcodeCompatibility::IlluminaIndexesRaw,
- txtfile <- tempfile(), row.names = FALSE, col.names = FALSE, quote=FALSE)
+txtfile <- tempfile(), row.names = FALSE, col.names = FALSE, quote=FALSE)
 file_loading_and_checking(txtfile)
 
 }
