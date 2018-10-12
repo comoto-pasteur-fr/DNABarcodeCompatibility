@@ -1,7 +1,7 @@
 Package: DNABarcodeCompatibility
 Type: Package
 Title: A tool for optimizing combinations of DNA barcodes used in multiplxed experiments on Next Generation Sequencing plateforms
-Version: 1.0.0
+Version: 0.99.0
 Author: Céline Trébeau, Jacques Boutet de Monvel, Fabienne Wong Jun Tai, Raphaël Etournay
 Maintainer: Céline Trébeau <celine.trebeau@pasteur.fr>
 Authors@R: c(
@@ -12,7 +12,6 @@ Authors@R: c(
 Description: The package allows one to obtain optimized combinations of DNA barcodes to be used for multiplex sequencing. In each barcode combination, barcodes are pooled with respect to Illumina chemistry constraints. Combinations can be filtered to keep those that are robust against substitution and insertion/deletion errors thereby facilitating the demultiplexing step. In addtion, the package provides an optimizer function to further favor the selection of barcode combinations with least redundancy of DNA barcodes. 
 License: GPL-2
 Encoding: UTF-8
-LazyData: true
 RoxygenNote: 6.0.1
 Imports: dplyr, tidyr, numbers, purrr, stringr, DNABarcodes, stats, utils
 Depends: R (>= 3.5.0)
