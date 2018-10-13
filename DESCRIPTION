@@ -1,6 +1,6 @@
 Package: DNABarcodeCompatibility
 Type: Package
-Title: A tool for optimizing combinations of DNA barcodes used in multiplxed experiments on Next Generation Sequencing plateforms
+Title: A tool for optimizing combinations of DNA barcodes used in multiplexed experiments on Next Generation Sequencing plateforms
 Version: 0.99.0
 Author: Céline Trébeau, Jacques Boutet de Monvel, Fabienne Wong Jun Tai, Raphaël Etournay
 Maintainer: Céline Trébeau <celine.trebeau@pasteur.fr>
