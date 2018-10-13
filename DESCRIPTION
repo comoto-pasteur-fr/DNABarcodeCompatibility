@@ -1,15 +1,14 @@
 Package: DNABarcodeCompatibility
 Type: Package
-Title: A tool for optimizing combinations of DNA barcodes used in multiplexed experiments on Next Generation Sequencing plateforms
+Title: A Tool for Optimizing Combinations of DNA Barcodes Used in Multiplexed Experiments on Next Generation Sequencing Platforms
 Version: 0.99.0
-Author: Céline Trébeau, Jacques Boutet de Monvel, Fabienne Wong Jun Tai, Raphaël Etournay
-Maintainer: Céline Trébeau <celine.trebeau@pasteur.fr>
+Maintainer: Céline Trébeau <raphael.etournay@pasteur.fr>
 Authors@R: c(
-    person("Céline", "Trébeau", email = "celine.trebeau@pasteur.fr", role = "cre"),
-    person("Jacques", "Boutet de Monvel", email = "jacques.boutet-de-monvel@pasteur.fr", role = "aut"),
-    person("Fabienne Virginie", "Wong Jun Tai", email = "virginie.wong-jun-tai@pasteur.fr", role = "ctb"),
-    person("Raphaël", "Etournay", email = "raphael.etournay@pasteur.fr", role = "aut"))
-Description: The package allows one to obtain optimized combinations of DNA barcodes to be used for multiplex sequencing. In each barcode combination, barcodes are pooled with respect to Illumina chemistry constraints. Combinations can be filtered to keep those that are robust against substitution and insertion/deletion errors thereby facilitating the demultiplexing step. In addtion, the package provides an optimizer function to further favor the selection of barcode combinations with least redundancy of DNA barcodes. 
+    person("Céline", "Trébeau", email = "celine.trebeau@pasteur.fr", role = "cre", comment = c(ORCID = "0000-0001-6795-5379")),
+    person("Jacques", "Boutet de Monvel", email = "jacques.boutet-de-monvel@pasteur.fr", role = "aut", comment = c(ORCID = "0000-0001-6182-3527")),
+    person("Fabienne", "Wong Jun Tai", email = "virginie.wong-jun-tai@pasteur.fr", role = "ctb"),
+    person("Raphaël", "Etournay", email = "raphael.etournay@pasteur.fr", role = "aut", comment = c(ORCID = "0000-0002-2441-9274")))
+Description: The package allows one to obtain optimized combinations of DNA barcodes to be used for multiplex sequencing. In each barcode combination, barcodes are pooled with respect to Illumina chemistry constraints. Combinations can be filtered to keep those that are robust against substitution and insertion/deletion errors thereby facilitating the demultiplexing step. In addition, the package provides an optimizer function to further favor the selection of barcode combinations with least redundancy of DNA barcodes. 
 License: GPL-2
 Encoding: UTF-8
 LazyData: true
