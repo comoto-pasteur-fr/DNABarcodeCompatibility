@@ -18,3 +18,4 @@ Depends: R (>= 3.5.0)
 Suggests: knitr, rmarkdown, BiocStyle, testthat
 VignetteBuilder: knitr
 biocViews: Preprocessing, Sequencing
+BugReports: https://github.com/comoto-pasteur-fr/DNABarcodeCompatibility/issues
