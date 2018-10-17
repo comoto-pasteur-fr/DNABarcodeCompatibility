@@ -1,7 +1,7 @@
 Package: DNABarcodeCompatibility
 Type: Package
 Title: A Tool for Optimizing Combinations of DNA Barcodes Used in Multiplexed Experiments on Next Generation Sequencing Platforms
-Version: 0.99.0
+Version: 0.99.1
 Maintainer: Céline Trébeau <ctrebeau@pasteur.fr>
 Authors@R: c(
     person("Céline", "Trébeau", email = "ctrebeau@pasteur.fr", role = "cre", comment = c(ORCID = "0000-0001-6795-5379")),
