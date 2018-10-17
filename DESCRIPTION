@@ -12,7 +12,7 @@ Description: The package allows one to obtain optimized combinations of DNA barc
 License: GPL-2
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 6.0.1
+RoxygenNote: 6.1.0
 Imports: dplyr, tidyr, numbers, purrr, stringr, DNABarcodes, stats, utils
 Depends: R (>= 3.5.0)
 Suggests: knitr, rmarkdown, BiocStyle, testthat
