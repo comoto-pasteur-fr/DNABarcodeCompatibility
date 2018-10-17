@@ -224,7 +224,7 @@ cases the total number of combinations can become much larger (even gigantic),
 and one cannot perform an exhaustive search
 (see `get_random_combinations()` below).
 
-* 48 barcodes, multiplex level of 2, HiSeq plateform
+* 48 barcodes, multiplex level of 2, HiSeq platform
 ```{r, echo=TRUE}
 # Total number of combinations
 choose(48,2)
@@ -242,7 +242,7 @@ head(m)
 
 ```
 
-* 48 barcodes, multiplex level of 3, HiSeq plateform
+* 48 barcodes, multiplex level of 3, HiSeq platform
 ```{r, echo=TRUE}
 # Total number of combinations
 choose(48,3)
@@ -265,7 +265,7 @@ head(m)
 When the total number of combinations is too high, it is recommended to pick
 combinations at random and then select those that are compatible. 
 
-* 48 barcodes, multiplex level of 3, HiSeq plateform
+* 48 barcodes, multiplex level of 3, HiSeq platform
 ```{r, echo=TRUE}
 # Total number of combinations
 choose(48,3)
@@ -283,7 +283,7 @@ head(m)
 
 ```
 
-* 48 barcodes, multiplex level of 4, HiSeq plateform
+* 48 barcodes, multiplex level of 4, HiSeq platform
 ```{r, echo=TRUE}
 # Total number of combinations
 choose(48,4)
@@ -301,7 +301,7 @@ head(m)
 
 ```
 
-* 48 barcodes, multiplex level of 6, HiSeq plateform
+* 48 barcodes, multiplex level of 6, HiSeq platform
 ```{r, echo=TRUE}
 # Total number of combinations
 choose(48,6)

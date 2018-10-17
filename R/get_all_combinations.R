@@ -11,7 +11,7 @@
 #'  DNA sequences along with GC content and presence of homopolymers.
 #' @param mplex_level The number at which the barcodes will be multiplexed.
 #' @param chemistry An integer representing the number of channels (1, 2, 4) of
-#' the Illumina plateform to be used.
+#' the Illumina platform to be used.
 #'
 #' @details 
 #' Be aware that the total number of combinations may become prohibitively 

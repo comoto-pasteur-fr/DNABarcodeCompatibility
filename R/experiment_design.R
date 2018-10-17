@@ -24,7 +24,7 @@
 #' a space or a tabulation, namely the sequence identifiers and
 #' corresponding DNA sequence; used for dual-indexing.
 #' @param chemistry An integer representing the number of channels (1, 2, 4)
-#' of the desired Illumina plateform.
+#' of the desired Illumina platform.
 #' @param export If not NULL, results are saved in a csv file at the
 #' specified path.
 #' @param metric The type of distance (hamming or seqlev).

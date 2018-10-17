@@ -19,7 +19,7 @@ DNA sequence}
 \item{mplex_level}{The number at which the barcodes will be multiplexed.}
 
 \item{chemistry}{An integer representing the number of channels (1, 2, 4)
-of the desired Illumina plateform.}
+of the desired Illumina platform.}
 
 \item{file2}{The input data file that contains 2 columns separated by
 a space or a tabulation, namely the sequence identifiers and
