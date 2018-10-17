@@ -14,7 +14,7 @@
 #' of homopolymers.
 #' 
 #' @param combinations_m A matrix of compatible barcode combinations.
-#' @param metric The type of distance (hamming or seqlev).
+#' @param metric The type of distance (hamming or seqlev or phaseshift).
 #' @param d The minimum value of the distance.
 #'
 #' @details 
@@ -47,7 +47,7 @@
 distance_filter = function(index_df, combinations_m, metric, d) {
     if (is.numeric(d)) {
         index_distance_df =  index_distance(index_df)
-        if (metric == "hamming" || metric == "seqlev") {
+        if (metric == "hamming" || metric == "seqlev" || metric =="phaseshift") {
             if (metric == "hamming") {
                 hamming_rejection_table = low_hamming_distance(
                     index_df,
@@ -64,10 +64,18 @@ distance_filter = function(index_df, combinations_m, metric, d) {
                 filtered_combinations_m = filter_combinations(
                     combinations_m,
                     seqlev_rejection_table)
-            }
+            } else if (metric == "phaseshift") {
+          phaseshift_rejection_table = low_phaseshift_distance(
+            index_df,
+            index_distance_df,
+            d)
+          filtered_combinations_m = filter_combinations(
+            combinations_m,
+            phaseshift_rejection_table)
+        }
             return (filtered_combinations_m)
         } else{
-            display_message("metric should be 'hamming' or 'seqlev'")
+            display_message("metric should be 'hamming',  'seqlev' or 'phaseshift'")
         }
     } else{
         display_message("Please enter a number as d")

@@ -723,7 +723,8 @@ index_distance = function (index_df) {
         mutate(n = seq(1,nrow(index_distance_df)))
     index_distance_df = index_distance_df %>% group_by(n) %>% mutate (
         hamming = distance(V1, V2, metric = "hamming"),
-        seqlev = distance (V1, V2, metric = "seqlev")
+        seqlev = distance (V1, V2, metric = "seqlev"),
+        phaseshift = distance(V1, V2, metric = "phaseshift")
     )
     return(index_distance_df)
 }
@@ -753,6 +754,17 @@ low_seqlev_distance = function(index_df, index_distance_df, d) {
                 Id2 = index_df$Id[which(V2 == index_df$sequence)]) 
     low_distance_tab = i_d %>% ungroup() %>% select(Id1, Id2)
     return(low_distance_tab)
+}
+
+#couples with phaseshift distance under threshold
+low_phaseshift_distance = function(index_df, index_distance_df, d) {
+  i_d = index_distance_df %>% filter(phaseshift < d)
+  i_d = i_d %>% group_by(n) %>% 
+    # matches the sequence to the id
+    mutate(Id1 = index_df$Id[which(V1 == index_df$sequence)],
+           Id2 = index_df$Id[which(V2 == index_df$sequence)]) 
+  low_distance_tab = i_d %>% ungroup() %>% select(Id1, Id2)
+  return(low_distance_tab)
 }
 
 
