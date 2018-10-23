@@ -154,7 +154,8 @@ experiment_design = function (
                         Id1 = result1$Id %>% as.character(),
                         sequence1 = result1$sequence %>% as.character(),
                         Id2 = result2$Id %>% as.character(),
-                        sequence2 = result2$sequence %>% as.character()
+                        sequence2 = result2$sequence %>% as.character(),
+                        stringsAsFactors = FALSE
                     ) %>%
                         arrange(Lane)
                     
