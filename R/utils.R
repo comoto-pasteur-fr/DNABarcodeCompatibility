@@ -942,35 +942,47 @@ recursive_entropy = function(combination_m,
 
 # gets the result
 get_result = function (index_df,
-                        sample_number,
-                        mplex_level,
-                        chemistry,
-                        metric = NULL,
-                        d = 3,
-                        thrs_size_comb = 120,
-                        max_iteration = 50,
-                        method = "greedy_exchange") {
-    # browser()
-    combinations_m = get_combinations(index_df, mplex_level, chemistry)
-    if (!is.null(metric)) {
-        combinations_m = distance_filter (index_df, combinations_m, metric, d)
-    }
+                       sample_number,
+                       mplex_level,
+                       chemistry,
+                       metric = NULL,
+                       d = 3,
+                       thrs_size_comb = 120,
+                       max_iteration = 50,
+                       method = "greedy_exchange") {
+  
+  
+  combinations_m = get_combinations(index_df, mplex_level, chemistry)
+  if (!is.null(metric)) {
+    combinations_m = distance_filter (index_df, combinations_m, metric, d)
+  }
+  if (sample_number ==  mplex_level){
+    result = combinations_m[sample(1:nrow(combinations_m), 1),]
+    result = data.frame(Id = result,
+                        Lane = (rep(
+                          seq(1,1),
+                          length.out = sample_number,
+                          each = mplex_level
+                        )))
+    result$Id = as.character(result$Id)
+    return (result)
+  }else{
     nb_lane = sample_number %>% as.numeric() / mplex_level %>% as.numeric()
     index_number = nrow(index_df)
     cb = optimize_combinations(combinations_m,
-                                nb_lane,
-                                index_number,
-                                thrs_size_comb,
-                                max_iteration,
-                                method) %>% as.data.frame()
+                               nb_lane,
+                               index_number,
+                               thrs_size_comb,
+                               max_iteration,
+                               method) %>% as.data.frame()
     result = data.frame(Id = as.vector(cb %>% t() %>% as.vector),
                         Lane = (rep(
-                            seq(1,nb_lane),
-                            length.out = sample_number,
-                            each = mplex_level
+                          seq(1,nb_lane),
+                          length.out = sample_number,
+                          each = mplex_level
                         )))
     result$Id = as.character(result$Id)
-    return(result)
+    return(result)}
 }
 
 
@@ -986,7 +998,6 @@ get_result = function (index_df,
 # impact variant calling or assignment of gene expression counts.
 check_for_duplicate = function(result1, result2) {
     check = data.frame(Id1 = result1$Id, Id2 = result2$Id)
-    # print(check)
     if (anyDuplicated(check) != 0) {
         d = anyDuplicated(check)
         for (i in seq(1,length(d))) {
@@ -1006,7 +1017,6 @@ check_for_duplicate = function(result1, result2) {
             }
             result = bind_rows(lane_to_change, lanes_to_keep) %>% arrange(Lane)
         }
-        # print(result2)
         return (result)
     } else{
         return (result2)
@@ -1050,12 +1060,15 @@ final_result = function(index_df,
         max_iteration,
         method
     )
+    
+    
     result1 = data.frame(
         sample = seq(1,sample_number) %>% as.character(),
         Lane = result1$Lane %>% as.character(),
         Id = result1$Id %>% as.character(),
         stringsAsFactors = FALSE
     )
+    
     result1 = left_join(result1, select(index_df, Id, sequence), by = "Id")
     return (result1)
 }
