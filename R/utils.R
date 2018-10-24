@@ -177,38 +177,25 @@ get_index_homopolymer = function(index) {
 
 
 sample_number_check = function (sample_number) {
-    # if (!try(x = sample_number, silent = TRUE) ){
-    #   print("you have to enter an integer value")
-    #   return(FALSE)
-    # }
-    # if (!exists(deparse(substitute(sample_number)))) {
-    #   display_message("you have to enter an integer value1")
-    #   return(FALSE)
-    # }
-    # else
-    if (sample_number != floor(sample_number)) {
-        display_message("you have to enter an integer value2")
-        return(FALSE)
-    }
-    else if (is.na(sample_number)) {
-        display_message("you have to enter an integer value3")
-        return(FALSE)
-    }
-    # else if (isPrime(sample_number)) {
-    #   display_message("this a prime number, you can't use multiplexing")
-    #   return(FALSE)
-    # }
-    else if (sample_number < 2) {
-        message("You need at least 2 samples in order to use multiplexing !")
-        return(FALSE)
-    } else if (sample_number > 1000) {
-        display_message("The sample number number is to high,
+  if (is.na(sample_number)) {
+    display_message("you have to enter an integer value")
+    return(FALSE)
+  }
+  else if (sample_number != floor(sample_number)) {
+    display_message("you have to enter an integer value")
+    return(FALSE)
+  }
+  else if (sample_number < 2) {
+    message("You need at least 2 samples in order to use multiplexing !")
+    return(FALSE)
+  } else if (sample_number > 1000) {
+    display_message("The sample number number is to high,
                     please enter a value under 1000")
-        return(FALSE)
-    }
-    else{
-        return(TRUE)
-    }
+    return(FALSE)
+  }
+  else{
+    return(TRUE)
+  }
 }
 
 
