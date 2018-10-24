@@ -186,10 +186,10 @@ sample_number_check = function (sample_number) {
     return(FALSE)
   }
   else if (sample_number < 2) {
-    message("You need at least 2 samples in order to use multiplexing !")
+    display_message("You need at least 2 samples in order to use multiplexing")
     return(FALSE)
   } else if (sample_number > 1000) {
-    display_message("The sample number number is to high,
+    display_message("The sample number is too high,
                     please enter a value under 1000")
     return(FALSE)
   }
