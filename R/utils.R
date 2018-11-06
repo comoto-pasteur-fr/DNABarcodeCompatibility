@@ -115,7 +115,7 @@ character_and_length_check = function(index) {
     c_check =  sequences_character_check(index$sequence)
     if (length (which(c_check == FALSE)) > 0) {
         display_message(paste(
-            "Your sequence contains a wrong charater, row number : ",
+            "Your sequence contains a wrong character, row number : ",
             which(c_check == FALSE)
         ))
         return(FALSE)
@@ -943,33 +943,37 @@ get_result = function (index_df,
   if (!is.null(metric)) {
     combinations_m = distance_filter (index_df, combinations_m, metric, d)
   }
-  if (sample_number ==  mplex_level){
-    result = combinations_m[sample(1:nrow(combinations_m), 1),]
-    result = data.frame(Id = result,
-                        Lane = (rep(
-                          seq(1,1),
-                          length.out = sample_number,
-                          each = mplex_level
-                        )))
-    result$Id = as.character(result$Id)
-    return (result)
-  }else{
-    nb_lane = sample_number %>% as.numeric() / mplex_level %>% as.numeric()
-    index_number = nrow(index_df)
-    cb = optimize_combinations(combinations_m,
-                               nb_lane,
-                               index_number,
-                               thrs_size_comb,
-                               max_iteration,
-                               method) %>% as.data.frame()
-    result = data.frame(Id = as.vector(cb %>% t() %>% as.vector),
-                        Lane = (rep(
-                          seq(1,nb_lane),
-                          length.out = sample_number,
-                          each = mplex_level
-                        )))
-    result$Id = as.character(result$Id)
-    return(result)}
+  if(!is.null(combinations_m)){
+    if (sample_number ==  mplex_level){
+      result = combinations_m[sample(1:nrow(combinations_m), 1),]
+      result = data.frame(Id = result,
+                          Lane = (rep(
+                            seq(1,1),
+                            length.out = sample_number,
+                            each = mplex_level
+                          )))
+      result$Id = as.character(result$Id)
+      return (result)
+    }else{
+      nb_lane = sample_number %>% as.numeric() / mplex_level %>% as.numeric()
+      index_number = nrow(index_df)
+      cb = optimize_combinations(combinations_m,
+                                 nb_lane,
+                                 index_number,
+                                 thrs_size_comb,
+                                 max_iteration,
+                                 method) %>% as.data.frame()
+      result = data.frame(Id = as.vector(cb %>% t() %>% as.vector),
+                          Lane = (rep(
+                            seq(1,nb_lane),
+                            length.out = sample_number,
+                            each = mplex_level
+                          )))
+      result$Id = as.character(result$Id)
+      return(result)}
+  } else {
+    return(NULL)
+  }
 }
 
 
@@ -1048,7 +1052,7 @@ final_result = function(index_df,
         method
     )
     
-    
+    if(!is.null(result1)){
     result1 = data.frame(
         sample = seq(1,sample_number) %>% as.character(),
         Lane = result1$Lane %>% as.character(),
@@ -1058,60 +1062,69 @@ final_result = function(index_df,
     
     result1 = left_join(result1, select(index_df, Id, sequence), by = "Id")
     return (result1)
+    }else{
+      return(NULL)
+    }
 }
 
 
 
 final_result_dual = function(index_df_1,
-                            index_df_2,
-                            sample_number,
-                            mplex_level,
-                            chemistry = 4,
-                            metric = NULL,
-                            d = 3,
-                            thrs_size_comb = 120,
-                            max_iteration = 50,
-                            method = "greedy_exchange") {
-    result1 = get_result(
-        index_df_1,
-        sample_number,
-        mplex_level,
-        chemistry,
-        metric,
-        d,
-        thrs_size_comb,
-        max_iteration,
-        method
-    )
-    result2 = get_result(
-        index_df_2,
-        sample_number,
-        mplex_level,
-        chemistry,
-        metric,
-        d,
-        thrs_size_comb,
-        max_iteration,
-        method
-    )
+                             index_df_2,
+                             sample_number,
+                             mplex_level,
+                             chemistry = 4,
+                             metric = NULL,
+                             d = 3,
+                             thrs_size_comb = 120,
+                             max_iteration = 50,
+                             method = "greedy_exchange") {
+  result1 = get_result(
+    index_df_1,
+    sample_number,
+    mplex_level,
+    chemistry,
+    metric,
+    d,
+    thrs_size_comb,
+    max_iteration,
+    method
+  )
+  print(result1)
+  result2 = get_result(
+    index_df_2,
+    sample_number,
+    mplex_level,
+    chemistry,
+    metric,
+    d,
+    thrs_size_comb,
+    max_iteration,
+    method
+  )
+  print(result2)
+  if(!is.null(result1) && !is.null(result2)){
     result2 = check_for_duplicate(result1, result2)
     
     result1 = left_join(result1, select(index_df_1, Id, sequence), by = "Id")
-    # print(result1)
+    print(result1)
     result2 = left_join(result2, select(index_df_2, Id, sequence), by = "Id")
-    # print(result2)
+    print(result2)
     result = data.frame(
-        sample = seq(1,sample_number) %>% as.numeric(),
-        Lane = result1$Lane %>% as.character(),
-        Id1 = result1$Id %>% as.character(),
-        sequence1 = result1$sequence %>% as.character(),
-        Id2 = result2$Id %>% as.character(),
-        sequence2 = result2$sequence %>% as.character(),
-        stringsAsFactors = FALSE
+      sample = seq(1,sample_number) %>% as.numeric(),
+      Lane = result1$Lane %>% as.character(),
+      Id1 = result1$Id %>% as.character(),
+      sequence1 = result1$sequence %>% as.character(),
+      Id2 = result2$Id %>% as.character(),
+      sequence2 = result2$sequence %>% as.character(),
+      stringsAsFactors = FALSE
     ) %>% arrange(sample)
     result$sample = as.character(result$sample)
     return(result)
-    
+  } else {
+    return(NULL)
+  }
+  
 }
 
 
