@@ -46,7 +46,7 @@
 
 distance_filter = function(index_df, combinations_m, metric, d) {
   if (is.numeric(d)) {
-    if (d <= length(index_df$sequence[1])){
+    if (d <= nchar(index_df$sequence[1])){
       index_distance_df =  index_distance(index_df)
       if (metric == "hamming" || metric == "seqlev" || metric =="phaseshift") {
         if (metric == "hamming") {

@@ -106,7 +106,7 @@ experiment_design = function (
                 sample_number,
                 mplex_level) == TRUE) {
                 # print("mlx and sample ok")
-              result1 = final_result( index_df_1 = file1, 
+              result1 = final_result( index_df = index_df_1, 
                                       sample_number = sample_number, 
                                       mplex_level = mplex_level ,
                                       chemistry = chemistry,
