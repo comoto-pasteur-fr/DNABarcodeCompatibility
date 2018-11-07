@@ -603,8 +603,12 @@ get_all_combinations_1_channel = function(index_df, mplex_level) {
     
     return(list_of_all_combinations)
 }
-
-
+#get all combination for other platform than Illumina (no constraint)
+get_all_combinations_0_channel = function(index_df, mplex_level) {
+  list_of_all_combinations  = combn(x = index_df$Id, m = mplex_level) %>% 
+    t()
+  return(list_of_all_combinations)
+}
 
 # For a random search
 get_random_combinations_4_channel = function (index_df, mplex_level) {
@@ -680,6 +684,27 @@ get_random_combinations_1_channel = function (index_df, mplex_level) {
     #facilitates the distance filter
     M = M[order(M[, 1]), ]
     return (M)
+}
+
+get_random_combinations_0_channel = function (index_df, mplex_level) {
+  
+  list_of_good_combs = matrix(nrow = 1000, ncol = mplex_level)
+  for (i in seq(1,1000)) {
+    combination = index_df[sample(
+      x = seq(1,nrow(index_df)),
+      size = (mplex_level),
+      replace = FALSE
+    ), ]
+    
+      combination = arrange(combination, Id) 
+      list_of_good_combs [i, ] = combination$Id
+    
+  }
+  M = list_of_good_combs %>% unique()
+  #facilitates the distance filter
+  
+  M = M[order(M[, 1]), ]
+  return (M)
 }
 
 
