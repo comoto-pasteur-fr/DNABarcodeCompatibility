@@ -228,26 +228,7 @@ sample_and_multiplexing_level_check = function(sample_number, mplex_level) {
 
 
 
-# Binary conversion -------------------------------------------------------
-
-# function used for the traduction of the nucleotide sequences into binary
-# sequences according to the chemistry
-# index_binary_conversion = function(index_df, chemistry){
-#   if (chemistry == 4 ){
-#     index_df = index_binary_conversion_4_channel(index_df)
-#   } else if (chemistry == 2){
-#     index_df = index_binary_conversion_2_channel(index_df)
-#   } else if (chemistry == 1){
-#     index_df = index_binary_conversion_1_channel(index_df)
-#   } else {
-#     display_message("Please choose a correct chemistry for your experiment")
-#   }
-#   return (index_df)
-# }
-
-
-
-# sequence traduction for a 4_channel chemistry :
+# sequence traduction for a 4_channel platform :
 sequence_binary_conversion_4_channel = function(sequence) {
     binary_sequence =
         toupper(sequence) %>%
@@ -258,7 +239,7 @@ sequence_binary_conversion_4_channel = function(sequence) {
 
 
 
-# index traduction for a 4_channel chemistry :
+# index traduction for a 4_channel platform :
 index_binary_conversion_4_channel = function(index) {
     index = index %>% 
         mutate (binary_4 = sequence_binary_conversion_4_channel(sequence))
@@ -267,7 +248,7 @@ index_binary_conversion_4_channel = function(index) {
 
 
 
-# sequence traduction for a 2_channel chemistry for image 1 :
+# sequence traduction for a 2_channel platform for image 1 :
 sequence_binary_conversion_2_channel_1 = function(sequence) {
     binary_sequence =
         toupper(sequence) %>%
@@ -278,7 +259,7 @@ sequence_binary_conversion_2_channel_1 = function(sequence) {
 
 
 
-# sequence traduction for a 2_channel chemistry for image 2 :
+# sequence traduction for a 2_channel platform for image 2 :
 sequence_binary_conversion_2_channel_2 = function(sequence) {
     binary_sequence =
         toupper(sequence) %>%
@@ -289,7 +270,7 @@ sequence_binary_conversion_2_channel_2 = function(sequence) {
 
 
 
-# index traduction for a 2_channel chemistry :
+# index traduction for a 2_channel platform :
 index_binary_conversion_2_channel = function(index) {
     index = index %>% 
         mutate (
@@ -301,7 +282,7 @@ index_binary_conversion_2_channel = function(index) {
 
 
 
-# sequence traduction for a 1_channel chemistry for image 1 :
+# sequence traduction for a 1_channel platform for image 1 :
 sequence_binary_conversion_1_channel_1 = function(sequence) {
     binary_sequence =
         toupper(sequence) %>%
@@ -312,7 +293,7 @@ sequence_binary_conversion_1_channel_1 = function(sequence) {
 
 
 
-# sequence traduction for a 1_channel chemistry for image 2 :
+# sequence traduction for a 1_channel platform for image 2 :
 sequence_binary_conversion_1_channel_2 = function(sequence) {
     binary_sequence =
         toupper(sequence) %>%
@@ -529,7 +510,7 @@ matrix_id_to_1_channel_image_2_binary_sequence = function(matrix_id, index_df){
 
 
 
-# get all compatible combinations of an index for 4_channel chemistry
+# get all compatible combinations of an index for 4_channel platform
 get_all_combinations_4_channel = function(index_df, mplex_level) {
     index_df = index_binary_conversion_4_channel(index_df)
     index_df = index_df %>% arrange(Id)
@@ -544,7 +525,7 @@ get_all_combinations_4_channel = function(index_df, mplex_level) {
 
 
 
-# get all compatible combinations of an index for 2_channel chemistry
+# get all compatible combinations of an index for 2_channel platform
 get_all_combinations_2_channel = function(index_df, mplex_level) {
     index_df = index_binary_conversion_2_channel(index_df)
     index_df = index_df %>% arrange(Id)
@@ -575,7 +556,7 @@ get_all_combinations_2_channel = function(index_df, mplex_level) {
 
 
 
-# get all compatible combinations of an index for 1_channel chemistry
+# get all compatible combinations of an index for 1_channel platform
 get_all_combinations_1_channel = function(index_df, mplex_level) {
     index_df = index_binary_conversion_1_channel(index_df)
     index_df = index_df %>% arrange(Id)
@@ -710,11 +691,11 @@ get_random_combinations_0_channel = function (index_df, mplex_level) {
 
 
 # gets the rights combinations according to the number of possible combinations
-get_combinations = function (index_df, mplex_level, chemistry){
+get_combinations = function (index_df, mplex_level, platform){
     if (choose(nrow(index_df),mplex_level) <= 2024 || mplex_level == 2){
-        return(get_all_combinations(index_df, mplex_level, chemistry))
+        return(get_all_combinations(index_df, mplex_level, platform))
     } else {
-        return(get_random_combinations(index_df, mplex_level, chemistry))
+        return(get_random_combinations(index_df, mplex_level, platform))
     }
 }
 
@@ -956,7 +937,7 @@ recursive_entropy = function(combination_m,
 get_result = function (index_df,
                        sample_number,
                        mplex_level,
-                       chemistry,
+                       platform,
                        metric = NULL,
                        d = 3,
                        thrs_size_comb = 120,
@@ -964,7 +945,7 @@ get_result = function (index_df,
                        method = "greedy_exchange") {
   
   
-  combinations_m = get_combinations(index_df, mplex_level, chemistry)
+  combinations_m = get_combinations(index_df, mplex_level, platform)
   if (!is.null(metric)) {
     combinations_m = distance_filter (index_df, combinations_m, metric, d)
   }
@@ -1059,7 +1040,7 @@ is_a_prime_number = function (sample_number) {
 final_result = function(index_df,
                         sample_number,
                         mplex_level,
-                        chemistry,
+                        platform,
                         metric,
                         d,
                         thrs_size_comb = 120,
@@ -1069,7 +1050,7 @@ final_result = function(index_df,
         index_df,
         sample_number,
         mplex_level,
-        chemistry,
+        platform,
         metric,
         d,
         thrs_size_comb,
@@ -1098,7 +1079,7 @@ final_result_dual = function(index_df_1,
                              index_df_2,
                              sample_number,
                              mplex_level,
-                             chemistry = 4,
+                             platform = 4,
                              metric = NULL,
                              d = 3,
                              thrs_size_comb = 120,
@@ -1108,7 +1089,7 @@ final_result_dual = function(index_df_1,
     index_df_1,
     sample_number,
     mplex_level,
-    chemistry,
+    platform,
     metric,
     d,
     thrs_size_comb,
@@ -1120,7 +1101,7 @@ final_result_dual = function(index_df_1,
     index_df_2,
     sample_number,
     mplex_level,
-    chemistry,
+    platform,
     metric,
     d,
     thrs_size_comb,

@@ -11,7 +11,7 @@
 #' DNA-barcode population and of the number of samples to be multiplexed.
 #'
 #' @usage
-#' experiment_design(file1, sample_number, mplex_level, chemistry = 4,
+#' experiment_design(file1, sample_number, mplex_level, platform = 4,
 #' file2 = NULL, export = NULL, metric = NULL, d = 3, thrs_size_comb,
 #' max_iteration, method)
 #'
@@ -23,7 +23,7 @@
 #' @param file2 The input data file that contains 2 columns separated by
 #' a space or a tabulation, namely the sequence identifiers and
 #' corresponding DNA sequence; used for dual-indexing.
-#' @param chemistry An integer representing the number of channels (1, 2, 4)
+#' @param platform An integer representing the number of channels (1, 2, 4)
 #' of the desired Illumina plateform.
 #' @param export If not NULL, results are saved in a csv file at the
 #' specified path.
@@ -76,7 +76,7 @@
 #' write.table(DNABarcodeCompatibility::IlluminaIndexesRaw,
 #' txtfile <- tempfile(), row.names = FALSE, col.names = FALSE, quote=FALSE)
 #' experiment_design(file1=txtfile, sample_number=18, mplex_level=3,
-#' chemistry=4)
+#' platform=4)
 #'
 #'
 #' @importFrom stats na.omit
@@ -90,7 +90,7 @@ experiment_design = function (
     file1,
     sample_number,
     mplex_level,
-    chemistry = 4,
+    platform = 4,
     file2 = NULL,
     export = NULL,
     metric = NULL,
@@ -109,7 +109,7 @@ experiment_design = function (
               result1 = final_result( index_df = index_df_1, 
                                       sample_number = sample_number, 
                                       mplex_level = mplex_level ,
-                                      chemistry = chemistry,
+                                      platform = platform,
                                       metric = metric,
                                       d = d,
                                       thrs_size_comb = thrs_size_comb,
@@ -138,7 +138,7 @@ experiment_design = function (
                                              index_df_2 = index_df_2,
                                              sample_number = sample_number,
                                              mplex_level =   mplex_level,
-                                             chemistry = chemistry,
+                                             platform = platform,
                                              metric = metric,
                                              d = d,
                                              thrs_size_comb = thrs_size_comb,
