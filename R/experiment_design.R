@@ -123,7 +123,7 @@ experiment_design = function (
                 stop("The multiplexing level or the sample number is wrong")
             }
         } else{
-            stop("An error occured on the first file")
+            stop("An error occured on the file")
         }
     } else{
       index_df_1 = file_loading_and_checking(file1)

@@ -52,8 +52,8 @@ read_index = function(file) {
         if (exists("input")) {
             if (class(input) == "try-error") {
                 assign("index", NULL, envir = index_env) #index <<- NULL
-                display_message("An error occurred,
-                        please check the content of your file")
+                display_message(
+"An error occurred, please check the content of your file")
             } else {
                 assign("index", input, envir = index_env)
             }
@@ -64,7 +64,6 @@ read_index = function(file) {
 
 
 unicity_check = function(index) {
-    # index$sequence <<- toupper(index$sequence)
     index$sequence <- toupper(index$sequence)
     assign("index", index, envir = index_env)
     
@@ -1020,13 +1019,6 @@ check_for_duplicate = function(result1, result2) {
     }
 }
 
-
-
-
-
-
-
-# For java ----------------------------------------------------------------
 
 
 
