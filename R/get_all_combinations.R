@@ -10,8 +10,10 @@
 #' @param index_df A dataframe containing barcodes identifiers, corresponding
 #'  DNA sequences along with GC content and presence of homopolymers.
 #' @param mplex_level The number at which the barcodes will be multiplexed.
-#' @param platform An integer representing the number of channels (1, 2, 4) of
-#' the Illumina platform to be used.
+#' @param platform An integer representing the number of channels (1, 2, 4)
+#' of the desired Illumina platform: 1 for iSeq; 2 for NextSeq, NovaSeq,
+#' MiniSeq; 4 for HiSeq and MiSeq. 0 represents any other platform than
+#' Illumina.
 #'
 #' @details 
 #' Be aware that the total number of combinations may become prohibitively 

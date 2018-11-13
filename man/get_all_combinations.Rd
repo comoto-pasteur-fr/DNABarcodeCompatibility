@@ -4,7 +4,7 @@
 \alias{get_all_combinations}
 \title{Get all compatible combinations.}
 \usage{
-get_all_combinations(index_df, mplex_level, chemistry)
+get_all_combinations(index_df, mplex_level, platform)
 }
 \arguments{
 \item{index_df}{A dataframe containing barcodes identifiers, corresponding
@@ -12,8 +12,10 @@ DNA sequences along with GC content and presence of homopolymers.}
 
 \item{mplex_level}{The number at which the barcodes will be multiplexed.}
 
-\item{chemistry}{An integer representing the number of channels (1, 2, 4) of
-the Illumina platform to be used.}
+\item{platform}{An integer representing the number of channels (1, 2, 4)
+of the desired Illumina platform: 1 for iSeq; 2 for NextSeq, NovaSeq,
+MiniSeq; 4 for HiSeq and MiSeq. 0 represents any other platform than
+Illumina.}
 }
 \value{
 A matrix containing the identifiers of compatible barcode combinations.

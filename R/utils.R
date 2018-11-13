@@ -708,7 +708,7 @@ get_combinations = function (index_df, mplex_level, platform){
 
 
 # generates all possible couples 
-# and caculates DNAbarcodes's hamming and seqlev distances
+# and calculates DNAbarcodes's hamming and seqlev distances
 index_distance = function (index_df) {
     index_distance_df = combn(index_df$sequence, 2) %>% t() %>% 
         as.data.frame(stringsAsFactors = FALSE)
@@ -762,7 +762,7 @@ low_phaseshift_distance = function(index_df, index_distance_df, d) {
 
 
 
-# low distance tab = hamming rejection table or seq lev rejection table
+# low distance tab = hamming rejection table or seqlev rejection table
 filter_combinations = function(combinations_m, low_distance_tab) {
     # browser()
     combinations_df <-
@@ -816,8 +816,8 @@ filter_combinations = function(combinations_m, low_distance_tab) {
 
 
 # Shannon's entropy
-shannon_entropy = function(frequence) {
-    return(-1 * sum(frequence * log(frequence)))
+shannon_entropy = function(frequency) {
+    return(-1 * sum(frequency * log(frequency)))
 }
 
 

@@ -24,7 +24,9 @@
 #' a space or a tabulation, namely the sequence identifiers and
 #' corresponding DNA sequence; used for dual-indexing.
 #' @param platform An integer representing the number of channels (1, 2, 4)
-#' of the desired Illumina platform.
+#' of the desired Illumina platform: 1 for iSeq; 2 for NextSeq, NovaSeq,
+#' MiniSeq; 4 for HiSeq and MiSeq. 0 represents any other platform than
+#' Illumina.
 #' @param export If not NULL, results are saved in a csv file at the
 #' specified path.
 #' @param metric The type of distance (hamming or seqlev).

@@ -54,7 +54,7 @@ highest entropy. In brief this function uses a randomized greedy descent
 algorithm to find an optimized selection.
 Note that the resulting optimized selection may not be globally optimal.
 It is actually close to optimal and much improved in terms of
-non-redundancy of DNA barcodes used, compared to a randomly choosen set of
+non-redundancy of DNA barcodes used, compared to a randomly chosen set of
 combinations of compatible barcodes.
 
 \strong{Case 2:} number of lanes >= number of

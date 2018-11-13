@@ -14,7 +14,7 @@
 #' @details
 #' This function loads the DNA barcodes from the input file and checks barcodes
 #' for unicity (identifier and sequence), DNA content, and equal size.
-#' It also calculates the fraction of G and C relative to A and T, as refered
+#' It also calculates the fraction of G and C relative to A and T, as referred
 #' to as "GC content", and it detects the presence of
 #' homopolymers of length >= 3.
 #'

@@ -5,7 +5,7 @@
 \title{Find a set of barcode combinations with least redundant barcodes
 for single and dual indexing}
 \usage{
-experiment_design(file1, sample_number, mplex_level, chemistry = 4,
+experiment_design(file1, sample_number, mplex_level, platform = 4,
 file2 = NULL, export = NULL, metric = NULL, d = 3, thrs_size_comb,
 max_iteration, method)
 }
@@ -18,8 +18,10 @@ DNA sequence}
 
 \item{mplex_level}{The number at which the barcodes will be multiplexed.}
 
-\item{chemistry}{An integer representing the number of channels (1, 2, 4)
-of the desired Illumina platform.}
+\item{platform}{An integer representing the number of channels (1, 2, 4)
+of the desired Illumina platform: 1 for iSeq; 2 for NextSeq, NovaSeq,
+MiniSeq; 4 for HiSeq and MiSeq. 0 represents any other platform than
+Illumina.}
 
 \item{file2}{The input data file that contains 2 columns separated by
 a space or a tabulation, namely the sequence identifiers and
@@ -86,7 +88,7 @@ redundancy is minimized (see details in
 write.table(DNABarcodeCompatibility::IlluminaIndexesRaw,
 txtfile <- tempfile(), row.names = FALSE, col.names = FALSE, quote=FALSE)
 experiment_design(file1=txtfile, sample_number=18, mplex_level=3,
-chemistry=4)
+platform=4)
 
 
 }

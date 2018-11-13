@@ -13,7 +13,7 @@ of homopolymers.}
 
 \item{combinations_m}{A matrix of compatible barcode combinations.}
 
-\item{metric}{The type of distance (hamming or seqlev).}
+\item{metric}{The type of distance (hamming or seqlev or phaseshift).}
 
 \item{d}{The minimum value of the distance.}
 }
