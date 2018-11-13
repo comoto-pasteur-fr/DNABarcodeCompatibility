@@ -1,2 +1,8 @@
+Changes in version 0.99.2 (2018-11-13)
++ New package features for the Shiny interface. Passed BioCheck 1.18 locally
+
+Changes in version 0.99.1 (2018-10-15)
++ Passed BioCheck 1.17 locally
+
 Changes in version 0.99.0 (2018-10-15)
-+ Prepared package for submission to Bioconductor repository
++ Prepared package for submission to Bioconductor repository (BioCheck 1.16)
