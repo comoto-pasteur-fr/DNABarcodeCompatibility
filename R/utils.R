@@ -27,6 +27,7 @@ globalVariables(
         "matchOcc",
         "pairID",
         "seqlev",
+        "phaseshift",
         "."
     )
 )
@@ -177,25 +178,26 @@ get_index_homopolymer = function(index) {
 
 
 sample_number_check = function (sample_number) {
-  if (is.na(sample_number)) {
-    display_message("you have to enter an integer value")
-    return(FALSE)
-  }
-  else if (sample_number != floor(sample_number)) {
-    display_message("you have to enter an integer value")
-    return(FALSE)
-  }
-  else if (sample_number < 2) {
-    display_message("You need at least 2 samples in order to use multiplexing")
-    return(FALSE)
-  } else if (sample_number > 1000) {
-    display_message("The sample number is too high,
-                    please enter a value under 1000")
-    return(FALSE)
-  }
-  else{
-    return(TRUE)
-  }
+    if (is.na(sample_number)) {
+        display_message("you have to enter an integer value")
+        return(FALSE)
+    }
+    else if (sample_number != floor(sample_number)) {
+        display_message("you have to enter an integer value")
+        return(FALSE)
+    }
+    else if (sample_number < 2) {
+        display_message("You need at least 2 samples in order to
+                        use multiplexing")
+        return(FALSE)
+    } else if (sample_number > 1000) {
+        display_message("The sample number is too high,
+                        please enter a value under 1000")
+        return(FALSE)
+    }
+    else {
+        return(TRUE)
+    }
 }
 
 
@@ -586,9 +588,9 @@ get_all_combinations_1_channel = function(index_df, mplex_level) {
 }
 #get all combination for other platform than Illumina (no constraint)
 get_all_combinations_0_channel = function(index_df, mplex_level) {
-  list_of_all_combinations  = combn(x = index_df$Id, m = mplex_level) %>% 
-    t()
-  return(list_of_all_combinations)
+    list_of_all_combinations  = combn(x = index_df$Id, m = mplex_level) %>% 
+        t()
+    return(list_of_all_combinations)
 }
 
 # For a random search
@@ -668,24 +670,22 @@ get_random_combinations_1_channel = function (index_df, mplex_level) {
 }
 
 get_random_combinations_0_channel = function (index_df, mplex_level) {
-  
-  list_of_good_combs = matrix(nrow = 1000, ncol = mplex_level)
-  for (i in seq(1,1000)) {
-    combination = index_df[sample(
-      x = seq(1,nrow(index_df)),
-      size = (mplex_level),
-      replace = FALSE
-    ), ]
+    list_of_good_combs = matrix(nrow = 1000, ncol = mplex_level)
+        for (i in seq(1,1000)) {
+            combination = index_df[sample(
+                x = seq(1,nrow(index_df)),
+                size = (mplex_level),
+                replace = FALSE
+            ), ]
+            
+            combination = arrange(combination, Id) 
+            list_of_good_combs [i, ] = combination$Id
+        }
+    M = list_of_good_combs %>% unique()
+    #facilitates the distance filter
     
-      combination = arrange(combination, Id) 
-      list_of_good_combs [i, ] = combination$Id
-    
-  }
-  M = list_of_good_combs %>% unique()
-  #facilitates the distance filter
-  
-  M = M[order(M[, 1]), ]
-  return (M)
+    M = M[order(M[, 1]), ]
+    return (M)
 }
 
 
@@ -751,13 +751,13 @@ low_seqlev_distance = function(index_df, index_distance_df, d) {
 
 #couples with phaseshift distance under threshold
 low_phaseshift_distance = function(index_df, index_distance_df, d) {
-  i_d = index_distance_df %>% filter(phaseshift < d)
-  i_d = i_d %>% group_by(n) %>% 
-    # matches the sequence to the id
-    mutate(Id1 = index_df$Id[which(V1 == index_df$sequence)],
-           Id2 = index_df$Id[which(V2 == index_df$sequence)]) 
-  low_distance_tab = i_d %>% ungroup() %>% select(Id1, Id2)
-  return(low_distance_tab)
+    i_d = index_distance_df %>% filter(phaseshift < d)
+    i_d = i_d %>% group_by(n) %>% 
+        # matches the sequence to the id
+        mutate( Id1 = index_df$Id[which(V1 == index_df$sequence)],
+                Id2 = index_df$Id[which(V2 == index_df$sequence)]) 
+    low_distance_tab = i_d %>% ungroup() %>% select(Id1, Id2)
+    return(low_distance_tab)
 }
 
 
@@ -934,52 +934,52 @@ recursive_entropy = function(combination_m,
 
 
 # gets the result
-get_result = function (index_df,
-                       sample_number,
-                       mplex_level,
-                       platform,
-                       metric = NULL,
-                       d = 3,
-                       thrs_size_comb = 120,
-                       max_iteration = 50,
-                       method = "greedy_exchange") {
-  
-  
-  combinations_m = get_combinations(index_df, mplex_level, platform)
-  if (!is.null(metric)) {
-    combinations_m = distance_filter (index_df, combinations_m, metric, d)
-  }
-  if(!is.null(combinations_m)){
-    if (sample_number ==  mplex_level){
-      result = combinations_m[sample(1:nrow(combinations_m), 1),]
-      result = data.frame(Id = result,
-                          Lane = (rep(
-                            seq(1,1),
-                            length.out = sample_number,
-                            each = mplex_level
-                          )))
-      result$Id = as.character(result$Id)
-      return (result)
-    }else{
-      nb_lane = sample_number %>% as.numeric() / mplex_level %>% as.numeric()
-      index_number = nrow(index_df)
-      cb = optimize_combinations(combinations_m,
-                                 nb_lane,
-                                 index_number,
-                                 thrs_size_comb,
-                                 max_iteration,
-                                 method) %>% as.data.frame()
-      result = data.frame(Id = as.vector(cb %>% t() %>% as.vector),
-                          Lane = (rep(
-                            seq(1,nb_lane),
-                            length.out = sample_number,
-                            each = mplex_level
-                          )))
-      result$Id = as.character(result$Id)
-      return(result)}
-  } else {
-    return(NULL)
-  }
+get_result = function ( index_df,
+                        sample_number,
+                        mplex_level,
+                        platform,
+                        metric = NULL,
+                        d = 3,
+                        thrs_size_comb = 120,
+                        max_iteration = 50,
+                        method = "greedy_exchange") {
+    
+    combinations_m = get_combinations(index_df, mplex_level, platform)
+    if (!is.null(metric)) {
+        combinations_m = distance_filter (index_df, combinations_m, metric, d)
+    }
+    if(!is.null(combinations_m)){
+        if (sample_number ==  mplex_level){
+            result = combinations_m[sample(seq(1,nrow(combinations_m)), 1),]
+            result = data.frame(Id = result,
+                                Lane = (rep(
+                                    seq(1,1),
+                                    length.out = sample_number,
+                                    each = mplex_level
+                                )))
+            result$Id = as.character(result$Id)
+            return (result)
+        }else{
+            nb_lane = sample_number %>% 
+                as.numeric() / mplex_level %>% as.numeric()
+            index_number = nrow(index_df)
+            cb = optimize_combinations(combinations_m,
+                                        nb_lane,
+                                        index_number,
+                                        thrs_size_comb,
+                                        max_iteration,
+                                        method) %>% as.data.frame()
+            result = data.frame(Id = as.vector(cb %>% t() %>% as.vector),
+                                Lane = (rep(
+                                    seq(1,nb_lane),
+                                    length.out = sample_number,
+                                    each = mplex_level
+                                )))
+            result$Id = as.character(result$Id)
+            return(result)}
+    } else {
+        return(NULL)
+    }
 }
 
 
@@ -1068,69 +1068,71 @@ final_result = function(index_df,
     
     result1 = left_join(result1, select(index_df, Id, sequence), by = "Id")
     return (result1)
-    }else{
-      return(NULL)
+    } else {
+        return(NULL)
     }
 }
 
 
 
-final_result_dual = function(index_df_1,
-                             index_df_2,
-                             sample_number,
-                             mplex_level,
-                             platform = 4,
-                             metric = NULL,
-                             d = 3,
-                             thrs_size_comb = 120,
-                             max_iteration = 50,
-                             method = "greedy_exchange") {
-  result1 = get_result(
-    index_df_1,
-    sample_number,
-    mplex_level,
-    platform,
-    metric,
-    d,
-    thrs_size_comb,
-    max_iteration,
-    method
-  )
-  print(result1)
-  result2 = get_result(
-    index_df_2,
-    sample_number,
-    mplex_level,
-    platform,
-    metric,
-    d,
-    thrs_size_comb,
-    max_iteration,
-    method
-  )
-  print(result2)
-  if(!is.null(result1) && !is.null(result2)){
-    result2 = check_for_duplicate(result1, result2)
-    
-    result1 = left_join(result1, select(index_df_1, Id, sequence), by = "Id")
+final_result_dual = function(   index_df_1,
+                                index_df_2,
+                                sample_number,
+                                mplex_level,
+                                platform = 4,
+                                metric = NULL,
+                                d = 3,
+                                thrs_size_comb = 120,
+                                max_iteration = 50,
+                                method = "greedy_exchange") {
+    result1 = get_result(
+        index_df_1,
+        sample_number,
+        mplex_level,
+        platform,
+        metric,
+        d,
+        thrs_size_comb,
+        max_iteration,
+        method
+    )
     print(result1)
-    result2 = left_join(result2, select(index_df_2, Id, sequence), by = "Id")
+    result2 = get_result(
+        index_df_2,
+        sample_number,
+        mplex_level,
+        platform,
+        metric,
+        d,
+        thrs_size_comb,
+        max_iteration,
+        method
+    )
     print(result2)
-    result = data.frame(
-      sample = seq(1,sample_number) %>% as.numeric(),
-      Lane = result1$Lane %>% as.character(),
-      Id1 = result1$Id %>% as.character(),
-      sequence1 = result1$sequence %>% as.character(),
-      Id2 = result2$Id %>% as.character(),
-      sequence2 = result2$sequence %>% as.character(),
-      stringsAsFactors = FALSE
-    ) %>% arrange(sample)
-    result$sample = as.character(result$sample)
-    return(result)
-  } else {
-    return(NULL)
-  }
-  
+    if(!is.null(result1) && !is.null(result2)){
+        result2 = check_for_duplicate(result1, result2)
+        result1 = left_join(result1,
+                            select(index_df_1, Id, sequence),
+                            by = "Id")
+        print(result1)
+        result2 = left_join(result2,
+                            select(index_df_2, Id, sequence),
+                            by = "Id")
+        print(result2)
+        result = data.frame(
+            sample = seq(1,sample_number) %>% as.numeric(),
+            Lane = result1$Lane %>% as.character(),
+            Id1 = result1$Id %>% as.character(),
+            sequence1 = result1$sequence %>% as.character(),
+            Id2 = result2$Id %>% as.character(),
+            sequence2 = result2$sequence %>% as.character(),
+            stringsAsFactors = FALSE
+        ) %>% arrange(sample)
+        result$sample = as.character(result$sample)
+        return(result)
+    } else {
+        return(NULL)
+    }
 }
 
 

@@ -28,7 +28,7 @@ Be aware that the total number of combinations may become prohibitively
 large for large barcode sets and large multiplexing numbers.
 }
 \examples{
-get_all_combinations(DNABarcodeCompatibility::IlluminaIndexes, 3, 4)
+get_all_combinations(DNABarcodeCompatibility::IlluminaIndexes, 2, 4)
 
 
 }

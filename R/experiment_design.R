@@ -108,15 +108,15 @@ experiment_design = function (
                 sample_number,
                 mplex_level) == TRUE) {
                 # print("mlx and sample ok")
-              result1 = final_result( index_df = index_df_1, 
-                                      sample_number = sample_number, 
-                                      mplex_level = mplex_level ,
-                                      platform = platform,
-                                      metric = metric,
-                                      d = d,
-                                      thrs_size_comb = thrs_size_comb,
-                                      max_iteration = max_iteration,
-                                      method = method)
+                result1 = final_result( index_df = index_df_1, 
+                                        sample_number = sample_number, 
+                                        mplex_level = mplex_level ,
+                                        platform = platform,
+                                        metric = metric,
+                                        d = d,
+                                        thrs_size_comb = thrs_size_comb,
+                                        max_iteration = max_iteration,
+                                        method = method)
                 if (!is.null(export)) {
                     write.csv2(result1, file = export)
                 }
@@ -128,25 +128,23 @@ experiment_design = function (
             stop("An error occured on the first file")
         }
     } else{
-      index_df_1 = file_loading_and_checking(file1)
-        if (!is.null(index_df_1)) {
-          index_df_2 = file_loading_and_checking(file2)
-            if (!is.null(index_df_2)) {
-                if (sample_and_multiplexing_level_check(
-                    sample_number,
-                    mplex_level)) {
-                  
-                  result = final_result_dual(index_df_1 = index_df_1,
-                                             index_df_2 = index_df_2,
-                                             sample_number = sample_number,
-                                             mplex_level =   mplex_level,
-                                             platform = platform,
-                                             metric = metric,
-                                             d = d,
-                                             thrs_size_comb = thrs_size_comb,
-                                             max_iteration = max_iteration,
-                                             method = method)
-                    
+        index_df_1 = file_loading_and_checking(file1)
+            if (!is.null(index_df_1)) {
+                index_df_2 = file_loading_and_checking(file2)
+                if (!is.null(index_df_2)) {
+                    if (sample_and_multiplexing_level_check(
+                        sample_number,
+                        mplex_level)) {
+                result = final_result_dual(index_df_1 = index_df_1,
+                                            index_df_2 = index_df_2,
+                                            sample_number = sample_number,
+                                            mplex_level =   mplex_level,
+                                            platform = platform,
+                                            metric = metric,
+                                            d = d,
+                                            thrs_size_comb = thrs_size_comb,
+                                            max_iteration = max_iteration,
+                                            method = method)
                     
                     if (!is.null(export)) {
                         write.csv2(result, file = export)

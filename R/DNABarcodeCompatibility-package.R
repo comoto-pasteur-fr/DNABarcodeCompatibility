@@ -21,5 +21,6 @@
 #' @import numbers
 #' @import purrr
 #' @import stringr
+#' @import methods
 #' @import DNABarcodes
 NULL
