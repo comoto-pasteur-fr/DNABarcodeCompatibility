@@ -78,7 +78,7 @@ optimize_combinations = function (combination_m,
                                 method = "greedy_exchange") {
     # browser()
     if (nrow(as.matrix(combination_m)) == 0) {
-        display_message("No combinations have been found")
+        display_message("No combination have been found")
     } else {
         if (is.numeric(index_number)) {
             if (is.numeric(nb_lane)) {

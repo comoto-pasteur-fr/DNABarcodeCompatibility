@@ -11,7 +11,7 @@
 #' DNA-barcode population and of the number of samples to be multiplexed.
 #'
 #' @usage
-#' experiment_design(file1, sample_number, mplex_level, chemistry = 4,
+#' experiment_design(file1, sample_number, mplex_level, platform = 4,
 #' file2 = NULL, export = NULL, metric = NULL, d = 3, thrs_size_comb,
 #' max_iteration, method)
 #'
@@ -23,7 +23,7 @@
 #' @param file2 The input data file that contains 2 columns separated by
 #' a space or a tabulation, namely the sequence identifiers and
 #' corresponding DNA sequence; used for dual-indexing.
-#' @param chemistry An integer representing the number of channels (1, 2, 4)
+#' @param platform An integer representing the number of channels (1, 2, 4)
 #' of the desired Illumina platform.
 #' @param export If not NULL, results are saved in a csv file at the
 #' specified path.
@@ -76,7 +76,7 @@
 #' write.table(DNABarcodeCompatibility::IlluminaIndexesRaw,
 #' txtfile <- tempfile(), row.names = FALSE, col.names = FALSE, quote=FALSE)
 #' experiment_design(file1=txtfile, sample_number=18, mplex_level=3,
-#' chemistry=4)
+#' platform=4)
 #'
 #'
 #' @importFrom stats na.omit
@@ -90,7 +90,7 @@ experiment_design = function (
     file1,
     sample_number,
     mplex_level,
-    chemistry = 4,
+    platform = 4,
     file2 = NULL,
     export = NULL,
     metric = NULL,
@@ -100,14 +100,21 @@ experiment_design = function (
     method = "greedy_exchange") {
     
     if (is.null(file2)) {
-        file1  = file_loading_and_checking(file1)
-        if (!is.null(file1)) {
+        index_df_1  = file_loading_and_checking(file1)
+        if (!is.null(index_df_1)) {
             if (sample_and_multiplexing_level_check(
                 sample_number,
                 mplex_level) == TRUE) {
                 # print("mlx and sample ok")
-                result1 = final_result(file1, sample_number, 
-                                        mplex_level, chemistry, metric, d)
+              result1 = final_result( index_df = index_df_1, 
+                                      sample_number = sample_number, 
+                                      mplex_level = mplex_level ,
+                                      platform = platform,
+                                      metric = metric,
+                                      d = d,
+                                      thrs_size_comb = thrs_size_comb,
+                                      max_iteration = max_iteration,
+                                      method = method)
                 if (!is.null(export)) {
                     write.csv2(result1, file = export)
                 }
@@ -119,47 +126,28 @@ experiment_design = function (
             stop("An error occured on the first file")
         }
     } else{
-        file1 = file_loading_and_checking(file1)
-        if (!is.null(file1)) {
-            file2 = file_loading_and_checking(file2)
-            if (!is.null(file2)) {
+      index_df_1 = file_loading_and_checking(file1)
+        if (!is.null(index_df_1)) {
+          index_df_2 = file_loading_and_checking(file2)
+            if (!is.null(index_df_2)) {
                 if (sample_and_multiplexing_level_check(
                     sample_number,
                     mplex_level)) {
-                    result1 = get_result(file1,
-                                        sample_number,
-                                        mplex_level,
-                                        chemistry,
-                                        metric,
-                                        d)
-                    result2 = get_result(file2,
-                                        sample_number,
-                                        mplex_level,
-                                        chemistry,
-                                        metric,
-                                        d)
-                    result2 = check_for_duplicate(result1, result2)
-
-                    result1 = left_join(result1,
-                                        select(file1, Id, sequence),
-                                        by = "Id")
-                    # print(result1)
-                    result2 = left_join(result2,
-                                        select(file2, Id, sequence),
-                                        by = "Id")
-                    # print(result2)
-                    result = data.frame(
-                        sample = seq(1,sample_number) %>% as.character(),
-                        Lane = result1$Lane %>% as.character(),
-                        Id1 = result1$Id %>% as.character(),
-                        sequence1 = result1$sequence %>% as.character(),
-                        Id2 = result2$Id %>% as.character(),
-                        sequence2 = result2$sequence %>% as.character()
-                    ) %>%
-                        arrange(Lane)
+                  
+                  result = final_result_dual(index_df_1 = index_df_1,
+                                             index_df_2 = index_df_2,
+                                             sample_number = sample_number,
+                                             mplex_level =   mplex_level,
+                                             platform = platform,
+                                             metric = metric,
+                                             d = d,
+                                             thrs_size_comb = thrs_size_comb,
+                                             max_iteration = max_iteration,
+                                             method = method)
+                    
                     
                     if (!is.null(export)) {
-                        write.csv2(result1, file = export)
+                        write.csv2(result, file = export)
                     }
                     return(result)
                 } else{

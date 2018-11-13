@@ -115,7 +115,7 @@ character_and_length_check = function(index) {
     c_check =  sequences_character_check(index$sequence)
     if (length (which(c_check == FALSE)) > 0) {
         display_message(paste(
-            "Your sequence contains a wrong charater, row number : ",
+            "Your sequence contains a wrong character, row number : ",
             which(c_check == FALSE)
         ))
         return(FALSE)
@@ -177,38 +177,25 @@ get_index_homopolymer = function(index) {
 
 
 sample_number_check = function (sample_number) {
-    # if (!try(x = sample_number, silent = TRUE) ){
-    #   print("you have to enter an integer value")
-    #   return(FALSE)
-    # }
-    # if (!exists(deparse(substitute(sample_number)))) {
-    #   display_message("you have to enter an integer value1")
-    #   return(FALSE)
-    # }
-    # else
-    if (sample_number != floor(sample_number)) {
-        display_message("you have to enter an integer value2")
-        return(FALSE)
-    }
-    else if (is.na(sample_number)) {
-        display_message("you have to enter an integer value3")
-        return(FALSE)
-    }
-    # else if (isPrime(sample_number)) {
-    #   display_message("this a prime number, you can't use multiplexing")
-    #   return(FALSE)
-    # }
-    else if (sample_number < 2) {
-        message("You need at least 2 samples in order to use multiplexing !")
-        return(FALSE)
-    } else if (sample_number > 1000) {
-        display_message("The sample number number is to high,
+  if (is.na(sample_number)) {
+    display_message("you have to enter an integer value")
+    return(FALSE)
+  }
+  else if (sample_number != floor(sample_number)) {
+    display_message("you have to enter an integer value")
+    return(FALSE)
+  }
+  else if (sample_number < 2) {
+    display_message("You need at least 2 samples in order to use multiplexing")
+    return(FALSE)
+  } else if (sample_number > 1000) {
+    display_message("The sample number is too high,
                     please enter a value under 1000")
-        return(FALSE)
-    }
-    else{
-        return(TRUE)
-    }
+    return(FALSE)
+  }
+  else{
+    return(TRUE)
+  }
 }
 
 
@@ -241,26 +228,7 @@ sample_and_multiplexing_level_check = function(sample_number, mplex_level) {
 
 
 
-# Binary conversion -------------------------------------------------------
-
-# function used for the traduction of the nucleotide sequences into binary
-# sequences according to the chemistry
-# index_binary_conversion = function(index_df, chemistry){
-#   if (chemistry == 4 ){
-#     index_df = index_binary_conversion_4_channel(index_df)
-#   } else if (chemistry == 2){
-#     index_df = index_binary_conversion_2_channel(index_df)
-#   } else if (chemistry == 1){
-#     index_df = index_binary_conversion_1_channel(index_df)
-#   } else {
-#     display_message("Please choose a correct chemistry for your experiment")
-#   }
-#   return (index_df)
-# }
-
-
-
-# sequence traduction for a 4_channel chemistry :
+# sequence traduction for a 4_channel platform :
 sequence_binary_conversion_4_channel = function(sequence) {
     binary_sequence =
         toupper(sequence) %>%
@@ -271,7 +239,7 @@ sequence_binary_conversion_4_channel = function(sequence) {
 
 
 
-# index traduction for a 4_channel chemistry :
+# index traduction for a 4_channel platform :
 index_binary_conversion_4_channel = function(index) {
     index = index %>% 
         mutate (binary_4 = sequence_binary_conversion_4_channel(sequence))
@@ -280,7 +248,7 @@ index_binary_conversion_4_channel = function(index) {
 
 
 
-# sequence traduction for a 2_channel chemistry for image 1 :
+# sequence traduction for a 2_channel platform for image 1 :
 sequence_binary_conversion_2_channel_1 = function(sequence) {
     binary_sequence =
         toupper(sequence) %>%
@@ -291,7 +259,7 @@ sequence_binary_conversion_2_channel_1 = function(sequence) {
 
 
 
-# sequence traduction for a 2_channel chemistry for image 2 :
+# sequence traduction for a 2_channel platform for image 2 :
 sequence_binary_conversion_2_channel_2 = function(sequence) {
     binary_sequence =
         toupper(sequence) %>%
@@ -302,7 +270,7 @@ sequence_binary_conversion_2_channel_2 = function(sequence) {
 
 
 
-# index traduction for a 2_channel chemistry :
+# index traduction for a 2_channel platform :
 index_binary_conversion_2_channel = function(index) {
     index = index %>% 
         mutate (
@@ -314,7 +282,7 @@ index_binary_conversion_2_channel = function(index) {
 
 
 
-# sequence traduction for a 1_channel chemistry for image 1 :
+# sequence traduction for a 1_channel platform for image 1 :
 sequence_binary_conversion_1_channel_1 = function(sequence) {
     binary_sequence =
         toupper(sequence) %>%
@@ -325,7 +293,7 @@ sequence_binary_conversion_1_channel_1 = function(sequence) {
 
 
 
-# sequence traduction for a 1_channel chemistry for image 2 :
+# sequence traduction for a 1_channel platform for image 2 :
 sequence_binary_conversion_1_channel_2 = function(sequence) {
     binary_sequence =
         toupper(sequence) %>%
@@ -542,7 +510,7 @@ matrix_id_to_1_channel_image_2_binary_sequence = function(matrix_id, index_df){
 
 
 
-# get all compatible combinations of an index for 4_channel chemistry
+# get all compatible combinations of an index for 4_channel platform
 get_all_combinations_4_channel = function(index_df, mplex_level) {
     index_df = index_binary_conversion_4_channel(index_df)
     index_df = index_df %>% arrange(Id)
@@ -557,7 +525,7 @@ get_all_combinations_4_channel = function(index_df, mplex_level) {
 
 
 
-# get all compatible combinations of an index for 2_channel chemistry
+# get all compatible combinations of an index for 2_channel platform
 get_all_combinations_2_channel = function(index_df, mplex_level) {
     index_df = index_binary_conversion_2_channel(index_df)
     index_df = index_df %>% arrange(Id)
@@ -588,7 +556,7 @@ get_all_combinations_2_channel = function(index_df, mplex_level) {
 
 
 
-# get all compatible combinations of an index for 1_channel chemistry
+# get all compatible combinations of an index for 1_channel platform
 get_all_combinations_1_channel = function(index_df, mplex_level) {
     index_df = index_binary_conversion_1_channel(index_df)
     index_df = index_df %>% arrange(Id)
@@ -616,8 +584,12 @@ get_all_combinations_1_channel = function(index_df, mplex_level) {
     
     return(list_of_all_combinations)
 }
-
-
+#get all combination for other platform than Illumina (no constraint)
+get_all_combinations_0_channel = function(index_df, mplex_level) {
+  list_of_all_combinations  = combn(x = index_df$Id, m = mplex_level) %>% 
+    t()
+  return(list_of_all_combinations)
+}
 
 # For a random search
 get_random_combinations_4_channel = function (index_df, mplex_level) {
@@ -695,14 +667,35 @@ get_random_combinations_1_channel = function (index_df, mplex_level) {
     return (M)
 }
 
+get_random_combinations_0_channel = function (index_df, mplex_level) {
+  
+  list_of_good_combs = matrix(nrow = 1000, ncol = mplex_level)
+  for (i in seq(1,1000)) {
+    combination = index_df[sample(
+      x = seq(1,nrow(index_df)),
+      size = (mplex_level),
+      replace = FALSE
+    ), ]
+    
+      combination = arrange(combination, Id) 
+      list_of_good_combs [i, ] = combination$Id
+    
+  }
+  M = list_of_good_combs %>% unique()
+  #facilitates the distance filter
+  
+  M = M[order(M[, 1]), ]
+  return (M)
+}
+
 
 
 # gets the rights combinations according to the number of possible combinations
-get_combinations = function (index_df, mplex_level, chemistry){
+get_combinations = function (index_df, mplex_level, platform){
     if (choose(nrow(index_df),mplex_level) <= 2024 || mplex_level == 2){
-        return(get_all_combinations(index_df, mplex_level, chemistry))
+        return(get_all_combinations(index_df, mplex_level, platform))
     } else {
-        return(get_random_combinations(index_df, mplex_level, chemistry))
+        return(get_random_combinations(index_df, mplex_level, platform))
     }
 }
 
@@ -723,7 +716,8 @@ index_distance = function (index_df) {
         mutate(n = seq(1,nrow(index_distance_df)))
     index_distance_df = index_distance_df %>% group_by(n) %>% mutate (
         hamming = distance(V1, V2, metric = "hamming"),
-        seqlev = distance (V1, V2, metric = "seqlev")
+        seqlev = distance (V1, V2, metric = "seqlev"),
+        phaseshift = distance(V1, V2, metric = "phaseshift")
     )
     return(index_distance_df)
 }
@@ -753,6 +747,17 @@ low_seqlev_distance = function(index_df, index_distance_df, d) {
                 Id2 = index_df$Id[which(V2 == index_df$sequence)]) 
     low_distance_tab = i_d %>% ungroup() %>% select(Id1, Id2)
     return(low_distance_tab)
+}
+
+#couples with phaseshift distance under threshold
+low_phaseshift_distance = function(index_df, index_distance_df, d) {
+  i_d = index_distance_df %>% filter(phaseshift < d)
+  i_d = i_d %>% group_by(n) %>% 
+    # matches the sequence to the id
+    mutate(Id1 = index_df$Id[which(V1 == index_df$sequence)],
+           Id2 = index_df$Id[which(V2 == index_df$sequence)]) 
+  low_distance_tab = i_d %>% ungroup() %>% select(Id1, Id2)
+  return(low_distance_tab)
 }
 
 
@@ -930,35 +935,51 @@ recursive_entropy = function(combination_m,
 
 # gets the result
 get_result = function (index_df,
-                        sample_number,
-                        mplex_level,
-                        chemistry,
-                        metric = NULL,
-                        d = 3,
-                        thrs_size_comb = 120,
-                        max_iteration = 50,
-                        method = "greedy_exchange") {
-    # browser()
-    combinations_m = get_combinations(index_df, mplex_level, chemistry)
-    if (!is.null(metric)) {
-        combinations_m = distance_filter (index_df, combinations_m, metric, d)
-    }
-    nb_lane = sample_number %>% as.numeric() / mplex_level %>% as.numeric()
-    index_number = nrow(index_df)
-    cb = optimize_combinations(combinations_m,
-                                nb_lane,
-                                index_number,
-                                thrs_size_comb,
-                                max_iteration,
-                                method) %>% as.data.frame()
-    result = data.frame(Id = as.vector(cb %>% t() %>% as.vector),
-                        Lane = (rep(
+                       sample_number,
+                       mplex_level,
+                       platform,
+                       metric = NULL,
+                       d = 3,
+                       thrs_size_comb = 120,
+                       max_iteration = 50,
+                       method = "greedy_exchange") {
+  
+  
+  combinations_m = get_combinations(index_df, mplex_level, platform)
+  if (!is.null(metric)) {
+    combinations_m = distance_filter (index_df, combinations_m, metric, d)
+  }
+  if(!is.null(combinations_m)){
+    if (sample_number ==  mplex_level){
+      result = combinations_m[sample(1:nrow(combinations_m), 1),]
+      result = data.frame(Id = result,
+                          Lane = (rep(
+                            seq(1,1),
+                            length.out = sample_number,
+                            each = mplex_level
+                          )))
+      result$Id = as.character(result$Id)
+      return (result)
+    }else{
+      nb_lane = sample_number %>% as.numeric() / mplex_level %>% as.numeric()
+      index_number = nrow(index_df)
+      cb = optimize_combinations(combinations_m,
+                                 nb_lane,
+                                 index_number,
+                                 thrs_size_comb,
+                                 max_iteration,
+                                 method) %>% as.data.frame()
+      result = data.frame(Id = as.vector(cb %>% t() %>% as.vector),
+                          Lane = (rep(
                             seq(1,nb_lane),
                             length.out = sample_number,
                             each = mplex_level
-                        )))
-    result$Id = as.character(result$Id)
-    return(result)
+                          )))
+      result$Id = as.character(result$Id)
+      return(result)}
+  } else {
+    return(NULL)
+  }
 }
 
 
@@ -974,7 +995,6 @@ get_result = function (index_df,
 # impact variant calling or assignment of gene expression counts.
 check_for_duplicate = function(result1, result2) {
     check = data.frame(Id1 = result1$Id, Id2 = result2$Id)
-    # print(check)
     if (anyDuplicated(check) != 0) {
         d = anyDuplicated(check)
         for (i in seq(1,length(d))) {
@@ -994,7 +1014,6 @@ check_for_duplicate = function(result1, result2) {
             }
             result = bind_rows(lane_to_change, lanes_to_keep) %>% arrange(Lane)
         }
-        # print(result2)
         return (result)
     } else{
         return (result2)
@@ -1021,7 +1040,7 @@ is_a_prime_number = function (sample_number) {
 final_result = function(index_df,
                         sample_number,
                         mplex_level,
-                        chemistry,
+                        platform,
                         metric,
                         d,
                         thrs_size_comb = 120,
@@ -1031,75 +1050,87 @@ final_result = function(index_df,
         index_df,
         sample_number,
         mplex_level,
-        chemistry,
+        platform,
         metric,
         d,
         thrs_size_comb,
         max_iteration,
         method
     )
+    
+    if(!is.null(result1)){
     result1 = data.frame(
         sample = seq(1,sample_number) %>% as.character(),
         Lane = result1$Lane %>% as.character(),
         Id = result1$Id %>% as.character(),
         stringsAsFactors = FALSE
     )
+    
     result1 = left_join(result1, select(index_df, Id, sequence), by = "Id")
     return (result1)
+    }else{
+      return(NULL)
+    }
 }
 
 
 
 final_result_dual = function(index_df_1,
-                            index_df_2,
-                            sample_number,
-                            mplex_level,
-                            chemistry = 4,
-                            metric = NULL,
-                            d = 3,
-                            thrs_size_comb = 120,
-                            max_iteration = 50,
-                            method = "greedy_exchange") {
-    result1 = get_result(
-        index_df_1,
-        sample_number,
-        mplex_level,
-        chemistry,
-        metric,
-        d,
-        thrs_size_comb,
-        max_iteration,
-        method
-    )
-    result2 = get_result(
-        index_df_2,
-        sample_number,
-        mplex_level,
-        chemistry,
-        metric,
-        d,
-        thrs_size_comb,
-        max_iteration,
-        method
-    )
+                             index_df_2,
+                             sample_number,
+                             mplex_level,
+                             platform = 4,
+                             metric = NULL,
+                             d = 3,
+                             thrs_size_comb = 120,
+                             max_iteration = 50,
+                             method = "greedy_exchange") {
+  result1 = get_result(
+    index_df_1,
+    sample_number,
+    mplex_level,
+    platform,
+    metric,
+    d,
+    thrs_size_comb,
+    max_iteration,
+    method
+  )
+  print(result1)
+  result2 = get_result(
+    index_df_2,
+    sample_number,
+    mplex_level,
+    platform,
+    metric,
+    d,
+    thrs_size_comb,
+    max_iteration,
+    method
+  )
+  print(result2)
+  if(!is.null(result1) && !is.null(result2)){
     result2 = check_for_duplicate(result1, result2)
     
     result1 = left_join(result1, select(index_df_1, Id, sequence), by = "Id")
-    # print(result1)
+    print(result1)
     result2 = left_join(result2, select(index_df_2, Id, sequence), by = "Id")
-    # print(result2)
+    print(result2)
     result = data.frame(
-        sample = seq(1,sample_number) %>% as.numeric(),
-        Lane = result1$Lane %>% as.character(),
-        Id1 = result1$Id %>% as.character(),
-        sequence1 = result1$sequence %>% as.character(),
-        Id2 = result2$Id %>% as.character(),
-        sequence2 = result2$sequence %>% as.character(),
-        stringsAsFactors = FALSE
+      sample = seq(1,sample_number) %>% as.numeric(),
+      Lane = result1$Lane %>% as.character(),
+      Id1 = result1$Id %>% as.character(),
+      sequence1 = result1$sequence %>% as.character(),
+      Id2 = result2$Id %>% as.character(),
+      sequence2 = result2$sequence %>% as.character(),
+      stringsAsFactors = FALSE
     ) %>% arrange(sample)
     result$sample = as.character(result$sample)
     return(result)
-    
+  } else {
+    return(NULL)
+  }
+  
 }
 
 
