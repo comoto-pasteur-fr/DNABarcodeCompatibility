@@ -33,11 +33,12 @@ globalVariables(
 
 
 # Inputs ------------------------------------------------------------------
-index_env <- new.env() # ?bindenv() for help
+#index_env <- new.env() # ?bindenv() for help
 read_index = function(file) {
     if (!file.exists(file)) {
         display_message("Your file doesn't exist, please check the path")
-        assign("index", NULL, envir = index_env) #index <<- NULL
+        return(NULL)
+        #assign("index", NULL, envir = index_env) #index <<- NULL
     } else{
         input <- try(as.data.frame(
             read.table(
@@ -51,15 +52,17 @@ read_index = function(file) {
         ), silent = TRUE)
         if (exists("input")) {
             if (class(input) == "try-error") {
-                assign("index", NULL, envir = index_env) #index <<- NULL
+                #assign("index", NULL, envir = index_env) #index <<- NULL
                 display_message(
 "An error occurred, please check the content of your file")
+              return(NULL)
             } else {
-                assign("index", input, envir = index_env)
+               return(input) 
+              #assign("index", input, envir = index_env)
             }
         }
     }
-    return(input)
+    #return(input)
 }
 
 
