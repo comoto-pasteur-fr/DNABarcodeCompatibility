@@ -74,7 +74,12 @@ distance_filter = function(index_df, combinations_m, metric, d) {
             combinations_m,
             phaseshift_rejection_table)
         }
-        return (filtered_combinations_m)
+        if(nrow(filtered_combinations_m) < 1){
+          display_message("No combination feats your research criteria")
+          return(NULL)
+        }else {
+          return (filtered_combinations_m)
+        }
       } else{
         display_message("metric should be 'hamming',  'seqlev' or 'phaseshift'")
         return(NULL)
