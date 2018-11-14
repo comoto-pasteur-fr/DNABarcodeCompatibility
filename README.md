@@ -35,6 +35,9 @@ Documentation
 
 [API documentation](https://comoto-pasteur-fr.github.io/DNABarcodeCompatibility/DNABarcodeCompatibility-manual.pdf)
 
+[Simulations](https://comoto-pasteur-fr.github.io/DNABarcodeCompatibility/simulations.html)
+
+
 * Related tools:
 
 In addition, DNABarcodeCompatibility can be used from a graphical user interface. We now provide two alternative interfaces:
