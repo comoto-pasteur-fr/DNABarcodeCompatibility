@@ -948,7 +948,7 @@ get_result = function (index_df,
   if (!is.null(metric)) {
     combinations_m = distance_filter (index_df, combinations_m, metric, d)
   }
-  if(!is.null(combinations_m)){
+  if(!is.null(combinations_m) && nrow(combinations_m)> 0){
     if (sample_number ==  mplex_level){
       result = combinations_m[sample(1:nrow(combinations_m), 1),]
       result = data.frame(Id = result,
