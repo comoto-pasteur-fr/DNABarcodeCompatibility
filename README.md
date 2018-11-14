@@ -11,7 +11,7 @@ Installation
 ================
 
 * Requirements
-    + Install [R](https://www.r-project.org/) if not yet installed (R >= 3.2 is required).
+    + Install [R](https://www.r-project.org/) if not yet installed (R >= 3.4 is required).
 
 
 * Within a R console, type in the following commands:
@@ -35,11 +35,14 @@ Documentation
 
 [API documentation](https://comoto-pasteur-fr.github.io/DNABarcodeCompatibility/DNABarcodeCompatibility-manual.pdf)
 
+[Simulations](https://comoto-pasteur-fr.github.io/DNABarcodeCompatibility/simulations.html)
+
+
 * Related tools:
 
-In addition, DNABarcodeCompatibility can be used from a graphical user interface. We now provide two alternative interfaces:
+In addition, DNABarcodeCompatibility can be used from a graphical user interface. We now provide two different interfaces:
 
-1) [Java based graphical user interface](https://github.com/comoto-pasteur-fr/DNABarcodeCompatibility_GUI). In such a case, additional dependencies must be installed: [Java (JDK 8 - 64 bits)](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html) and `rJava` R-package (`install.packages("rJava")`).
+1) [Standalone Java-based graphical user interface](https://github.com/comoto-pasteur-fr/DNABarcodeCompatibility_GUI). In such a case, additional dependencies must be installed: [Java (JDK 8 - 64 bits)](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html) and `rJava` R-package (`install.packages("rJava")`).
 
 2) [Shiny web-based graphical user interface](https://github.com/comoto-pasteur-fr/DNABarcodeCompatibility_Shiny). This interface can be run locally within a web browser or deployed on a web server.
 
