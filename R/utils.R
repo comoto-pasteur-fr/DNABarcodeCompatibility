@@ -34,11 +34,12 @@ globalVariables(
 
 
 # Inputs ------------------------------------------------------------------
-index_env <- new.env() # ?bindenv() for help
+#index_env <- new.env() # ?bindenv() for help
 read_index = function(file) {
     if (!file.exists(file)) {
         display_message("Your file doesn't exist, please check the path")
-        assign("index", NULL, envir = index_env) #index <<- NULL
+        return(NULL)
+        #assign("index", NULL, envir = index_env) #index <<- NULL
     } else{
         input <- try(as.data.frame(
             read.table(
@@ -51,21 +52,22 @@ read_index = function(file) {
             )
         ), silent = TRUE)
         if (exists("input")) {
-            if (is(input)[1] == "try-error") {
-                assign("index", NULL, envir = index_env) #index <<- NULL
-                display_message("An error occurred,
-                        please check the content of your file")
+            if (class(input) == "try-error") {
+                #assign("index", NULL, envir = index_env) #index <<- NULL
+                display_message(
+"An error occurred, please check the content of your file")
+              return(NULL)
             } else {
-                assign("index", input, envir = index_env)
+               return(input) 
+              #assign("index", input, envir = index_env)
             }
         }
     }
-    return(input)
+    #return(input)
 }
 
 
 unicity_check = function(index) {
-    # index$sequence <<- toupper(index$sequence)
     index$sequence <- toupper(index$sequence)
     assign("index", index, envir = index_env)
     
@@ -1023,13 +1025,6 @@ check_for_duplicate = function(result1, result2) {
 
 
 
-
-
-
-# For java ----------------------------------------------------------------
-
-
-
 is_a_prime_number = function (sample_number) {
     result = isPrime(sample_number) %>% as.numeric()
     return(result)
@@ -1046,6 +1041,7 @@ final_result = function(index_df,
                         thrs_size_comb = 120,
                         max_iteration = 50,
                         method = "greedy_exchange") {
+  if (mplex_level<= nrow(index_df)){
     result1 = get_result(
         index_df,
         sample_number,
@@ -1056,7 +1052,11 @@ final_result = function(index_df,
         thrs_size_comb,
         max_iteration,
         method
-    )
+    )}else {
+      result1 = NULL
+      display_message(
+        "the number of barcodes is not sufficient for the multiplexing level")
+    }
     
     if(!is.null(result1)){
     result1 = data.frame(
