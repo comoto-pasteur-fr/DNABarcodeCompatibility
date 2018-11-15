@@ -32,6 +32,7 @@
 
 get_all_combinations = function(index_df, mplex_level, platform){
   if (is.numeric(mplex_level)){
+    combination_m = NULL
     if (platform == 4 ){
       combinations_m = get_all_combinations_4_channel(index_df,
                                                       mplex_level)
@@ -49,14 +50,16 @@ get_all_combinations = function(index_df, mplex_level, platform){
                             for your experiment ")
     }
     if(nrow(as.matrix(combinations_m)) == 0){
-      display_message("The programm didn't find any compatible 
-                            combination, please check your index list")
-      return (combinations_m)
+      display_message(paste("The programm didn't find any compatible", 
+                            "combination, please check your index list",
+                            "and your search parameters"))
+      return (NULL)
     }else{
       return (combinations_m)
     }
   }else{
     display_message("please enter a number as mplex_level")
+    return(NULL)
   }
   
 }
