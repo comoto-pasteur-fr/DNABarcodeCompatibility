@@ -8,7 +8,7 @@
 
 <meta name="author" content="Céline Trébeau, Jacques Boutet de Monvel, Fabienne Wong Jun Tai, Raphaël Etournay">
 
-<meta name="date" content="2018-11-13">
+<meta name="date" content="2018-11-16">
 
 <title>Introduction to DNABarcodeCompatibility</title>
 
@@ -67,7 +67,7 @@ h6 {
 
 <link href="data:text/css;charset=utf-8,body%20%7B%0Amargin%3A%200px%20auto%3B%0Amax%2Dwidth%3A%201134px%3B%0Afont%2Dfamily%3A%20sans%2Dserif%3B%0Afont%2Dsize%3A%2010pt%3B%0A%7D%0A%0Adiv%23TOC%20ul%20%7B%0Apadding%3A%200px%200px%200px%2045px%3B%0Alist%2Dstyle%3A%20none%3B%0Abackground%2Dimage%3A%20none%3B%0Abackground%2Drepeat%3A%20none%3B%0Abackground%2Dposition%3A%200%3B%0Afont%2Dsize%3A%2010pt%3B%0Afont%2Dfamily%3A%20Helvetica%2C%20Arial%2C%20sans%2Dserif%3B%0A%7D%0Adiv%23TOC%20%3E%20ul%20%7B%0Apadding%3A%200px%20150px%200px%2065px%3B%0Afont%2Dsize%3A%2012pt%3B%0A%7D%0Adiv%23TOC%20%3E%20ul%20%3E%20li%20%7B%0Apadding%3A%205px%200px%200px%200px%3B%0A%7D%0Adiv%23TOC%20ul%20ul%20%7B%0Afont%2Dsize%3A%2011pt%3B%0A%7D%0Adiv%23TOC%2Etocify%20ul%20%7B%0Apadding%3A%200px%3B%0Afont%2Dsize%3A%20inherit%3B%0Afont%2Dfamily%3A%20inherit%3B%0A%7D%0Adiv%23TOC%2Etocify%20li%20%7B%0Apadding%3A%205px%3B%0Afont%2Dsize%3A%20inherit%3B%0Afont%2Dfamily%3A%20inherit%3B%0A%7D%0Ap%2C%20dl%20%7B%0Apadding%3A%200px%20150px%200px%2065px%3B%0Atext%2Dalign%3A%20justify%3B%0A%7D%0A%0Ap%2C%20img%2C%20table%20%7B%0Amargin%2Dtop%3A%2010px%3B%0Amargin%2Dbottom%3A%2010px%3B%0A%7D%0A%0Aol%2C%20ul%20%7B%0Apadding%3A%200px%20150px%200px%20100px%3B%0Alist%2Dstyle%3A%20square%3B%0A%7D%0Ali%20ol%2C%20li%20ul%20%7B%0Apadding%3A%200px%200px%200px%2035px%3B%0A%7D%0Ali%20p%20%7B%0Apadding%3A%200%3B%0A%7D%0Apre%20%7B%0Amargin%3A%200em%20150px%200%2E5em%200em%3B%0Apadding%3A%200px%200px%200px%2065px%3B%0Aborder%3A%200px%20none%3B%0Abackground%2Dcolor%3A%20%23f0f0f0%3B%0Awhite%2Dspace%3A%20pre%3B%0Aoverflow%2Dx%3A%20auto%3B%0Afont%2Dsize%3A%2090%25%3B%0A%7D%0Ali%20pre%20%7B%0Amargin%3A%200em%200px%200%2E5em%20%2D65px%3B%0Apadding%3A%200px%200px%200px%2065px%3B%0A%7D%0Apre%20code%20%7B%0Abackground%2Dcolor%3A%20inherit%3B%0Adisplay%3A%20block%3B%0Apadding%3A%2010px%2010px%2010px%200px%3B%0Aoverflow%2Dx%3A%20inherit%3B%0Afont%2Dsize%3A%20100%25%3B%0A%7D%0A%0Apre%20code%5Bclass%5D%20%7B%0Abackground%2Dcolor%3A%20inherit%3B%0A%7D%0A%0Apre%5Bclass%5D%20code%20%7B%0Abackground%2Dcolor%3A%20inherit%3B%0A%7D%0Att%2C%20code%2C%20pre%20%7B%0Afont%2Dfamily%3A%20%27DejaVu%20Sans%20Mono%27%2C%20%27Droid%20Sans%20Mono%27%2C%20%27Lucida%20Console%27%2C%20Consolas%2C%20Monaco%2C%20monospace%3B%0A%7D%0Ah1%2C%20h2%2C%20h3%2C%20h4%2C%20h5%2C%20h6%20%7B%20font%2Dfamily%3A%20Helvetica%2C%20Arial%2C%20sans%2Dserif%3B%0Amargin%3A%201%2E2em%20150px%200%2E6em%200em%3B%0A%0Apadding%2Dleft%3A%2065px%3B%0Atext%2Dindent%3A%20%2D65px%3B%0A%7D%0Ah1%2Etitle%20%7B%0Acolor%3A%20%2387b13f%3B%0Aline%2Dheight%3A%201%2E1em%3B%0Amargin%2Dtop%3A%2025px%3B%0Aborder%2Dbottom%3A%200px%3B%0A%7D%0Ah1%20%7B%0Aline%2Dheight%3A%201%2E4em%3B%0Aborder%2Dbottom%3A%201px%20%231a81c2%20solid%3B%0A%7D%0Ah1%2C%20h2%2C%20h3%20%7B%0Acolor%3A%20%231a81c2%3B%0A%7D%0Ah1%20%7B%0Afont%2Dsize%3A%2018%2E0pt%3B%0A%7D%0Ah2%20%7B%0Afont%2Dsize%3A%2014%2E5pt%3B%0A%7D%0Ah3%2C%20h4%20%7B%0Afont%2Dsize%3A%2012pt%3B%0A%7D%0Aspan%2Eheader%2Dsection%2Dnumber%20%7B%0Afloat%3A%20left%3B%0Awidth%3A%2065px%3B%0A%7D%0A%0Ap%2Eauthor%2Dname%20%7B%0Afont%2Dsize%3A%2014%2E5pt%3B%0Afont%2Dweight%3A%20bold%3B%0Afont%2Dstyle%3A%20italic%3B%0Atext%2Dalign%3A%20left%3B%0A%7D%0A%2Edate%20%7B%0Atext%2Dindent%3A%200px%3B%0Afont%2Dweight%3A%20bold%3B%0A%7D%0A%2Eabstract%2C%20%2Epackage%20%7B%0Afont%2Dweight%3A%20bold%3B%0A%7D%0A%0Acode%20%7B%20background%2Dcolor%3A%20%23f0f0f0%3B%0Acolor%3A%20%23404040%3B%0Afont%2Dsize%3A%2090%25%3B%0A%7D%0A%0A%2Efigure%20%7B%20margin%3A%200em%200px%200%2E5em%3B%0A%7D%0Aimg%20%7B%0Amax%2Dwidth%3A%20100%25%3B%0Adisplay%3A%20block%3B%0Apadding%3A%200px%20150px%200px%20130px%3B%0A%7D%0Ap%20%3E%20img%20%7B%0Apadding%2Dleft%3A%2065px%3B%0Apadding%2Dright%3A%200px%3B%0A%7D%0Aimg%2Esmallfigure%20%7B%0Apadding%2Dleft%3A%20195px%3B%0Apadding%2Dright%3A%20280px%3B%0A%7D%0Ap%20%3E%20img%2Esmallfigure%20%7B%0Apadding%2Dleft%3A%20130px%3B%0Apadding%2Dright%3A%20130px%3B%0A%7D%0Aimg%2Ewidefigure%20%7B%0Apadding%2Dleft%3A%2065px%3B%0Apadding%2Dright%3A%2085px%3B%0Amargin%2Dright%3A%20%2D65px%3B%0A%7D%0Ap%20%3E%20img%2Ewidefigure%20%7B%0Apadding%2Dleft%3A%200px%3B%0Apadding%2Dright%3A%200px%3B%0Amargin%2Dright%3A%20%2D65px%3B%0A%7D%0Ap%2Ecaption%2C%20caption%20%7B%0Acolor%3A%20inherit%3B%0Afont%2Dsize%3A%208pt%3B%0A%7D%0Ap%2Ecaption%20%7B%0Apadding%2Dleft%3A%20130px%3B%0Apadding%2Dright%3A%2085px%3B%0Amargin%2Dbottom%3A%2020px%3B%0A%7D%0Acaption%20%7B%0Apadding%3A%200px%3B%0Amargin%2Dbottom%3A%2010px%3B%0Amin%2Dwidth%3A%20583%3B%0A%7D%0Aspan%2Ecaption%2Dtitle%20%7B%0Acolor%3A%20%231a81c2%3B%0Afont%2Dweight%3A%20bold%3B%0A%7D%0Aspan%2Ecaption%2Dlabel%20%7B%0Afont%2Dweight%3A%20bold%3B%0A%7D%0A%0Atable%20%7B%0Amargin%2Dleft%3A%20130px%3B%0Amargin%2Dright%3A%2085px%3B%0A%7D%0A%2Etable%20%7B%0Amax%2Dwidth%3A%20518px%3B%0A%7D%0A%0Add%20%7B%0Amargin%2Dleft%3A%2065px%3B%0Amargin%2Dbottom%3A%2010px%3B%0A%7D%0A%0A%2Ecode%2Dfolding%2Dbtn%20%7B%0Aposition%3A%20relative%3B%0Amargin%2Dtop%3A%20%2D26px%3B%0Atop%3A%2026px%3B%0A%7D%0A%2Ecol%2Dmd%2D12%20%7B%0Amin%2Dheight%3A%200px%3B%0A%7D%0A%0A%2Esidenote%20%7B%0Afloat%3A%20right%3B%0Aclear%3A%20right%3B%0Amargin%2Dright%3A%20%2D150px%3B%0Awidth%3A%20130px%3B%0Amargin%2Dtop%3A%200%3B%0Amargin%2Dbottom%3A%201rem%3B%0Afont%2Dsize%3A%208pt%3B%0Aline%2Dheight%3A%201%2E3%3B%0Avertical%2Dalign%3A%20baseline%3B%0Aposition%3A%20relative%3B%0Atext%2Dalign%3A%20left%3B%0A%7D%0A%2Esidenote%2Dnumber%2C%20%2Eaffil%2Dmark%20%7B%0Aposition%3A%20relative%3B%0Avertical%2Dalign%3A%20super%3B%0Afont%2Dsize%3A%207%2E5pt%3B%0Afont%2Dweight%3A%20normal%3B%0Afont%2Dstyle%3A%20normal%3B%0Aline%2Dheight%3A%20normal%3B%0A%7D%0Ainput%2Emargin%2Dtoggle%20%7B%20display%3A%20none%3B%20%7D%0Alabel%2Esidenote%2Dnumber%20%7B%20display%3A%20inline%3B%20%7D%0Alabel%2Emargin%2Dtoggle%3Anot%28%2Esidenote%2Dnumber%29%20%7B%20display%3A%20none%3B%20%7D%0A%0Acode%20%3E%20span%2Ekw%20%7B%20color%3A%20%23E07020%3B%20%7D%20%0Acode%20%3E%20span%2Edt%20%7B%20color%3A%20%23404040%3B%20%7D%20%0Acode%20%3E%20span%2Edv%20%7B%20color%3A%20%23D02070%3B%20%7D%20%0Acode%20%3E%20span%2Ebn%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Efl%20%7B%20color%3A%20%23D02070%3B%20%7D%20%0Acode%20%3E%20span%2Ech%20%7B%20color%3A%20%2340A040%3B%20%7D%20%0Acode%20%3E%20span%2Est%20%7B%20color%3A%20%2340A040%3B%20%7D%20%0Acode%20%3E%20span%2Eco%20%7B%20color%3A%20%23808080%3B%20font%2Dstyle%3A%20italic%3B%20%7D%20%0Acode%20%3E%20span%2Eot%20%7B%20color%3A%20%232020F0%3B%20%7D%20%0Acode%20%3E%20span%2Eal%20%7B%20color%3A%20%23ff0000%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Efu%20%7B%20color%3A%20%23E07020%3B%20%7D%20%20code%20%3E%20span%2Eer%20%7B%20color%3A%20%23FF0000%3B%20%7D%20%0Acode%20%3E%20span%2Eidentifier%20%7B%20color%3A%20%23404040%3B%20%7D%0Acode%20%3E%20span%2Enumber%20%7B%20color%3A%20%23D02070%3B%20%7D%0Acode%20%3E%20span%2Estring%20%7B%20color%3A%20%2340A040%3B%20%7D%0Acode%20%3E%20span%2Ecomment%20%7B%20color%3A%20%23808080%3B%20font%2Dstyle%3A%20italic%3B%20%7D%0Acode%20%3E%20span%2Ekeyword%20%7B%20color%3A%20%232020F0%3B%20%7D%0Acode%20%3E%20span%2Eliteral%20%7B%20color%3A%20%232020F0%3B%20%7D%0Acode%20%3E%20span%2Eoperator%20%7B%20color%3A%20%23000000%3B%7D%0Acode%20%3E%20span%2Eparen%20%7B%20color%3A%20%23000000%3B%7D%0A%0A%2Ejs%2Dplotly%2Dplot%20%2Eplotly%20%7B%0Apadding%2Dleft%3A%2065px%3B%0A%7D%0A" rel="stylesheet" type="text/css">
 
-<script type="text/javascript" src="supplementaryFileS3_fichiers/MathJax.js"></script><style type="text/css">.MathJax_Hover_Frame {border-radius: .25em; -webkit-border-radius: .25em; -moz-border-radius: .25em; -khtml-border-radius: .25em; box-shadow: 0px 0px 15px #83A; -webkit-box-shadow: 0px 0px 15px #83A; -moz-box-shadow: 0px 0px 15px #83A; -khtml-box-shadow: 0px 0px 15px #83A; border: 1px solid #A6D ! important; display: inline-block; position: absolute}
+<script type="text/javascript" src="index_fichiers/MathJax.js"></script><style type="text/css">.MathJax_Hover_Frame {border-radius: .25em; -webkit-border-radius: .25em; -moz-border-radius: .25em; -khtml-border-radius: .25em; box-shadow: 0px 0px 15px #83A; -webkit-box-shadow: 0px 0px 15px #83A; -moz-box-shadow: 0px 0px 15px #83A; -khtml-box-shadow: 0px 0px 15px #83A; border: 1px solid #A6D ! important; display: inline-block; position: absolute}
 .MathJax_Menu_Button .MathJax_Hover_Arrow {position: absolute; cursor: pointer; display: inline-block; border: 2px solid #AAA; border-radius: 4px; -webkit-border-radius: 4px; -moz-border-radius: 4px; -khtml-border-radius: 4px; font-family: 'Courier New',Courier; font-size: 9px; color: #F0F0F0}
 .MathJax_Menu_Button .MathJax_Hover_Arrow span {display: block; background-color: #AAA; border: 1px solid; border-radius: 3px; line-height: 0; padding: 4px}
 .MathJax_Hover_Arrow:hover {color: white!important; border: 2px solid #CCC!important}
@@ -212,7 +212,7 @@ $(document).ready(function () {
 
 <h1 class="title">Introduction to DNABarcodeCompatibility</h1>
 <p class="author-name">Céline Trébeau, Jacques Boutet de Monvel, Fabienne Wong Jun Tai, Raphaël Etournay</p>
-<h4 class="date"><em>2018-11-13</em></h4>
+<h4 class="date"><em>2018-11-16</em></h4>
 
 </div>
 
@@ -286,13 +286,13 @@ combinations with <strong>least heterogeneity in the frequencies of DNA barcodes
 <pre class="r"><code class="hljs"><span class="hljs-comment"># This function is created for the purpose of the documentation </span>
 export_dataset_to_file = 
     <span class="hljs-keyword">function</span>(dataset = DNABarcodeCompatibility::IlluminaIndexesRaw) {
-        <span class="hljs-keyword">if</span> (is(dataset)[<span class="hljs-number">1</span>]==<span class="hljs-string">"data.frame"</span>) {
+        <span class="hljs-keyword">if</span> (<span class="hljs-string">"data.frame"</span> %<span class="hljs-keyword">in</span>% is(dataset)) {
             write.table(dataset,
                         textfile &lt;- tempfile(),
                         row.names = <span class="hljs-literal">FALSE</span>, col.names = <span class="hljs-literal">FALSE</span>, quote=<span class="hljs-literal">FALSE</span>)
             <span class="hljs-keyword">return</span>(textfile)
-        } <span class="hljs-keyword">else</span> print(<span class="hljs-string">"The input dataset isn't a data.frame:
-                    NOT exported into file"</span>)
+        } <span class="hljs-keyword">else</span> print(paste(<span class="hljs-string">"The input dataset isn't a data.frame:"</span>,
+                            <span class="hljs-string">"NOT exported into file"</span>))
     }</code></pre>
 </div>
 <div id="design-an-experiment" class="section level1">
@@ -320,18 +320,18 @@ experiment_design(file1=txtfile,
 <span class="hljs-comment">## [1] "Theoretical max entropy: 2.48491"</span>
 <span class="hljs-comment">## [1] "Entropy of the optimized set: 2.48491"</span>
 <span class="hljs-comment">##    sample Lane    Id sequence</span>
-<span class="hljs-comment">## 1       1    1 RPI01   ATCACG</span>
-<span class="hljs-comment">## 2       2    1 RPI35   CATTTT</span>
-<span class="hljs-comment">## 3       3    1 RPI46   TCCCGA</span>
-<span class="hljs-comment">## 4       4    2 RPI17   GTAGAG</span>
-<span class="hljs-comment">## 5       5    2 RPI26   ATGAGC</span>
-<span class="hljs-comment">## 6       6    2 RPI34   CATGGC</span>
-<span class="hljs-comment">## 7       7    3 RPI12   CTTGTA</span>
-<span class="hljs-comment">## 8       8    3 RPI21   GTTTCG</span>
-<span class="hljs-comment">## 9       9    3 RPI43   TACAGC</span>
-<span class="hljs-comment">## 10     10    4 RPI06   GCCAAT</span>
-<span class="hljs-comment">## 11     11    4 RPI15   ATGTCA</span>
-<span class="hljs-comment">## 12     12    4 RPI18   GTCCGC</span></code></pre>
+<span class="hljs-comment">## 1       1    1 RPI18   GTCCGC</span>
+<span class="hljs-comment">## 2       2    1 RPI27   ATTCCT</span>
+<span class="hljs-comment">## 3       3    1 RPI32   CACTCA</span>
+<span class="hljs-comment">## 4       4    2 RPI07   CAGATC</span>
+<span class="hljs-comment">## 5       5    2 RPI17   GTAGAG</span>
+<span class="hljs-comment">## 6       6    2 RPI39   CTATAC</span>
+<span class="hljs-comment">## 7       7    3 RPI21   GTTTCG</span>
+<span class="hljs-comment">## 8       8    3 RPI29   CAACTA</span>
+<span class="hljs-comment">## 9       9    3 RPI33   CAGGCG</span>
+<span class="hljs-comment">## 10     10    4 RPI24   GGTAGC</span>
+<span class="hljs-comment">## 11     11    4 RPI31   CACGAT</span>
+<span class="hljs-comment">## 12     12    4 RPI40   CTCAGA</span></code></pre>
 <ul>
 <li>12 libraries sequenced in multiplex of 3 on a NextSeq (2 channels) platform</li>
 </ul>
@@ -345,18 +345,18 @@ experiment_design(file1=txtfile,
 <span class="hljs-comment">## [1] "Theoretical max entropy: 2.48491"</span>
 <span class="hljs-comment">## [1] "Entropy of the optimized set: 2.48491"</span>
 <span class="hljs-comment">##    sample Lane    Id sequence</span>
-<span class="hljs-comment">## 1       1    1 RPI40   CTCAGA</span>
-<span class="hljs-comment">## 2       2    1 RPI41   GACGAC</span>
-<span class="hljs-comment">## 3       3    1 RPI44   TATAAT</span>
+<span class="hljs-comment">## 1       1    1 RPI05   ACAGTG</span>
+<span class="hljs-comment">## 2       2    1 RPI08   ACTTGA</span>
+<span class="hljs-comment">## 3       3    1 RPI27   ATTCCT</span>
 <span class="hljs-comment">## 4       4    2 RPI03   TTAGGC</span>
 <span class="hljs-comment">## 5       5    2 RPI22   CGTACG</span>
-<span class="hljs-comment">## 6       6    2 RPI35   CATTTT</span>
-<span class="hljs-comment">## 7       7    3 RPI04   TGACCA</span>
-<span class="hljs-comment">## 8       8    3 RPI16   CCGTCC</span>
-<span class="hljs-comment">## 9       9    3 RPI19   GTGAAA</span>
-<span class="hljs-comment">## 10     10    4 RPI05   ACAGTG</span>
-<span class="hljs-comment">## 11     11    4 RPI15   ATGTCA</span>
-<span class="hljs-comment">## 12     12    4 RPI47   TCGAAG</span></code></pre>
+<span class="hljs-comment">## 6       6    2 RPI44   TATAAT</span>
+<span class="hljs-comment">## 7       7    3 RPI13   AGTCAA</span>
+<span class="hljs-comment">## 8       8    3 RPI26   ATGAGC</span>
+<span class="hljs-comment">## 9       9    3 RPI36   CCAACA</span>
+<span class="hljs-comment">## 10     10    4 RPI24   GGTAGC</span>
+<span class="hljs-comment">## 11     11    4 RPI31   CACGAT</span>
+<span class="hljs-comment">## 12     12    4 RPI48   TCGGCA</span></code></pre>
 <ul>
 <li>12 libraries sequenced in multiplex of 3 on a iSeq (1 channels) platform</li>
 </ul>
@@ -370,18 +370,18 @@ experiment_design(file1=txtfile,
 <span class="hljs-comment">## [1] "Theoretical max entropy: 2.48491"</span>
 <span class="hljs-comment">## [1] "Entropy of the optimized set: 2.48491"</span>
 <span class="hljs-comment">##    sample Lane    Id sequence</span>
-<span class="hljs-comment">## 1       1    1 RPI15   ATGTCA</span>
-<span class="hljs-comment">## 2       2    1 RPI35   CATTTT</span>
-<span class="hljs-comment">## 3       3    1 RPI36   CCAACA</span>
-<span class="hljs-comment">## 4       4    2 RPI05   ACAGTG</span>
-<span class="hljs-comment">## 5       5    2 RPI14   AGTTCC</span>
-<span class="hljs-comment">## 6       6    2 RPI32   CACTCA</span>
-<span class="hljs-comment">## 7       7    3 RPI07   CAGATC</span>
-<span class="hljs-comment">## 8       8    3 RPI12   CTTGTA</span>
-<span class="hljs-comment">## 9       9    3 RPI27   ATTCCT</span>
-<span class="hljs-comment">## 10     10    4 RPI08   ACTTGA</span>
-<span class="hljs-comment">## 11     11    4 RPI10   TAGCTT</span>
-<span class="hljs-comment">## 12     12    4 RPI24   GGTAGC</span></code></pre>
+<span class="hljs-comment">## 1       1    1 RPI01   ATCACG</span>
+<span class="hljs-comment">## 2       2    1 RPI27   ATTCCT</span>
+<span class="hljs-comment">## 3       3    1 RPI44   TATAAT</span>
+<span class="hljs-comment">## 4       4    2 RPI04   TGACCA</span>
+<span class="hljs-comment">## 5       5    2 RPI23   GAGTGG</span>
+<span class="hljs-comment">## 6       6    2 RPI25   ACTGAT</span>
+<span class="hljs-comment">## 7       7    3 RPI40   CTCAGA</span>
+<span class="hljs-comment">## 8       8    3 RPI41   GACGAC</span>
+<span class="hljs-comment">## 9       9    3 RPI42   TAATCG</span>
+<span class="hljs-comment">## 10     10    4 RPI07   CAGATC</span>
+<span class="hljs-comment">## 11     11    4 RPI08   ACTTGA</span>
+<span class="hljs-comment">## 12     12    4 RPI11   GGCTAC</span></code></pre>
 <ul>
 <li>12 libraries sequenced in multiplex of 3 on a HiSeq platform using barcodes robust against 1 substitution error</li>
 </ul>
@@ -397,18 +397,18 @@ experiment_design(file1=txtfile,
 <span class="hljs-comment">## [1] "Theoretical max entropy: 2.48491"</span>
 <span class="hljs-comment">## [1] "Entropy of the optimized set: 2.48491"</span>
 <span class="hljs-comment">##    sample Lane    Id sequence</span>
-<span class="hljs-comment">## 1       1    1 RPI06   GCCAAT</span>
-<span class="hljs-comment">## 2       2    1 RPI16   CCGTCC</span>
-<span class="hljs-comment">## 3       3    1 RPI18   GTCCGC</span>
-<span class="hljs-comment">## 4       4    2 RPI01   ATCACG</span>
-<span class="hljs-comment">## 5       5    2 RPI26   ATGAGC</span>
-<span class="hljs-comment">## 6       6    2 RPI48   TCGGCA</span>
-<span class="hljs-comment">## 7       7    3 RPI11   GGCTAC</span>
-<span class="hljs-comment">## 8       8    3 RPI21   GTTTCG</span>
-<span class="hljs-comment">## 9       9    3 RPI29   CAACTA</span>
-<span class="hljs-comment">## 10     10    4 RPI27   ATTCCT</span>
-<span class="hljs-comment">## 11     11    4 RPI40   CTCAGA</span>
-<span class="hljs-comment">## 12     12    4 RPI45   TCATTC</span></code></pre>
+<span class="hljs-comment">## 1       1    1 RPI05   ACAGTG</span>
+<span class="hljs-comment">## 2       2    1 RPI20   GTGGCC</span>
+<span class="hljs-comment">## 3       3    1 RPI26   ATGAGC</span>
+<span class="hljs-comment">## 4       4    2 RPI16   CCGTCC</span>
+<span class="hljs-comment">## 5       5    2 RPI17   GTAGAG</span>
+<span class="hljs-comment">## 6       6    2 RPI18   GTCCGC</span>
+<span class="hljs-comment">## 7       7    3 RPI24   GGTAGC</span>
+<span class="hljs-comment">## 8       8    3 RPI39   CTATAC</span>
+<span class="hljs-comment">## 9       9    3 RPI47   TCGAAG</span>
+<span class="hljs-comment">## 10     10    4 RPI02   CGATGT</span>
+<span class="hljs-comment">## 11     11    4 RPI10   TAGCTT</span>
+<span class="hljs-comment">## 12     12    4 RPI36   CCAACA</span></code></pre>
 </div>
 <div id="examples-for-dual-indexing" class="section level2">
 <h2><span class="header-section-number">3.2</span> Examples for dual indexing</h2>
@@ -434,72 +434,72 @@ experiment_design(file1=txtfile1,
 <span class="hljs-comment">## [1] "Theoretical max entropy: 2.48491"</span>
 <span class="hljs-comment">## [1] "Entropy of the optimized set: 2.48491"</span>
 <span class="hljs-comment">##       Id Lane</span>
-<span class="hljs-comment">## 1  RPI10    1</span>
-<span class="hljs-comment">## 2  RPI11    1</span>
-<span class="hljs-comment">## 3  RPI13    1</span>
-<span class="hljs-comment">## 4  RPI02    2</span>
-<span class="hljs-comment">## 5  RPI09    2</span>
-<span class="hljs-comment">## 6  RPI12    2</span>
-<span class="hljs-comment">## 7  RPI04    3</span>
-<span class="hljs-comment">## 8  RPI22    3</span>
-<span class="hljs-comment">## 9  RPI23    3</span>
-<span class="hljs-comment">## 10 RPI06    4</span>
-<span class="hljs-comment">## 11 RPI08    4</span>
+<span class="hljs-comment">## 1  RPI06    1</span>
+<span class="hljs-comment">## 2  RPI14    1</span>
+<span class="hljs-comment">## 3  RPI23    1</span>
+<span class="hljs-comment">## 4  RPI04    2</span>
+<span class="hljs-comment">## 5  RPI07    2</span>
+<span class="hljs-comment">## 6  RPI21    2</span>
+<span class="hljs-comment">## 7  RPI01    3</span>
+<span class="hljs-comment">## 8  RPI10    3</span>
+<span class="hljs-comment">## 9  RPI11    3</span>
+<span class="hljs-comment">## 10 RPI05    4</span>
+<span class="hljs-comment">## 11 RPI09    4</span>
 <span class="hljs-comment">## 12 RPI15    4</span>
 <span class="hljs-comment">## [1] "Theoretical max entropy: 2.48491"</span>
 <span class="hljs-comment">## [1] "Entropy of the optimized set: 2.48491"</span>
 <span class="hljs-comment">##       Id Lane</span>
-<span class="hljs-comment">## 1  RPI34    1</span>
-<span class="hljs-comment">## 2  RPI38    1</span>
-<span class="hljs-comment">## 3  RPI44    1</span>
+<span class="hljs-comment">## 1  RPI26    1</span>
+<span class="hljs-comment">## 2  RPI34    1</span>
+<span class="hljs-comment">## 3  RPI42    1</span>
 <span class="hljs-comment">## 4  RPI33    2</span>
-<span class="hljs-comment">## 5  RPI39    2</span>
-<span class="hljs-comment">## 6  RPI46    2</span>
-<span class="hljs-comment">## 7  RPI26    3</span>
-<span class="hljs-comment">## 8  RPI42    3</span>
+<span class="hljs-comment">## 5  RPI40    2</span>
+<span class="hljs-comment">## 6  RPI43    2</span>
+<span class="hljs-comment">## 7  RPI37    3</span>
+<span class="hljs-comment">## 8  RPI39    3</span>
 <span class="hljs-comment">## 9  RPI45    3</span>
-<span class="hljs-comment">## 10 RPI35    4</span>
-<span class="hljs-comment">## 11 RPI40    4</span>
-<span class="hljs-comment">## 12 RPI41    4</span>
+<span class="hljs-comment">## 10 RPI27    4</span>
+<span class="hljs-comment">## 11 RPI38    4</span>
+<span class="hljs-comment">## 12 RPI46    4</span>
 <span class="hljs-comment">##       Id Lane sequence</span>
-<span class="hljs-comment">## 1  RPI10    1   TAGCTT</span>
-<span class="hljs-comment">## 2  RPI11    1   GGCTAC</span>
-<span class="hljs-comment">## 3  RPI13    1   AGTCAA</span>
-<span class="hljs-comment">## 4  RPI02    2   CGATGT</span>
-<span class="hljs-comment">## 5  RPI09    2   GATCAG</span>
-<span class="hljs-comment">## 6  RPI12    2   CTTGTA</span>
-<span class="hljs-comment">## 7  RPI04    3   TGACCA</span>
-<span class="hljs-comment">## 8  RPI22    3   CGTACG</span>
-<span class="hljs-comment">## 9  RPI23    3   GAGTGG</span>
-<span class="hljs-comment">## 10 RPI06    4   GCCAAT</span>
-<span class="hljs-comment">## 11 RPI08    4   ACTTGA</span>
+<span class="hljs-comment">## 1  RPI06    1   GCCAAT</span>
+<span class="hljs-comment">## 2  RPI14    1   AGTTCC</span>
+<span class="hljs-comment">## 3  RPI23    1   GAGTGG</span>
+<span class="hljs-comment">## 4  RPI04    2   TGACCA</span>
+<span class="hljs-comment">## 5  RPI07    2   CAGATC</span>
+<span class="hljs-comment">## 6  RPI21    2   GTTTCG</span>
+<span class="hljs-comment">## 7  RPI01    3   ATCACG</span>
+<span class="hljs-comment">## 8  RPI10    3   TAGCTT</span>
+<span class="hljs-comment">## 9  RPI11    3   GGCTAC</span>
+<span class="hljs-comment">## 10 RPI05    4   ACAGTG</span>
+<span class="hljs-comment">## 11 RPI09    4   GATCAG</span>
 <span class="hljs-comment">## 12 RPI15    4   ATGTCA</span>
 <span class="hljs-comment">##       Id Lane sequence</span>
-<span class="hljs-comment">## 1  RPI34    1   CATGGC</span>
-<span class="hljs-comment">## 2  RPI38    1   CTAGCT</span>
-<span class="hljs-comment">## 3  RPI44    1   TATAAT</span>
+<span class="hljs-comment">## 1  RPI26    1   ATGAGC</span>
+<span class="hljs-comment">## 2  RPI34    1   CATGGC</span>
+<span class="hljs-comment">## 3  RPI42    1   TAATCG</span>
 <span class="hljs-comment">## 4  RPI33    2   CAGGCG</span>
-<span class="hljs-comment">## 5  RPI39    2   CTATAC</span>
-<span class="hljs-comment">## 6  RPI46    2   TCCCGA</span>
-<span class="hljs-comment">## 7  RPI26    3   ATGAGC</span>
-<span class="hljs-comment">## 8  RPI42    3   TAATCG</span>
+<span class="hljs-comment">## 5  RPI40    2   CTCAGA</span>
+<span class="hljs-comment">## 6  RPI43    2   TACAGC</span>
+<span class="hljs-comment">## 7  RPI37    3   CGGAAT</span>
+<span class="hljs-comment">## 8  RPI39    3   CTATAC</span>
 <span class="hljs-comment">## 9  RPI45    3   TCATTC</span>
-<span class="hljs-comment">## 10 RPI35    4   CATTTT</span>
-<span class="hljs-comment">## 11 RPI40    4   CTCAGA</span>
-<span class="hljs-comment">## 12 RPI41    4   GACGAC</span>
+<span class="hljs-comment">## 10 RPI27    4   ATTCCT</span>
+<span class="hljs-comment">## 11 RPI38    4   CTAGCT</span>
+<span class="hljs-comment">## 12 RPI46    4   TCCCGA</span>
 <span class="hljs-comment">##    sample Lane   Id1 sequence1   Id2 sequence2</span>
-<span class="hljs-comment">## 1       1    1 RPI10    TAGCTT RPI34    CATGGC</span>
-<span class="hljs-comment">## 2       2    1 RPI11    GGCTAC RPI38    CTAGCT</span>
-<span class="hljs-comment">## 3       3    1 RPI13    AGTCAA RPI44    TATAAT</span>
-<span class="hljs-comment">## 4       4    2 RPI02    CGATGT RPI33    CAGGCG</span>
-<span class="hljs-comment">## 5       5    2 RPI09    GATCAG RPI39    CTATAC</span>
-<span class="hljs-comment">## 6       6    2 RPI12    CTTGTA RPI46    TCCCGA</span>
-<span class="hljs-comment">## 7       7    3 RPI04    TGACCA RPI26    ATGAGC</span>
-<span class="hljs-comment">## 8       8    3 RPI22    CGTACG RPI42    TAATCG</span>
-<span class="hljs-comment">## 9       9    3 RPI23    GAGTGG RPI45    TCATTC</span>
-<span class="hljs-comment">## 10     10    4 RPI06    GCCAAT RPI35    CATTTT</span>
-<span class="hljs-comment">## 11     11    4 RPI08    ACTTGA RPI40    CTCAGA</span>
-<span class="hljs-comment">## 12     12    4 RPI15    ATGTCA RPI41    GACGAC</span></code></pre>
+<span class="hljs-comment">## 1       1    1 RPI06    GCCAAT RPI26    ATGAGC</span>
+<span class="hljs-comment">## 2       2    1 RPI14    AGTTCC RPI34    CATGGC</span>
+<span class="hljs-comment">## 3       3    1 RPI23    GAGTGG RPI42    TAATCG</span>
+<span class="hljs-comment">## 4       4    2 RPI04    TGACCA RPI33    CAGGCG</span>
+<span class="hljs-comment">## 5       5    2 RPI07    CAGATC RPI40    CTCAGA</span>
+<span class="hljs-comment">## 6       6    2 RPI21    GTTTCG RPI43    TACAGC</span>
+<span class="hljs-comment">## 7       7    3 RPI01    ATCACG RPI37    CGGAAT</span>
+<span class="hljs-comment">## 8       8    3 RPI10    TAGCTT RPI39    CTATAC</span>
+<span class="hljs-comment">## 9       9    3 RPI11    GGCTAC RPI45    TCATTC</span>
+<span class="hljs-comment">## 10     10    4 RPI05    ACAGTG RPI27    ATTCCT</span>
+<span class="hljs-comment">## 11     11    4 RPI09    GATCAG RPI38    CTAGCT</span>
+<span class="hljs-comment">## 12     12    4 RPI15    ATGTCA RPI46    TCCCGA</span></code></pre>
 <ul>
 <li>12 libraries sequenced in multiplex of 3 on a HiSeq platform using barcodes robust against 1 substitution error</li>
 </ul>
@@ -519,72 +519,72 @@ experiment_design(file1=txtfile1, sample_number=<span class="hljs-number">12</sp
 <span class="hljs-comment">## [1] "Theoretical max entropy: 2.48491"</span>
 <span class="hljs-comment">## [1] "Entropy of the optimized set: 2.48491"</span>
 <span class="hljs-comment">##       Id Lane</span>
-<span class="hljs-comment">## 1  RPI01    1</span>
+<span class="hljs-comment">## 1  RPI02    1</span>
 <span class="hljs-comment">## 2  RPI06    1</span>
-<span class="hljs-comment">## 3  RPI12    1</span>
-<span class="hljs-comment">## 4  RPI02    2</span>
-<span class="hljs-comment">## 5  RPI07    2</span>
-<span class="hljs-comment">## 6  RPI20    2</span>
-<span class="hljs-comment">## 7  RPI04    3</span>
-<span class="hljs-comment">## 8  RPI05    3</span>
-<span class="hljs-comment">## 9  RPI14    3</span>
-<span class="hljs-comment">## 10 RPI08    4</span>
-<span class="hljs-comment">## 11 RPI09    4</span>
-<span class="hljs-comment">## 12 RPI11    4</span>
+<span class="hljs-comment">## 3  RPI13    1</span>
+<span class="hljs-comment">## 4  RPI03    2</span>
+<span class="hljs-comment">## 5  RPI09    2</span>
+<span class="hljs-comment">## 6  RPI12    2</span>
+<span class="hljs-comment">## 7  RPI10    3</span>
+<span class="hljs-comment">## 8  RPI11    3</span>
+<span class="hljs-comment">## 9  RPI16    3</span>
+<span class="hljs-comment">## 10 RPI04    4</span>
+<span class="hljs-comment">## 11 RPI15    4</span>
+<span class="hljs-comment">## 12 RPI23    4</span>
 <span class="hljs-comment">## [1] "Theoretical max entropy: 2.48491"</span>
 <span class="hljs-comment">## [1] "Entropy of the optimized set: 2.48491"</span>
 <span class="hljs-comment">##       Id Lane</span>
-<span class="hljs-comment">## 1  RPI26    1</span>
-<span class="hljs-comment">## 2  RPI33    1</span>
-<span class="hljs-comment">## 3  RPI42    1</span>
-<span class="hljs-comment">## 4  RPI27    2</span>
-<span class="hljs-comment">## 5  RPI35    2</span>
-<span class="hljs-comment">## 6  RPI45    2</span>
-<span class="hljs-comment">## 7  RPI30    3</span>
-<span class="hljs-comment">## 8  RPI37    3</span>
-<span class="hljs-comment">## 9  RPI48    3</span>
-<span class="hljs-comment">## 10 RPI34    4</span>
-<span class="hljs-comment">## 11 RPI40    4</span>
-<span class="hljs-comment">## 12 RPI47    4</span>
+<span class="hljs-comment">## 1  RPI27    1</span>
+<span class="hljs-comment">## 2  RPI41    1</span>
+<span class="hljs-comment">## 3  RPI43    1</span>
+<span class="hljs-comment">## 4  RPI26    2</span>
+<span class="hljs-comment">## 5  RPI30    2</span>
+<span class="hljs-comment">## 6  RPI48    2</span>
+<span class="hljs-comment">## 7  RPI34    3</span>
+<span class="hljs-comment">## 8  RPI40    3</span>
+<span class="hljs-comment">## 9  RPI44    3</span>
+<span class="hljs-comment">## 10 RPI37    4</span>
+<span class="hljs-comment">## 11 RPI42    4</span>
+<span class="hljs-comment">## 12 RPI45    4</span>
 <span class="hljs-comment">##       Id Lane sequence</span>
-<span class="hljs-comment">## 1  RPI01    1   ATCACG</span>
+<span class="hljs-comment">## 1  RPI02    1   CGATGT</span>
 <span class="hljs-comment">## 2  RPI06    1   GCCAAT</span>
-<span class="hljs-comment">## 3  RPI12    1   CTTGTA</span>
-<span class="hljs-comment">## 4  RPI02    2   CGATGT</span>
-<span class="hljs-comment">## 5  RPI07    2   CAGATC</span>
-<span class="hljs-comment">## 6  RPI20    2   GTGGCC</span>
-<span class="hljs-comment">## 7  RPI04    3   TGACCA</span>
-<span class="hljs-comment">## 8  RPI05    3   ACAGTG</span>
-<span class="hljs-comment">## 9  RPI14    3   AGTTCC</span>
-<span class="hljs-comment">## 10 RPI08    4   ACTTGA</span>
-<span class="hljs-comment">## 11 RPI09    4   GATCAG</span>
-<span class="hljs-comment">## 12 RPI11    4   GGCTAC</span>
+<span class="hljs-comment">## 3  RPI13    1   AGTCAA</span>
+<span class="hljs-comment">## 4  RPI03    2   TTAGGC</span>
+<span class="hljs-comment">## 5  RPI09    2   GATCAG</span>
+<span class="hljs-comment">## 6  RPI12    2   CTTGTA</span>
+<span class="hljs-comment">## 7  RPI10    3   TAGCTT</span>
+<span class="hljs-comment">## 8  RPI11    3   GGCTAC</span>
+<span class="hljs-comment">## 9  RPI16    3   CCGTCC</span>
+<span class="hljs-comment">## 10 RPI04    4   TGACCA</span>
+<span class="hljs-comment">## 11 RPI15    4   ATGTCA</span>
+<span class="hljs-comment">## 12 RPI23    4   GAGTGG</span>
 <span class="hljs-comment">##       Id Lane sequence</span>
-<span class="hljs-comment">## 1  RPI26    1   ATGAGC</span>
-<span class="hljs-comment">## 2  RPI33    1   CAGGCG</span>
-<span class="hljs-comment">## 3  RPI42    1   TAATCG</span>
-<span class="hljs-comment">## 4  RPI27    2   ATTCCT</span>
-<span class="hljs-comment">## 5  RPI35    2   CATTTT</span>
-<span class="hljs-comment">## 6  RPI45    2   TCATTC</span>
-<span class="hljs-comment">## 7  RPI30    3   CACCGG</span>
-<span class="hljs-comment">## 8  RPI37    3   CGGAAT</span>
-<span class="hljs-comment">## 9  RPI48    3   TCGGCA</span>
-<span class="hljs-comment">## 10 RPI34    4   CATGGC</span>
-<span class="hljs-comment">## 11 RPI40    4   CTCAGA</span>
-<span class="hljs-comment">## 12 RPI47    4   TCGAAG</span>
+<span class="hljs-comment">## 1  RPI27    1   ATTCCT</span>
+<span class="hljs-comment">## 2  RPI41    1   GACGAC</span>
+<span class="hljs-comment">## 3  RPI43    1   TACAGC</span>
+<span class="hljs-comment">## 4  RPI26    2   ATGAGC</span>
+<span class="hljs-comment">## 5  RPI30    2   CACCGG</span>
+<span class="hljs-comment">## 6  RPI48    2   TCGGCA</span>
+<span class="hljs-comment">## 7  RPI34    3   CATGGC</span>
+<span class="hljs-comment">## 8  RPI40    3   CTCAGA</span>
+<span class="hljs-comment">## 9  RPI44    3   TATAAT</span>
+<span class="hljs-comment">## 10 RPI37    4   CGGAAT</span>
+<span class="hljs-comment">## 11 RPI42    4   TAATCG</span>
+<span class="hljs-comment">## 12 RPI45    4   TCATTC</span>
 <span class="hljs-comment">##    sample Lane   Id1 sequence1   Id2 sequence2</span>
-<span class="hljs-comment">## 1       1    1 RPI01    ATCACG RPI26    ATGAGC</span>
-<span class="hljs-comment">## 2       2    1 RPI06    GCCAAT RPI33    CAGGCG</span>
-<span class="hljs-comment">## 3       3    1 RPI12    CTTGTA RPI42    TAATCG</span>
-<span class="hljs-comment">## 4       4    2 RPI02    CGATGT RPI27    ATTCCT</span>
-<span class="hljs-comment">## 5       5    2 RPI07    CAGATC RPI35    CATTTT</span>
-<span class="hljs-comment">## 6       6    2 RPI20    GTGGCC RPI45    TCATTC</span>
-<span class="hljs-comment">## 7       7    3 RPI04    TGACCA RPI30    CACCGG</span>
-<span class="hljs-comment">## 8       8    3 RPI05    ACAGTG RPI37    CGGAAT</span>
-<span class="hljs-comment">## 9       9    3 RPI14    AGTTCC RPI48    TCGGCA</span>
-<span class="hljs-comment">## 10     10    4 RPI08    ACTTGA RPI34    CATGGC</span>
-<span class="hljs-comment">## 11     11    4 RPI09    GATCAG RPI40    CTCAGA</span>
-<span class="hljs-comment">## 12     12    4 RPI11    GGCTAC RPI47    TCGAAG</span></code></pre>
+<span class="hljs-comment">## 1       1    1 RPI02    CGATGT RPI27    ATTCCT</span>
+<span class="hljs-comment">## 2       2    1 RPI06    GCCAAT RPI41    GACGAC</span>
+<span class="hljs-comment">## 3       3    1 RPI13    AGTCAA RPI43    TACAGC</span>
+<span class="hljs-comment">## 4       4    2 RPI03    TTAGGC RPI26    ATGAGC</span>
+<span class="hljs-comment">## 5       5    2 RPI09    GATCAG RPI30    CACCGG</span>
+<span class="hljs-comment">## 6       6    2 RPI12    CTTGTA RPI48    TCGGCA</span>
+<span class="hljs-comment">## 7       7    3 RPI10    TAGCTT RPI34    CATGGC</span>
+<span class="hljs-comment">## 8       8    3 RPI11    GGCTAC RPI40    CTCAGA</span>
+<span class="hljs-comment">## 9       9    3 RPI16    CCGTCC RPI44    TATAAT</span>
+<span class="hljs-comment">## 10     10    4 RPI04    TGACCA RPI37    CGGAAT</span>
+<span class="hljs-comment">## 11     11    4 RPI15    ATGTCA RPI42    TAATCG</span>
+<span class="hljs-comment">## 12     12    4 RPI23    GAGTGG RPI45    TCATTC</span></code></pre>
 </div>
 </div>
 <div id="build-your-own-workflow" class="section level1">
@@ -680,7 +680,7 @@ system.time(m &lt;- get_all_combinations(index_df = barcodes,
                                     mplex_level = <span class="hljs-number">2</span>,
                                     platform = <span class="hljs-number">4</span>))
 <span class="hljs-comment">##    user  system elapsed </span>
-<span class="hljs-comment">##   0.302   0.005   0.308</span>
+<span class="hljs-comment">##   0.407   0.006   0.416</span>
 
 <span class="hljs-comment"># Each line represents a compatible combination of barcodes</span>
 head(m)
@@ -706,7 +706,7 @@ system.time(m &lt;- get_all_combinations(index_df = barcodes,
                                     mplex_level = <span class="hljs-number">3</span>,
                                     platform = <span class="hljs-number">4</span>))
 <span class="hljs-comment">##    user  system elapsed </span>
-<span class="hljs-comment">##   6.152   0.041   6.213</span>
+<span class="hljs-comment">##   6.514   0.053   6.649</span>
 
 <span class="hljs-comment"># Each line represents a compatible combination of barcodes</span>
 head(m)
@@ -738,17 +738,17 @@ system.time(m &lt;- get_random_combinations(index_df = barcodes,
                                         mplex_level = <span class="hljs-number">2</span>,
                                         platform = <span class="hljs-number">4</span>))
 <span class="hljs-comment">##    user  system elapsed </span>
-<span class="hljs-comment">##   0.197   0.004   0.202</span>
+<span class="hljs-comment">##   0.202   0.001   0.206</span>
 
 <span class="hljs-comment"># Each line represents a compatible combination of barcodes</span>
 head(m)
 <span class="hljs-comment">##      [,1]    [,2]   </span>
 <span class="hljs-comment">## [1,] "RPI04" "RPI35"</span>
-<span class="hljs-comment">## [2,] "RPI05" "RPI19"</span>
-<span class="hljs-comment">## [3,] "RPI07" "RPI17"</span>
-<span class="hljs-comment">## [4,] "RPI10" "RPI39"</span>
-<span class="hljs-comment">## [5,] "RPI18" "RPI25"</span>
-<span class="hljs-comment">## [6,] "RPI20" "RPI30"</span></code></pre>
+<span class="hljs-comment">## [2,] "RPI06" "RPI12"</span>
+<span class="hljs-comment">## [3,] "RPI10" "RPI39"</span>
+<span class="hljs-comment">## [4,] "RPI18" "RPI25"</span>
+<span class="hljs-comment">## [5,] "RPI26" "RPI42"</span>
+<span class="hljs-comment">## [6,] "RPI27" "RPI45"</span></code></pre>
 <ul>
 <li>48 barcodes, multiplex level of 4, HiSeq platform</li>
 </ul>
@@ -764,17 +764,17 @@ system.time(m &lt;- get_random_combinations(index_df = barcodes,
                                         mplex_level = <span class="hljs-number">4</span>,
                                         platform = <span class="hljs-number">4</span>))
 <span class="hljs-comment">##    user  system elapsed </span>
-<span class="hljs-comment">##   0.485   0.002   0.489</span>
+<span class="hljs-comment">##   0.572   0.005   0.585</span>
 
 <span class="hljs-comment"># Each line represents a compatible combination of barcodes</span>
 head(m)
 <span class="hljs-comment">##      [,1]    [,2]    [,3]    [,4]   </span>
-<span class="hljs-comment">## [1,] "RPI01" "RPI11" "RPI13" "RPI23"</span>
-<span class="hljs-comment">## [2,] "RPI01" "RPI05" "RPI26" "RPI48"</span>
-<span class="hljs-comment">## [3,] "RPI01" "RPI08" "RPI24" "RPI26"</span>
-<span class="hljs-comment">## [4,] "RPI01" "RPI25" "RPI43" "RPI48"</span>
-<span class="hljs-comment">## [5,] "RPI01" "RPI18" "RPI44" "RPI45"</span>
-<span class="hljs-comment">## [6,] "RPI01" "RPI16" "RPI21" "RPI34"</span></code></pre>
+<span class="hljs-comment">## [1,] "RPI01" "RPI14" "RPI22" "RPI23"</span>
+<span class="hljs-comment">## [2,] "RPI01" "RPI06" "RPI12" "RPI17"</span>
+<span class="hljs-comment">## [3,] "RPI01" "RPI03" "RPI04" "RPI33"</span>
+<span class="hljs-comment">## [4,] "RPI01" "RPI35" "RPI39" "RPI42"</span>
+<span class="hljs-comment">## [5,] "RPI01" "RPI14" "RPI24" "RPI41"</span>
+<span class="hljs-comment">## [6,] "RPI01" "RPI03" "RPI04" "RPI10"</span></code></pre>
 <ul>
 <li>48 barcodes, multiplex level of 6, HiSeq platform</li>
 </ul>
@@ -790,17 +790,17 @@ system.time(m &lt;- get_random_combinations(index_df = barcodes,
                                         mplex_level = <span class="hljs-number">6</span>,
                                         platform = <span class="hljs-number">4</span>))
 <span class="hljs-comment">##    user  system elapsed </span>
-<span class="hljs-comment">##   0.776   0.003   0.781</span>
+<span class="hljs-comment">##   0.827   0.009   0.844</span>
 
 <span class="hljs-comment"># Each line represents a compatible combination of barcodes</span>
 head(m)
 <span class="hljs-comment">##      [,1]    [,2]    [,3]    [,4]    [,5]    [,6]   </span>
-<span class="hljs-comment">## [1,] "RPI01" "RPI05" "RPI28" "RPI38" "RPI45" "RPI47"</span>
-<span class="hljs-comment">## [2,] "RPI01" "RPI12" "RPI20" "RPI23" "RPI29" "RPI45"</span>
-<span class="hljs-comment">## [3,] "RPI01" "RPI04" "RPI17" "RPI24" "RPI25" "RPI47"</span>
-<span class="hljs-comment">## [4,] "RPI01" "RPI07" "RPI25" "RPI28" "RPI29" "RPI43"</span>
-<span class="hljs-comment">## [5,] "RPI01" "RPI09" "RPI11" "RPI16" "RPI28" "RPI45"</span>
-<span class="hljs-comment">## [6,] "RPI01" "RPI05" "RPI14" "RPI20" "RPI23" "RPI32"</span></code></pre>
+<span class="hljs-comment">## [1,] "RPI01" "RPI06" "RPI26" "RPI29" "RPI38" "RPI47"</span>
+<span class="hljs-comment">## [2,] "RPI01" "RPI03" "RPI17" "RPI18" "RPI27" "RPI35"</span>
+<span class="hljs-comment">## [3,] "RPI01" "RPI03" "RPI08" "RPI15" "RPI22" "RPI31"</span>
+<span class="hljs-comment">## [4,] "RPI01" "RPI05" "RPI09" "RPI12" "RPI45" "RPI48"</span>
+<span class="hljs-comment">## [5,] "RPI01" "RPI06" "RPI14" "RPI23" "RPI30" "RPI45"</span>
+<span class="hljs-comment">## [6,] "RPI01" "RPI16" "RPI19" "RPI21" "RPI35" "RPI45"</span></code></pre>
 </div>
 <div id="constrain-barcodes-to-be-robust-against-one-substitution-error" class="section level2">
 <h2><span class="header-section-number">4.4</span> Constrain barcodes to be robust against one substitution error</h2>
@@ -821,12 +821,12 @@ filtered_m &lt;- distance_filter(index_df = barcodes,
 <span class="hljs-comment"># Each line represents a compatible combination of barcodes</span>
 head(filtered_m)
 <span class="hljs-comment">##      V1      V2      V3     </span>
-<span class="hljs-comment">## [1,] "RPI01" "RPI10" "RPI45"</span>
-<span class="hljs-comment">## [2,] "RPI01" "RPI23" "RPI48"</span>
-<span class="hljs-comment">## [3,] "RPI01" "RPI23" "RPI40"</span>
-<span class="hljs-comment">## [4,] "RPI01" "RPI12" "RPI44"</span>
-<span class="hljs-comment">## [5,] "RPI01" "RPI10" "RPI12"</span>
-<span class="hljs-comment">## [6,] "RPI01" "RPI46" "RPI48"</span></code></pre>
+<span class="hljs-comment">## [1,] "RPI01" "RPI05" "RPI48"</span>
+<span class="hljs-comment">## [2,] "RPI01" "RPI24" "RPI45"</span>
+<span class="hljs-comment">## [3,] "RPI01" "RPI26" "RPI45"</span>
+<span class="hljs-comment">## [4,] "RPI01" "RPI23" "RPI41"</span>
+<span class="hljs-comment">## [5,] "RPI01" "RPI06" "RPI08"</span>
+<span class="hljs-comment">## [6,] "RPI01" "RPI26" "RPI48"</span></code></pre>
 </div>
 <div id="optimize-the-set-of-compatible-combinations-to-reduce-barcode-redundancy" class="section level2">
 <h2><span class="header-section-number">4.5</span> Optimize the set of compatible combinations to reduce barcode redundancy</h2>
@@ -850,18 +850,18 @@ df &lt;- optimize_combinations(combination_m = filtered_m,
 <span class="hljs-comment"># of the flow cell</span>
 df
 <span class="hljs-comment">##       V1      V2      V3     </span>
-<span class="hljs-comment">##  [1,] "RPI03" "RPI10" "RPI25"</span>
-<span class="hljs-comment">##  [2,] "RPI18" "RPI39" "RPI44"</span>
-<span class="hljs-comment">##  [3,] "RPI05" "RPI07" "RPI19"</span>
-<span class="hljs-comment">##  [4,] "RPI01" "RPI35" "RPI43"</span>
-<span class="hljs-comment">##  [5,] "RPI12" "RPI21" "RPI28"</span>
-<span class="hljs-comment">##  [6,] "RPI11" "RPI33" "RPI40"</span>
-<span class="hljs-comment">##  [7,] "RPI20" "RPI23" "RPI29"</span>
-<span class="hljs-comment">##  [8,] "RPI04" "RPI30" "RPI34"</span>
-<span class="hljs-comment">##  [9,] "RPI02" "RPI06" "RPI15"</span>
-<span class="hljs-comment">## [10,] "RPI24" "RPI27" "RPI42"</span>
-<span class="hljs-comment">## [11,] "RPI17" "RPI37" "RPI45"</span>
-<span class="hljs-comment">## [12,] "RPI13" "RPI31" "RPI46"</span></code></pre>
+<span class="hljs-comment">##  [1,] "RPI06" "RPI12" "RPI21"</span>
+<span class="hljs-comment">##  [2,] "RPI05" "RPI10" "RPI39"</span>
+<span class="hljs-comment">##  [3,] "RPI03" "RPI13" "RPI47"</span>
+<span class="hljs-comment">##  [4,] "RPI18" "RPI27" "RPI32"</span>
+<span class="hljs-comment">##  [5,] "RPI20" "RPI30" "RPI41"</span>
+<span class="hljs-comment">##  [6,] "RPI24" "RPI28" "RPI45"</span>
+<span class="hljs-comment">##  [7,] "RPI08" "RPI40" "RPI44"</span>
+<span class="hljs-comment">##  [8,] "RPI01" "RPI02" "RPI48"</span>
+<span class="hljs-comment">##  [9,] "RPI19" "RPI35" "RPI42"</span>
+<span class="hljs-comment">## [10,] "RPI04" "RPI33" "RPI46"</span>
+<span class="hljs-comment">## [11,] "RPI11" "RPI22" "RPI29"</span>
+<span class="hljs-comment">## [12,] "RPI07" "RPI14" "RPI17"</span></code></pre>
 </div>
 <div id="the-optimized-result-isnt-an-optimum-when-filtering-out-too-many-barcodes" class="section level2">
 <h2><span class="header-section-number">4.6</span> The optimized result isn’t an optimum when filtering out too many barcodes</h2>
@@ -882,24 +882,24 @@ df &lt;- optimize_combinations(combination_m = filtered_m,
                             nb_lane = <span class="hljs-number">12</span>,
                             index_number = <span class="hljs-number">48</span>)
 <span class="hljs-comment">## [1] "Theoretical max entropy: 3.58352"</span>
-<span class="hljs-comment">## [1] "Entropy of the optimized set: 2.88528"</span>
+<span class="hljs-comment">## [1] "Entropy of the optimized set: 2.71161"</span>
 
 <span class="hljs-comment"># Each line represents a compatible combination of barcodes and each row a</span>
 <span class="hljs-comment"># lane of the flow cell</span>
 df
 <span class="hljs-comment">##       V1      V2      V3     </span>
-<span class="hljs-comment">##  [1,] "RPI12" "RPI33" "RPI46"</span>
-<span class="hljs-comment">##  [2,] "RPI10" "RPI15" "RPI46"</span>
-<span class="hljs-comment">##  [3,] "RPI16" "RPI24" "RPI42"</span>
-<span class="hljs-comment">##  [4,] "RPI21" "RPI26" "RPI36"</span>
-<span class="hljs-comment">##  [5,] "RPI16" "RPI24" "RPI42"</span>
-<span class="hljs-comment">##  [6,] "RPI12" "RPI23" "RPI36"</span>
-<span class="hljs-comment">##  [7,] "RPI08" "RPI11" "RPI44"</span>
-<span class="hljs-comment">##  [8,] "RPI27" "RPI29" "RPI48"</span>
-<span class="hljs-comment">##  [9,] "RPI08" "RPI11" "RPI44"</span>
-<span class="hljs-comment">## [10,] "RPI27" "RPI29" "RPI48"</span>
-<span class="hljs-comment">## [11,] "RPI10" "RPI15" "RPI28"</span>
-<span class="hljs-comment">## [12,] "RPI10" "RPI15" "RPI46"</span></code></pre>
+<span class="hljs-comment">##  [1,] "RPI15" "RPI28" "RPI46"</span>
+<span class="hljs-comment">##  [2,] "RPI17" "RPI27" "RPI29"</span>
+<span class="hljs-comment">##  [3,] "RPI20" "RPI30" "RPI35"</span>
+<span class="hljs-comment">##  [4,] "RPI12" "RPI20" "RPI30"</span>
+<span class="hljs-comment">##  [5,] "RPI03" "RPI37" "RPI41"</span>
+<span class="hljs-comment">##  [6,] "RPI12" "RPI20" "RPI30"</span>
+<span class="hljs-comment">##  [7,] "RPI17" "RPI27" "RPI29"</span>
+<span class="hljs-comment">##  [8,] "RPI04" "RPI28" "RPI35"</span>
+<span class="hljs-comment">##  [9,] "RPI15" "RPI28" "RPI46"</span>
+<span class="hljs-comment">## [10,] "RPI03" "RPI37" "RPI41"</span>
+<span class="hljs-comment">## [11,] "RPI37" "RPI41" "RPI45"</span>
+<span class="hljs-comment">## [12,] "RPI23" "RPI27" "RPI29"</span></code></pre>
 </div>
 </div>
 
