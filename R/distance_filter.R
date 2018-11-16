@@ -76,7 +76,7 @@ distance_filter = function(index_df, combinations_m, metric, d) {
                         combinations_m,
                         phaseshift_rejection_table)
                 }
-	if(nrow(filtered_combinations_m) < 1){
+    if(nrow(filtered_combinations_m) < 1){
             display_message("No combination feats your research criteria")
             return(NULL)
         } else {

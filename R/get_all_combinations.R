@@ -53,8 +53,8 @@ get_all_combinations = function(index_df, mplex_level, platform){
         }
         if(nrow(as.matrix(combinations_m)) == 0){
             display_message(paste("The programm didn't find any compatible", 
-                                  "combination, please check your index list",
-                                  "and your search parameters"))
+                                "combination, please check your index list",
+                                "and your search parameters"))
             return (NULL)
         }else{
             return (combinations_m)
@@ -63,5 +63,4 @@ get_all_combinations = function(index_df, mplex_level, platform){
         display_message("please enter a number as mplex_level")
         return(NULL)
     }
-  
 }

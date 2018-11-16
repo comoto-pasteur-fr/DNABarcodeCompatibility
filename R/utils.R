@@ -1040,7 +1040,7 @@ final_result = function(index_df,
                         thrs_size_comb = 120,
                         max_iteration = 50,
                         method = "greedy_exchange") {
-  if (mplex_level<= nrow(index_df)){
+    if (mplex_level<= nrow(index_df)){
     result1 = get_result(
         index_df,
         sample_number,
@@ -1052,11 +1052,11 @@ final_result = function(index_df,
         max_iteration,
         method
     )}else {
-      result1 = NULL
-      display_message(
+        result1 = NULL
+        display_message(
         "the number of barcodes is not sufficient for the multiplexing level")
     }
-    
+
     if(!is.null(result1)){
     result1 = data.frame(
         sample = seq(1,sample_number) %>% as.character(),
@@ -1064,7 +1064,7 @@ final_result = function(index_df,
         Id = result1$Id %>% as.character(),
         stringsAsFactors = FALSE
     )
-    
+
     result1 = left_join(result1, select(index_df, Id, sequence), by = "Id")
     return (result1)
     } else {

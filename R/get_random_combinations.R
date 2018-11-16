@@ -46,8 +46,8 @@ get_random_combinations = function(index_df, mplex_level, platform){
             combinations_m = get_random_combinations_1_channel(index_df,
                                                                 mplex_level)
         } else if (platform == 0){
-          combinations_m = get_random_combinations_0_channel(index_df,
-                                                             mplex_level)
+            combinations_m = get_random_combinations_0_channel(index_df,
+                                                            mplex_level)
         } else {
             display_message(paste("Please choose a correct platform",
                             "for your experiment"))
