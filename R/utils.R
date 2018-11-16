@@ -53,24 +53,23 @@ read_index = function(file) {
         ), silent = TRUE)
         if (exists("input")) {
             if (is(input)[1] == "try-error") {
+                assign("index", input, envir = index_env)  
+                return(input)
+            } else {
                 assign("index", NULL, envir = index_env) #index <<- NULL
                 display_message(
 "An error occurred, please check the content of your file")
-              return(NULL)
-            } else {
-               return(input) 
-               assign("index", input, envir = index_env)
+                return(NULL)
+
             }
         }
     }
-    #return(input)
 }
 
 
 unicity_check = function(index) {
-    index$sequence <- toupper(index$sequence)
-    assign("index", index, envir = index_env)
-    
+    index$sequence = toupper(index$sequence)
+    assign("index_df", index, envir = index_env)
     if (index$Id %>% anyDuplicated() != 0) {
         #checks if the index Ids are unique
         v = paste("two duplicated indexes IDs,check row number",
@@ -193,8 +192,8 @@ sample_number_check = function (sample_number) {
                         use multiplexing")
         return(FALSE)
     } else if (sample_number > 1000) {
-        display_message("The sample number is too high,
-                        please enter a value under 1000")
+        display_message(paste("The sample number is too high,",
+                        "please enter a value under 1000"))
         return(FALSE)
     }
     else {
@@ -215,10 +214,10 @@ sample_and_multiplexing_level_check = function(sample_number, mplex_level) {
     if (sample_number_check(sample_number)) {
         possible_multiplexing_level = multiplexing_level_set(sample_number)
         if (!(mplex_level %in% possible_multiplexing_level)) {
-            display_message(
-                "The sample number isn't a multiple of the multiplexing level.
-        Here are the possible multiplexing levels :"
-            )
+            display_message(paste(
+                "The sample number isn't a multiple of the multiplexing level.",
+        "Here are the possible multiplexing levels :"
+            ))
             display_message(possible_multiplexing_level)
             return(FALSE)
         } else {
