@@ -18,6 +18,8 @@ git rm -rf .
 
 ```
 git push origin gh-pages
+
+git push origin --delete the_remote_branch
 ```
 
 
@@ -49,6 +51,14 @@ git merge doc
 # Solve conflicts manually using a GUI
 git mergetool -t diffmerge
 ```
+
+6. Assign execution permission
+
+```
+git update-index --chmod=+x install.sh
+```
+
+
 
 ### R installation on Linux: dependencies
 
