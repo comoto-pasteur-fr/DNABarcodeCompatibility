@@ -52,7 +52,7 @@ read_index = function(file) {
             )
         ), silent = TRUE)
         if (exists("input")) {
-            if (is(input)[1] == "try-error") {
+            if (! "try-error" %in% is(input)) {
                 assign("index", input, envir = index_env)  
                 return(input)
             } else {
