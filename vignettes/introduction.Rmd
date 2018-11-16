@@ -77,13 +77,13 @@ library("DNABarcodeCompatibility")
 # This function is created for the purpose of the documentation 
 export_dataset_to_file = 
     function(dataset = DNABarcodeCompatibility::IlluminaIndexesRaw) {
-        if (is(dataset)[1]=="data.frame") {
+        if ("data.frame" %in% is(dataset)) {
             write.table(dataset,
                         textfile <- tempfile(),
                         row.names = FALSE, col.names = FALSE, quote=FALSE)
             return(textfile)
-        } else print("The input dataset isn't a data.frame:
-                    NOT exported into file")
+        } else print(paste("The input dataset isn't a data.frame:",
+                            "NOT exported into file"))
     }
 ```
 
