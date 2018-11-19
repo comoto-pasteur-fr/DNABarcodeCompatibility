@@ -38,6 +38,7 @@ index_env <- new.env() # ?bindenv() for help
 read_index = function(file) {
     if (!file.exists(file)) {
         display_message("Your file doesn't exist, please check the path")
+        return(NULL)
         assign("index", NULL, envir = index_env) #index <<- NULL
     } else{
         input <- try(as.data.frame(
@@ -51,24 +52,24 @@ read_index = function(file) {
             )
         ), silent = TRUE)
         if (exists("input")) {
-            if (is(input)[1] == "try-error") {
-                assign("index", NULL, envir = index_env) #index <<- NULL
-                display_message("An error occurred,
-                        please check the content of your file")
+            if (! "try-error" %in% is(input)) {
+                assign("index", input, envir = index_env)  
+                return(input)
             } else {
-                assign("index", input, envir = index_env)
+                assign("index", NULL, envir = index_env) #index <<- NULL
+                display_message(
+"An error occurred, please check the content of your file")
+                return(NULL)
+
             }
         }
     }
-    return(input)
 }
 
 
 unicity_check = function(index) {
-    # index$sequence <<- toupper(index$sequence)
-    index$sequence <- toupper(index$sequence)
-    assign("index", index, envir = index_env)
-    
+    index$sequence = toupper(index$sequence)
+    assign("index_df", index, envir = index_env)
     if (index$Id %>% anyDuplicated() != 0) {
         #checks if the index Ids are unique
         v = paste("two duplicated indexes IDs,check row number",
@@ -191,8 +192,8 @@ sample_number_check = function (sample_number) {
                         use multiplexing")
         return(FALSE)
     } else if (sample_number > 1000) {
-        display_message("The sample number is too high,
-                        please enter a value under 1000")
+        display_message(paste("The sample number is too high,",
+                        "please enter a value under 1000"))
         return(FALSE)
     }
     else {
@@ -213,10 +214,10 @@ sample_and_multiplexing_level_check = function(sample_number, mplex_level) {
     if (sample_number_check(sample_number)) {
         possible_multiplexing_level = multiplexing_level_set(sample_number)
         if (!(mplex_level %in% possible_multiplexing_level)) {
-            display_message(
-                "The sample number isn't a multiple of the multiplexing level.
-        Here are the possible multiplexing levels :"
-            )
+            display_message(paste(
+                "The sample number isn't a multiple of the multiplexing level.",
+        "Here are the possible multiplexing levels :"
+            ))
             display_message(possible_multiplexing_level)
             return(FALSE)
         } else {
@@ -1023,13 +1024,6 @@ check_for_duplicate = function(result1, result2) {
 
 
 
-
-
-
-# For java ----------------------------------------------------------------
-
-
-
 is_a_prime_number = function (sample_number) {
     result = isPrime(sample_number) %>% as.numeric()
     return(result)
@@ -1046,6 +1040,7 @@ final_result = function(index_df,
                         thrs_size_comb = 120,
                         max_iteration = 50,
                         method = "greedy_exchange") {
+    if (mplex_level<= nrow(index_df)){
     result1 = get_result(
         index_df,
         sample_number,
@@ -1056,8 +1051,12 @@ final_result = function(index_df,
         thrs_size_comb,
         max_iteration,
         method
-    )
-    
+    )}else {
+        result1 = NULL
+        display_message(
+        "the number of barcodes is not sufficient for the multiplexing level")
+    }
+
     if(!is.null(result1)){
     result1 = data.frame(
         sample = seq(1,sample_number) %>% as.character(),
@@ -1065,7 +1064,7 @@ final_result = function(index_df,
         Id = result1$Id %>% as.character(),
         stringsAsFactors = FALSE
     )
-    
+
     result1 = left_join(result1, select(index_df, Id, sequence), by = "Id")
     return (result1)
     } else {
