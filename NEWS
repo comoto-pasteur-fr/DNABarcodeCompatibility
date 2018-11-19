@@ -1,3 +1,9 @@
+Changes in version 0.99.4 (2018-11-19)
++ Improved error handling. Passed BioCheck 1.18 locally
+
+Changes in version 0.99.3 (2018-11-13)
++ Fixed R version to 3.5. Passed BioCheck 1.18 locally
+
 Changes in version 0.99.2 (2018-11-13)
 + New package features for the Shiny interface. Passed BioCheck 1.18 locally
 
