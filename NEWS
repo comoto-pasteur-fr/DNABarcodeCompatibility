@@ -1,3 +1,6 @@
+Changes in version 0.99.6 (2018-11-19)
++ Change installation procedure to allow package install on R<3.6. Passed BioCheck 1.18 locally
+
 Changes in version 0.99.5 (2018-11-19)
 + Remote BiocCheck imposes R >=3.6. Passed BioCheck 1.18 locally
 

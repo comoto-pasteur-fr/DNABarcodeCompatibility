@@ -24,7 +24,7 @@ install.packages("devtools")
 setRepositories(ind=1:2)
 
 # Install DNABarcodeCompatibility
-devtools::install_github("comoto-pasteur-fr/DNABarcodeCompatibility")
+devtools::install_github("comoto-pasteur-fr/DNABarcodeCompatibility", ref="revision")
 ```
 
 
