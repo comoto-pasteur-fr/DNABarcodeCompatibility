@@ -83,8 +83,9 @@ distance_filter = function(index_df, combinations_m, metric, d) {
             return (filtered_combinations_m)
         }
             } else {
-                display_message("metric should be 'hamming',
-                                'seqlev' or 'phaseshift'")
+                display_message(paste(
+                    "metric should be 'hamming',",
+                    "'seqlev' or 'phaseshift'"))
                 return(NULL)
             }
         } else {
