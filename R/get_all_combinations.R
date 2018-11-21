@@ -34,6 +34,7 @@
 
 get_all_combinations = function(index_df, mplex_level, platform){
     if (is.numeric(mplex_level)){
+        if(mplex_level <= 96){
     combination_m = NULL
         if (platform == 4 ){
             combinations_m = get_all_combinations_4_channel(index_df,
@@ -59,8 +60,11 @@ get_all_combinations = function(index_df, mplex_level, platform){
         }else{
             return (combinations_m)
         }
+        }else{display_message(
+            "The value of mplex_level should not be higher than 96")
+        }
     }else{
-        display_message("please enter a number as mplex_level")
+        display_message("Please enter a number as mplex_level")
         return(NULL)
     }
 }
