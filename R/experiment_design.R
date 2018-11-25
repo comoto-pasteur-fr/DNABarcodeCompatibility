@@ -162,8 +162,9 @@ experiment_design = function (
                     }
                     return(result)
                 } else{
-                    stop("The multiplexing level
-                        or the sample number is wrong")
+                    stop(paste(
+                        "The multiplexing level",
+                        "or the sample number is wrong"))
                 }
             } else{
                 stop("An error occured on the second file")
