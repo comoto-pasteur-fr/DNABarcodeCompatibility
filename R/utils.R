@@ -1151,6 +1151,5 @@ check_input_dataframe <- function(df, column_names){
             display_message(paste(  "wrong input format,",
                                     "missing column", missing_column_names))
     }
-       
 }
 
