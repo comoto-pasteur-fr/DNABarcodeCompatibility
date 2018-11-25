@@ -25,7 +25,7 @@ Illumina.}
 
 \item{file2}{The input data file that contains 2 columns separated by
 a space or a tabulation, namely the sequence identifiers and
-corresponding DNA sequence; used for dual-indexing.}
+corresponding DNA sequence; used for dual-indexing, see details below.}
 
 \item{export}{If not NULL, results are saved in a csv file at the
 specified path.}
@@ -59,6 +59,18 @@ DNA-barcode population and of the number of samples to be multiplexed.
 By specifying the total number of libraries and the number of libraries
 to be multiplexed, this function returns an optimal set of DNA-barcode
 combinations to be used for sequencing.
+
+In the case of \strong{single indexing}, one must only provide one input file
+containing a list of DNA barcodes (file1 argument). The file2 argument being
+optional, the program runs the optimisation for single indexing if this
+argument is left empty. The output shows the sample ID with its respective
+single barcode.
+
+In the case of \strong{dual indexing}, one must provide two input files
+containing DNA barcodes as two separate sets of barcodes. The program will
+detect these two files and automatically switch to the 'dual indexing' mode.
+The program then runs the optimisation for each barcode set separately.
+The output shows the sample ID with its respective pair of barcodes.
 
 The inputs of the algorithm are a list of n distinct barcodes,
 the number N of required libraries, and the multiplex level k; N = ak,
