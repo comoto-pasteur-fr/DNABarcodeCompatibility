@@ -152,8 +152,8 @@ index_check = function(index) {
 
 
 get_sequence_GC_content =  function (sequence) {
-    GC_content = str_count(sequence,
-                           pattern = ("G|C")) / nchar(sequence) * 100
+    GC_content = str_count( sequence,
+                            pattern = ("G|C")) / nchar(sequence) * 100
     return(round(GC_content, digits = 2))
 }
 

@@ -42,16 +42,16 @@ get_all_combinations = function(index_df, mplex_level, platform){
                 combination_m = NULL
                 if (platform == 4 ){
                     combinations_m = 
-                        get_all_combinations_4_channel(  index_df,
-                                                         mplex_level)
+                        get_all_combinations_4_channel( index_df,
+                                                        mplex_level)
                 } else if (platform == 2){
                     combinations_m = 
-                        get_all_combinations_2_channel(  index_df, 
-                                                         mplex_level)
+                        get_all_combinations_2_channel( index_df, 
+                                                        mplex_level)
                 } else if (platform == 1){
                     combinations_m = 
-                        get_all_combinations_1_channel(  index_df, 
-                                                         mplex_level)
+                        get_all_combinations_1_channel( index_df, 
+                                                        mplex_level)
                 } else if (platform == 0){
                     combinations_m = 
                         get_all_combinations_0_channel( index_df, 
