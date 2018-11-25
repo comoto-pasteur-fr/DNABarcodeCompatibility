@@ -45,6 +45,8 @@
 #' 
 
 distance_filter = function(index_df, combinations_m, metric, d) {
+    check_input_dataframe(  index_df, 
+                            c("Id", "sequence", "GC_content", "homopolymer"))
     if (is.numeric(d)) {
         if (d <= nchar(index_df$sequence[1])){
             index_distance_df =  index_distance(index_df)

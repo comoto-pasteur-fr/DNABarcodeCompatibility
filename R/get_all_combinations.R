@@ -34,38 +34,45 @@
 #' 
 
 get_all_combinations = function(index_df, mplex_level, platform){
+    check_input_dataframe(  index_df, 
+                            c("Id", "sequence", "GC_content", "homopolymer"))
     if (is.numeric(mplex_level)){
         if(mplex_level <= 96){
             if (mplex_level <= nrow(index_df)){
                 combination_m = NULL
                 if (platform == 4 ){
-                    combinations_m = get_all_combinations_4_channel(index_df,
-                                                                    mplex_level)
+                    combinations_m = 
+                        get_all_combinations_4_channel(  index_df,
+                                                         mplex_level)
                 } else if (platform == 2){
-                    combinations_m = get_all_combinations_2_channel(index_df, 
-                                                                    mplex_level)
+                    combinations_m = 
+                        get_all_combinations_2_channel(  index_df, 
+                                                         mplex_level)
                 } else if (platform == 1){
-                    combinations_m = get_all_combinations_1_channel(index_df, 
-                                                                    mplex_level)
+                    combinations_m = 
+                        get_all_combinations_1_channel(  index_df, 
+                                                         mplex_level)
                 } else if (platform == 0){
-                    combinations_m = get_all_combinations_0_channel(index_df, 
-                                                                    mplex_level)
+                    combinations_m = 
+                        get_all_combinations_0_channel( index_df, 
+                                                        mplex_level)
                 } else {
                     display_message("Please choose a correct platform 
                                         for your experiment ")
                 }
                 if(nrow(as.matrix(combinations_m)) == 0){
-                    display_message(paste("The programm didn't find any",
-                                          "compatible combination, please check", 
-                                          "your index list and your search",
-                                          "parameters"))
+                    display_message(
+                        paste(  "The programm didn't find any",
+                                "compatible combination, please check", 
+                                "your index list and your search",
+                                "parameters"))
                     return (NULL)
                 }else{
                     return (combinations_m)
                 }
-            } else {display_message(paste("The value of mplex_level",
-                                          " should not be higher than the",
-                                          "number of available barcodes"))
+            } else {display_message(paste(  "The value of mplex_level",
+                                            " should not be higher than the",
+                                            "number of available barcodes"))
             }
         } else {display_message(
             "The value of mplex_level should not be higher than 96")

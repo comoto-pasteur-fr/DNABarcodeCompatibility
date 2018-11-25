@@ -1140,3 +1140,13 @@ display_message <- function (a_message) {
     assign("error_message", a_message, envir = .GlobalEnv)
     print(a_message)
 }
+
+check_input_dataframe <- function(df, column_names){
+    if ( !("data.frame" %in% is(df) && 
+            all(column_names %in% names(df))) ){
+        display_message(paste(  "wrong input format,",
+                                "a dataframe containing '", column_names,
+                                "' columns is expected"))
+    }
+}
+
