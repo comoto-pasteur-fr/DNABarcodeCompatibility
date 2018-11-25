@@ -1142,11 +1142,15 @@ display_message <- function (a_message) {
 }
 
 check_input_dataframe <- function(df, column_names){
-    if ( !("data.frame" %in% is(df) && 
-            all(column_names %in% names(df))) ){
-        display_message(paste(  "wrong input format,",
-                                "a dataframe containing '", column_names,
-                                "' columns is expected"))
+    
+    if ( !("data.frame" %in% is(df))) {
+        display_message(paste(  "wrong input format: a dataframe is",
+                                "expected"))
+    } else if (!all(column_names %in% names(df))) {
+            missing_column_names <- setdiff(column_names, names(df))
+            display_message(paste(  "wrong input format,",
+                                    "missing column", missing_column_names))
     }
+       
 }
 
