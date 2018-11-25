@@ -45,6 +45,8 @@
 #' 
 
 distance_filter = function(index_df, combinations_m, metric, d) {
+    check_input_dataframe(  index_df, 
+                            c("Id", "sequence", "GC_content", "homopolymer"))
     if (is.numeric(d)) {
         if (d <= nchar(index_df$sequence[1])){
             index_distance_df =  index_distance(index_df)
@@ -83,8 +85,9 @@ distance_filter = function(index_df, combinations_m, metric, d) {
             return (filtered_combinations_m)
         }
             } else {
-                display_message("metric should be 'hamming',
-                                'seqlev' or 'phaseshift'")
+                display_message(paste(
+                    "metric should be 'hamming',",
+                    "'seqlev' or 'phaseshift'"))
                 return(NULL)
             }
         } else {

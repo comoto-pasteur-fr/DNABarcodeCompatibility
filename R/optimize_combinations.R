@@ -76,7 +76,15 @@ optimize_combinations = function (combination_m,
                                 thrs_size_comb = 120,
                                 max_iteration = 50,
                                 method = "greedy_exchange") {
-    # browser()
+    
+    if (!"matrix" %in% is(combination_m)) {
+        display_message(paste(  "Wrong input format, the combinations should", 
+                                "be given as a matrix. The  number of columns",
+                                "should be equal to the multiplex level and",
+                                "the number of rows should reflect the number",
+                                "of compatible combinations"))
+    }
+    
     if (nrow(as.matrix(combination_m)) == 0) {
         display_message("No combination have been found")
     } else {

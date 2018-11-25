@@ -152,7 +152,8 @@ index_check = function(index) {
 
 
 get_sequence_GC_content =  function (sequence) {
-    GC_content = str_count(sequence, pattern = ("G|C")) / nchar(sequence) * 100
+    GC_content = str_count( sequence,
+                            pattern = ("G|C")) / nchar(sequence) * 100
     return(round(GC_content, digits = 2))
 }
 
@@ -188,8 +189,8 @@ sample_number_check = function (sample_number) {
         return(FALSE)
     }
     else if (sample_number < 2) {
-        display_message("You need at least 2 samples in order to
-                        use multiplexing")
+        display_message(paste("You need at least 2 samples in order to",
+                        "use multiplexing"))
         return(FALSE)
     } else if (sample_number > 1000) {
         display_message(paste("The sample number is too high,",
@@ -1139,3 +1140,13 @@ display_message <- function (a_message) {
     assign("error_message", a_message, envir = .GlobalEnv)
     print(a_message)
 }
+
+check_input_dataframe <- function(df, column_names){
+    if ( !("data.frame" %in% is(df) && 
+            all(column_names %in% names(df))) ){
+        display_message(paste(  "wrong input format,",
+                                "a dataframe containing '", column_names,
+                                "' columns is expected"))
+    }
+}
+
