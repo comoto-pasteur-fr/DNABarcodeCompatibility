@@ -1,11 +1,14 @@
 
 
+
 About
 =================
 
 DNABarcodeCompatibility: R-package to find least-redundant sets of compatible barcodes for multiplex experiments.
 
-
+News
+=================
+The DNABarcodeCompatibility package has been approved by Bioconductor and will be released soon as a Bioconductor package. For more information, please follow this [link](https://github.com/Bioconductor/Contributions/issues/917)
 
 Installation 
 ================

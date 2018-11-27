@@ -1,4 +1,7 @@
 Changes in version 0.99.8 (2018-11-25)
++ Notify that the package was approved by Bioconductor
+
+Changes in version 0.99.8 (2018-11-25)
 + Fixed all Bioconductor reviewer's comments and updated documentation section accordingly. Passed BioCheck 1.18 locally
 
 Changes in version 0.99.7 (2018-11-19)
