@@ -1,4 +1,8 @@
-Changes in version 0.99.8 (2018-11-25)
+Changes in version 0.99.10 (2018-12-01)
++ Rewording of a few terms in the documentation
++ Notify the Package release in the Bioconductor dev branch
+
+Changes in version 0.99.9 (2018-11-25)
 + Notify that the package was approved by Bioconductor
 
 Changes in version 0.99.8 (2018-11-25)

@@ -2,8 +2,8 @@
 % Please edit documentation in R/experiment_design.R
 \name{experiment_design}
 \alias{experiment_design}
-\title{Find a set of barcode combinations with least redundant barcodes
-for single and dual indexing}
+\title{Find a set of barcode combinations with least heterogeneity in
+barcode usage for single and dual indexing}
 \usage{
 experiment_design(file1, sample_number, mplex_level, platform = 4,
 file2 = NULL, export = NULL, metric = NULL, d = 3, thrs_size_comb,
@@ -49,7 +49,7 @@ by lanes of the flow cell.
 }
 \description{
 This function uses the Shannon Entropy to identify a set of compatible
-barcode combinations with least redundancy between DNA barcodes,
+barcode combinations with least heterogeneity in barcode usage,
 in the context of single and dual indexing.
 It performs either an exhaustive or a random-greedy search of compatible
 DNA-barcode combinations depending on the size of the
