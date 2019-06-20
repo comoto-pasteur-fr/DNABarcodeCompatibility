@@ -1,9 +1,10 @@
 #' @title
-#' Find a set of barcode combinations with least redundant barcodes
+#' Find a set of barcode combinations with least heterogeneity
+#' in barcode usage
 #'
 #' @description
 #' This function uses the Shannon Entropy to identify a set of compatible
-#' barcode combinations with least redundancy between DNA barcodes.
+#' barcode combinations with least heterogeneity in barcode usage.
 #'
 #' @usage
 #' optimize_combinations(combination_m, nb_lane, index_number,

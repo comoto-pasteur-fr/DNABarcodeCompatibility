@@ -2,7 +2,8 @@
 % Please edit documentation in R/optimize_combinations.R
 \name{optimize_combinations}
 \alias{optimize_combinations}
-\title{Find a set of barcode combinations with least redundant barcodes}
+\title{Find a set of barcode combinations with least heterogeneity
+in barcode usage}
 \usage{
 optimize_combinations(combination_m, nb_lane, index_number,
 thrs_size_comb, max_iteration, method)
@@ -31,7 +32,7 @@ of compatible barcodes.
 }
 \description{
 This function uses the Shannon Entropy to identify a set of compatible
-barcode combinations with least redundancy between DNA barcodes.
+barcode combinations with least heterogeneity in barcode usage.
 }
 \details{
 N/k compatible combinations are then selected using a Shannon entropy

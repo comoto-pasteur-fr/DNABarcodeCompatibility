@@ -1,10 +1,10 @@
 #' @title
-#' Find a set of barcode combinations with least redundant barcodes
-#' for single and dual indexing
+#' Find a set of barcode combinations with least heterogeneity in 
+#' barcode usage for single and dual indexing
 #'
 #' @description
 #' This function uses the Shannon Entropy to identify a set of compatible
-#' barcode combinations with least redundancy between DNA barcodes,
+#' barcode combinations with least heterogeneity in barcode usage,
 #' in the context of single and dual indexing.
 #' It performs either an exhaustive or a random-greedy search of compatible
 #' DNA-barcode combinations depending on the size of the
