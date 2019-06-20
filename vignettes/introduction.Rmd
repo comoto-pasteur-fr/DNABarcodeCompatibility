@@ -8,12 +8,13 @@ output:
         toc: true
     BiocStyle::pdf_document:
         toc: true
+vignette: >
+  %\VignetteIndexEntry{Introduction to DNABarcodeCompatibility}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+  \usepackage[utf8]{inputenc}
 ---
-<!--
-%% \VignetteEngine{knitr::rmarkdown}
-%\VignetteIndexEntry{Introduction to DNABarcodeCompatibility}
-%\VignetteEncoding{UTF-8}
--->
+
 
 ```{r style, echo = FALSE, results = 'asis', warnings=FALSE, messages=FALSE}
 # <style>
