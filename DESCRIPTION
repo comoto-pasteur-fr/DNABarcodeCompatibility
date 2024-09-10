@@ -13,7 +13,7 @@ License: file LICENSE
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 6.1.1
-Imports: dplyr, tidyr, numbers, purrr, stringr, stats, utils, methods
+Imports: dplyr, tidyr, numbers, purrr, stringr, stats, utils, methods, Rcpp (>= 1.0.13)
 Depends: R (>= 3.6.0)
 Suggests: knitr, rmarkdown, BiocStyle, testthat
 VignetteBuilder: knitr
