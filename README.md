@@ -15,7 +15,7 @@ DNABarcodeCompatibility: R-package to find optimised sets of compatible barcodes
 Reference
 ==========
 
-**Please cite** "Trébeau C, Boutet de Monvel J, Wong Jun Tai F, Petit C, Etournay R. DNABarcodeCompatibility: an R-package for optimizing DNA-barcode combinations in multiplex sequencing experiments. Bioinformatics. 2019 Aug 1;35(15):2690-2691. doi: 10.1093/bioinformatics/bty1030. PMID: 30576403; PMCID: PMC6662285."
+**Please cite** "*Trébeau C, Boutet de Monvel J, Wong Jun Tai F, Petit C, Etournay R. DNABarcodeCompatibility: an R-package for optimizing DNA-barcode combinations in multiplex sequencing experiments. Bioinformatics. 2019 Aug 1;35(15):2690-2691. doi: 10.1093/bioinformatics/bty1030. PMID: 30576403; PMCID: PMC6662285.*"
 
 
 
